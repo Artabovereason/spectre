@@ -1,0 +1,351 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - Evolution/Systems/Cce/AnalyticSolutions/WorldtubeData.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../../index.html">top level</a> - <a href="index.html">Evolution/Systems/Cce/AnalyticSolutions</a> - WorldtubeData.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">3</td>
+            <td class="headerCovTableEntry">37</td>
+            <td class="headerCovTableEntryLo">8.1 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #pragma once
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;cstddef&gt;
+<span class="lineNum">       7 </span>            : 
+<span class="lineNum">       8 </span>            : #include &quot;DataStructures/DataBox/DataBox.hpp&quot;
+<span class="lineNum">       9 </span>            : #include &quot;DataStructures/DataVector.hpp&quot;
+<span class="lineNum">      10 </span>            : #include &quot;DataStructures/Tensor/Tensor.hpp&quot;
+<span class="lineNum">      11 </span>            : #include &quot;Evolution/Systems/Cce/Tags.hpp&quot;
+<span class="lineNum">      12 </span>            : #include &quot;Evolution/Systems/GeneralizedHarmonic/Tags.hpp&quot;
+<span class="lineNum">      13 </span>            : #include &quot;NumericalAlgorithms/LinearOperators/PartialDerivatives.hpp&quot;
+<span class="lineNum">      14 </span>            : #include &quot;NumericalAlgorithms/Spectral/SwshCollocation.hpp&quot;
+<span class="lineNum">      15 </span>            : #include &quot;Parallel/CharmPupable.hpp&quot;
+<span class="lineNum">      16 </span>            : #include &quot;PointwiseFunctions/AnalyticSolutions/AnalyticSolution.hpp&quot;
+<span class="lineNum">      17 </span>            : #include &quot;PointwiseFunctions/GeneralRelativity/Tags.hpp&quot;
+<span class="lineNum">      18 </span>            : #include &quot;Utilities/ContainerHelpers.hpp&quot;
+<span class="lineNum">      19 </span>            : #include &quot;Utilities/Gsl.hpp&quot;
+<span class="lineNum">      20 </span>            : #include &quot;Utilities/TMPL.hpp&quot;
+<span class="lineNum">      21 </span>            : #include &quot;Utilities/TaggedTuple.hpp&quot;
+<span class="lineNum">      22 </span>            : 
+<span class="lineNum">      23 </span>            : namespace Cce {
+<span class="lineNum">      24 </span>            : namespace Solutions {
+<span class="lineNum">      25 </span>            : 
+<span class="lineNum">      26 </span>            : /// \cond
+<span class="lineNum">      27 </span>            : class BouncingBlackHole;
+<span class="lineNum">      28 </span>            : /// \endcond
+<span class="lineNum">      29 </span>            : 
+<span class="lineNum">      30 </span>            : /*!
+<span class="lineNum">      31 </span>            :  * \brief Abstract base class for analytic worldtube data for verifying the CCE
+<span class="lineNum">      32 </span>            :  * system.
+<span class="lineNum">      33 </span>            :  *
+<span class="lineNum">      34 </span>            :  * \details All of the boundary data quantities are provided by the
+<span class="lineNum">      35 </span>            :  * `WorldtubeData::variables()` function.
+<span class="lineNum">      36 </span>            :  *
+<span class="lineNum">      37 </span>            :  * This class provides caching and conversion between different
+<span class="lineNum">      38 </span>            :  * representations of the metric data needed for the worldtube computation and
+<span class="lineNum">      39 </span>            :  * evolution. The set of pure virtual functions (required to be overriden in the
+<span class="lineNum">      40 </span>            :  * derived classes) is:
+<span class="lineNum">      41 </span>            :  * - `WorldtubeData::get_clone()`: should return a
+<span class="lineNum">      42 </span>            :  * `std::unique_ptr&lt;WorldtubeData&gt;` with cloned state
+<span class="lineNum">      43 </span>            :  * - `WorldtubeData::variables_impl()` (a `protected` function): should compute
+<span class="lineNum">      44 </span>            :  * and return by `not_null` pointer the spacetime metric quantity requested in
+<span class="lineNum">      45 </span>            :  * the final (metavariable) tag argument. The function overloads that are
+<span class="lineNum">      46 </span>            :  * required to be overriden in the derived class are
+<span class="lineNum">      47 </span>            :  * `gr::Tags::SpacetimeMetric&lt;3, ::Frame::Inertial, DataVector&gt;`,
+<span class="lineNum">      48 </span>            :  * `::Tags::dt&lt;gr::Tags::SpacetimeMetric&lt;3, ::Frame::Inertial, DataVector&gt;&gt;`,
+<span class="lineNum">      49 </span>            :  * `GeneralizedHarmonic::Tags::Phi&lt;3, ::Frame::Inertial&gt;`, and
+<span class="lineNum">      50 </span>            :  * `Cce::Tags::News`.
+<span class="lineNum">      51 </span>            :  * - `prepare_solution()`: Any initial precomputation needed to determine all of
+<span class="lineNum">      52 </span>            :  * the solutions efficiently. This function is called by the base class prior to
+<span class="lineNum">      53 </span>            :  * computing or retrieving from the internal cache the requested quantities.
+<span class="lineNum">      54 </span>            :  *
+<span class="lineNum">      55 </span>            :  * \warning This class is not intended to be threadsafe! Therefore, using
+<span class="lineNum">      56 </span>            :  * instances of this class placed into the const global cache results in
+<span class="lineNum">      57 </span>            :  * undefined behavior. The analytic data for CCE is not easily represented as a
+<span class="lineNum">      58 </span>            :  * full closed-form solution for the entire Bondi-Sachs-like metric over the
+<span class="lineNum">      59 </span>            :  * domain, so this class and its descendants perform numerical calculations such
+<span class="lineNum">      60 </span>            :  * as spin-weighted derivatives over the sphere. Instead, it makes best sense to
+<span class="lineNum">      61 </span>            :  * compute the global solution over the extraction sphere, and cache
+<span class="lineNum">      62 </span>            :  * intermediate steps to avoid repeating potentially expensive tensor
+<span class="lineNum">      63 </span>            :  * calculations.
+<span class="lineNum">      64 </span>            :  */
+<span class="lineNum">      65 </span><span class="lineCov">          1 : struct WorldtubeData : public PUP::able {</span>
+<span class="lineNum">      66 </span><span class="lineNoCov">          0 :   using creatable_classes = tmpl::list&lt;BouncingBlackHole&gt;;</span>
+<span class="lineNum">      67 </span>            : 
+<span class="lineNum">      68 </span>            :   /// The set of available tags provided by the analytic solution
+<span class="lineNum">      69 </span><span class="lineCov">          1 :   using tags = tmpl::list&lt;</span>
+<span class="lineNum">      70 </span>            :       Tags::CauchyCartesianCoords, Tags::Dr&lt;Tags::CauchyCartesianCoords&gt;,
+<span class="lineNum">      71 </span>            :       gr::Tags::SpacetimeMetric&lt;3, ::Frame::Inertial, DataVector&gt;,
+<span class="lineNum">      72 </span>            :       ::Tags::dt&lt;gr::Tags::SpacetimeMetric&lt;3, ::Frame::Inertial, DataVector&gt;&gt;,
+<span class="lineNum">      73 </span>            :       GeneralizedHarmonic::Tags::Pi&lt;3, ::Frame::Inertial&gt;,
+<span class="lineNum">      74 </span>            :       GeneralizedHarmonic::Tags::Phi&lt;3, ::Frame::Inertial&gt;,
+<span class="lineNum">      75 </span>            :       gr::Tags::SpatialMetric&lt;3, ::Frame::Inertial, DataVector&gt;,
+<span class="lineNum">      76 </span>            :       ::Tags::dt&lt;gr::Tags::SpatialMetric&lt;3, ::Frame::Inertial, DataVector&gt;&gt;,
+<span class="lineNum">      77 </span>            :       Tags::Dr&lt;gr::Tags::SpatialMetric&lt;3, ::Frame::Inertial, DataVector&gt;&gt;,
+<span class="lineNum">      78 </span>            :       gr::Tags::Shift&lt;3, ::Frame::Inertial, DataVector&gt;,
+<span class="lineNum">      79 </span>            :       ::Tags::dt&lt;gr::Tags::Shift&lt;3, ::Frame::Inertial, DataVector&gt;&gt;,
+<span class="lineNum">      80 </span>            :       Tags::Dr&lt;gr::Tags::Shift&lt;3, ::Frame::Inertial, DataVector&gt;&gt;,
+<span class="lineNum">      81 </span>            :       gr::Tags::Lapse&lt;DataVector&gt;, ::Tags::dt&lt;gr::Tags::Lapse&lt;DataVector&gt;&gt;,
+<span class="lineNum">      82 </span>            :       Tags::Dr&lt;gr::Tags::Lapse&lt;DataVector&gt;&gt;, Tags::News&gt;;
+<span class="lineNum">      83 </span>            : 
+<span class="lineNum">      84 </span><span class="lineNoCov">          0 :   WRAPPED_PUPable_abstract(WorldtubeData);  // NOLINT</span>
+<span class="lineNum">      85 </span>            : 
+<span class="lineNum">      86 </span>            :   // clang doesn't manage to use = default correctly in this case
+<span class="lineNum">      87 </span>            :   // NOLINTNEXTLINE(hicpp-use-equals-default)
+<span class="lineNum">      88 </span><span class="lineNoCov">          0 :   WorldtubeData() noexcept {};</span>
+<span class="lineNum">      89 </span>            : 
+<span class="lineNum">      90 </span><span class="lineNoCov">          0 :   explicit WorldtubeData(const double extraction_radius) noexcept</span>
+<span class="lineNum">      91 </span>            :       : extraction_radius_{extraction_radius} {}
+<span class="lineNum">      92 </span>            : 
+<span class="lineNum">      93 </span><span class="lineNoCov">          0 :   virtual std::unique_ptr&lt;WorldtubeData&gt; get_clone() const noexcept = 0;</span>
+<span class="lineNum">      94 </span>            : 
+<span class="lineNum">      95 </span>            :   /*!
+<span class="lineNum">      96 </span>            :    * \brief Retrieve worldtube data represented by the analytic solution, at
+<span class="lineNum">      97 </span>            :    * boundary angular resolution `l_max` and time `time`
+<span class="lineNum">      98 </span>            :    *
+<span class="lineNum">      99 </span>            :    * \details The set of requested tags are specified by the final argument,
+<span class="lineNum">     100 </span>            :    * which must be a `tmpl::list` of tags to be retrieved. The set of available
+<span class="lineNum">     101 </span>            :    * tags is found in `WorldtubeData::tags`, and includes coordinate and
+<span class="lineNum">     102 </span>            :    * Jacobian quantities as well as metric quantities and derivatives thereof.
+<span class="lineNum">     103 </span>            :    */
+<span class="lineNum">     104 </span>            :   template &lt;typename... Tags&gt;
+<span class="lineNum">     105 </span><span class="lineCov">          1 :   tuples::TaggedTuple&lt;Tags...&gt; variables(const size_t output_l_max,</span>
+<span class="lineNum">     106 </span>            :                                          const double time,
+<span class="lineNum">     107 </span>            :                                          tmpl::list&lt;Tags...&gt; /*meta*/) const
+<span class="lineNum">     108 </span>            :       noexcept {
+<span class="lineNum">     109 </span>            :     prepare_solution(output_l_max, time);
+<span class="lineNum">     110 </span>            :     return {cache_or_compute&lt;Tags&gt;(output_l_max, time)...};
+<span class="lineNum">     111 </span>            :   }
+<span class="lineNum">     112 </span>            : 
+<span class="lineNum">     113 </span><span class="lineNoCov">          0 :   void pup(PUP::er&amp; p) noexcept override;</span>
+<span class="lineNum">     114 </span>            : 
+<span class="lineNum">     115 </span>            :  protected:
+<span class="lineNum">     116 </span>            :   template &lt;typename Tag&gt;
+<span class="lineNum">     117 </span><span class="lineNoCov">          0 :   const auto&amp; cache_or_compute(const size_t output_l_max,</span>
+<span class="lineNum">     118 </span>            :                                const double time) const noexcept {
+<span class="lineNum">     119 </span>            :     auto&amp; item_cache = get&lt;IntermediateCacheTag&lt;Tag&gt;&gt;(intermediate_cache_);
+<span class="lineNum">     120 </span>            :     if (item_cache.l_max == output_l_max and item_cache.time == time) {
+<span class="lineNum">     121 </span>            :       return item_cache.data;
+<span class="lineNum">     122 </span>            :     }
+<span class="lineNum">     123 </span>            :     auto&amp; item = item_cache.data;
+<span class="lineNum">     124 </span>            :     destructive_resize_components(
+<span class="lineNum">     125 </span>            :         make_not_null(&amp;item),
+<span class="lineNum">     126 </span>            :         Spectral::Swsh::number_of_swsh_collocation_points(output_l_max));
+<span class="lineNum">     127 </span>            :     variables_impl(make_not_null(&amp;item), output_l_max, time,
+<span class="lineNum">     128 </span>            :                    tmpl::type_&lt;Tag&gt;{});
+<span class="lineNum">     129 </span>            :     item_cache.l_max = output_l_max;
+<span class="lineNum">     130 </span>            :     item_cache.time = time;
+<span class="lineNum">     131 </span>            :     return item;
+<span class="lineNum">     132 </span>            :   }
+<span class="lineNum">     133 </span><span class="lineNoCov">          0 :   virtual void prepare_solution(size_t output_l_max, double time) const</span>
+<span class="lineNum">     134 </span>            :       noexcept = 0;
+<span class="lineNum">     135 </span>            : 
+<span class="lineNum">     136 </span>            :   // note that function template cannot be virtual, so we have to emulate
+<span class="lineNum">     137 </span>            :   // template specializations through function overloads
+<span class="lineNum">     138 </span><span class="lineNoCov">          0 :   virtual void variables_impl(</span>
+<span class="lineNum">     139 </span>            :       gsl::not_null&lt;tnsr::i&lt;DataVector, 3&gt;*&gt; cartesian_coordinates,
+<span class="lineNum">     140 </span>            :       size_t output_l_max, double time,
+<span class="lineNum">     141 </span>            :       tmpl::type_&lt;Tags::CauchyCartesianCoords&gt; /*meta*/) const noexcept;
+<span class="lineNum">     142 </span>            : 
+<span class="lineNum">     143 </span><span class="lineNoCov">          0 :   virtual void variables_impl(</span>
+<span class="lineNum">     144 </span>            :       gsl::not_null&lt;tnsr::i&lt;DataVector, 3&gt;*&gt; dr_cartesian_coordinates,
+<span class="lineNum">     145 </span>            :       size_t output_l_max, double time,
+<span class="lineNum">     146 </span>            :       tmpl::type_&lt;Tags::Dr&lt;Tags::CauchyCartesianCoords&gt;&gt; /*meta*/) const
+<span class="lineNum">     147 </span>            :       noexcept;
+<span class="lineNum">     148 </span>            : 
+<span class="lineNum">     149 </span><span class="lineNoCov">          0 :   virtual void variables_impl(</span>
+<span class="lineNum">     150 </span>            :       gsl::not_null&lt;tnsr::aa&lt;DataVector, 3&gt;*&gt; spacetime_metric,
+<span class="lineNum">     151 </span>            :       size_t output_l_max, double time,
+<span class="lineNum">     152 </span>            :       tmpl::type_&lt;gr::Tags::SpacetimeMetric&lt;3, ::Frame::Inertial, DataVector&gt;&gt;
+<span class="lineNum">     153 </span>            :       /*meta*/) const noexcept = 0;
+<span class="lineNum">     154 </span>            : 
+<span class="lineNum">     155 </span><span class="lineNoCov">          0 :   virtual void variables_impl(</span>
+<span class="lineNum">     156 </span>            :       gsl::not_null&lt;tnsr::aa&lt;DataVector, 3&gt;*&gt; dt_spacetime_metric,
+<span class="lineNum">     157 </span>            :       size_t output_l_max, double time,
+<span class="lineNum">     158 </span>            :       tmpl::type_&lt;::Tags::dt&lt;
+<span class="lineNum">     159 </span>            :           gr::Tags::SpacetimeMetric&lt;3, ::Frame::Inertial, DataVector&gt;&gt;&gt;
+<span class="lineNum">     160 </span>            :       /*meta*/) const noexcept = 0;
+<span class="lineNum">     161 </span>            : 
+<span class="lineNum">     162 </span><span class="lineNoCov">          0 :   virtual void variables_impl(</span>
+<span class="lineNum">     163 </span>            :       gsl::not_null&lt;tnsr::aa&lt;DataVector, 3&gt;*&gt; pi, size_t output_l_max,
+<span class="lineNum">     164 </span>            :       double time,
+<span class="lineNum">     165 </span>            :       tmpl::type_&lt;GeneralizedHarmonic::Tags::Pi&lt;3, ::Frame::Inertial&gt;&gt;
+<span class="lineNum">     166 </span>            :       /*meta*/) const noexcept;
+<span class="lineNum">     167 </span>            : 
+<span class="lineNum">     168 </span><span class="lineNoCov">          0 :   virtual void variables_impl(</span>
+<span class="lineNum">     169 </span>            :       gsl::not_null&lt;tnsr::iaa&lt;DataVector, 3&gt;*&gt; d_spacetime_metric,
+<span class="lineNum">     170 </span>            :       size_t output_l_max, double time,
+<span class="lineNum">     171 </span>            :       tmpl::type_&lt;GeneralizedHarmonic::Tags::Phi&lt;3, ::Frame::Inertial&gt;&gt;
+<span class="lineNum">     172 </span>            :       /*meta*/) const noexcept = 0;
+<span class="lineNum">     173 </span>            : 
+<span class="lineNum">     174 </span><span class="lineNoCov">          0 :   virtual void variables_impl(</span>
+<span class="lineNum">     175 </span>            :       gsl::not_null&lt;tnsr::ii&lt;DataVector, 3&gt;*&gt; spatial_metric,
+<span class="lineNum">     176 </span>            :       size_t output_l_max, double time,
+<span class="lineNum">     177 </span>            :       tmpl::type_&lt;gr::Tags::SpatialMetric&lt;3, ::Frame::Inertial, DataVector&gt;&gt;
+<span class="lineNum">     178 </span>            :       /*meta*/) const noexcept;
+<span class="lineNum">     179 </span>            : 
+<span class="lineNum">     180 </span><span class="lineNoCov">          0 :   virtual void variables_impl(</span>
+<span class="lineNum">     181 </span>            :       gsl::not_null&lt;tnsr::ii&lt;DataVector, 3&gt;*&gt; dt_spatial_metric,
+<span class="lineNum">     182 </span>            :       size_t output_l_max, double time,
+<span class="lineNum">     183 </span>            :       tmpl::type_&lt;
+<span class="lineNum">     184 </span>            :           ::Tags::dt&lt;gr::Tags::SpatialMetric&lt;3, ::Frame::Inertial, DataVector&gt;&gt;&gt;
+<span class="lineNum">     185 </span>            :       /*meta*/) const noexcept;
+<span class="lineNum">     186 </span>            : 
+<span class="lineNum">     187 </span><span class="lineNoCov">          0 :   virtual void variables_impl(</span>
+<span class="lineNum">     188 </span>            :       gsl::not_null&lt;tnsr::ii&lt;DataVector, 3&gt;*&gt; dr_spatial_metric,
+<span class="lineNum">     189 </span>            :       size_t output_l_max, double time,
+<span class="lineNum">     190 </span>            :       tmpl::type_&lt;
+<span class="lineNum">     191 </span>            :           Tags::Dr&lt;gr::Tags::SpatialMetric&lt;3, ::Frame::Inertial, DataVector&gt;&gt;&gt;
+<span class="lineNum">     192 </span>            :       /*meta*/) const noexcept;
+<span class="lineNum">     193 </span>            : 
+<span class="lineNum">     194 </span><span class="lineNoCov">          0 :   virtual void variables_impl(</span>
+<span class="lineNum">     195 </span>            :       gsl::not_null&lt;tnsr::I&lt;DataVector, 3&gt;*&gt; shift, size_t output_l_max,
+<span class="lineNum">     196 </span>            :       double time,
+<span class="lineNum">     197 </span>            :       tmpl::type_&lt;gr::Tags::Shift&lt;3, ::Frame::Inertial, DataVector&gt;&gt;
+<span class="lineNum">     198 </span>            :       /*meta*/) const noexcept;
+<span class="lineNum">     199 </span>            : 
+<span class="lineNum">     200 </span><span class="lineNoCov">          0 :   virtual void variables_impl(</span>
+<span class="lineNum">     201 </span>            :       gsl::not_null&lt;tnsr::I&lt;DataVector, 3&gt;*&gt; dt_shift, size_t output_l_max,
+<span class="lineNum">     202 </span>            :       double time,
+<span class="lineNum">     203 </span>            :       tmpl::type_&lt;::Tags::dt&lt;gr::Tags::Shift&lt;3, ::Frame::Inertial, DataVector&gt;&gt;&gt;
+<span class="lineNum">     204 </span>            :       /*meta*/) const noexcept;
+<span class="lineNum">     205 </span>            : 
+<span class="lineNum">     206 </span><span class="lineNoCov">          0 :   virtual void variables_impl(</span>
+<span class="lineNum">     207 </span>            :       gsl::not_null&lt;tnsr::I&lt;DataVector, 3&gt;*&gt; dr_shift, size_t output_l_max,
+<span class="lineNum">     208 </span>            :       double time,
+<span class="lineNum">     209 </span>            :       tmpl::type_&lt;Tags::Dr&lt;gr::Tags::Shift&lt;3, ::Frame::Inertial, DataVector&gt;&gt;&gt;
+<span class="lineNum">     210 </span>            :       /*meta*/) const noexcept;
+<span class="lineNum">     211 </span>            : 
+<span class="lineNum">     212 </span><span class="lineNoCov">          0 :   virtual void variables_impl(gsl::not_null&lt;Scalar&lt;DataVector&gt;*&gt; lapse,</span>
+<span class="lineNum">     213 </span>            :                               size_t output_l_max, double time,
+<span class="lineNum">     214 </span>            :                               tmpl::type_&lt;gr::Tags::Lapse&lt;DataVector&gt;&gt;
+<span class="lineNum">     215 </span>            :                               /*meta*/) const noexcept;
+<span class="lineNum">     216 </span>            : 
+<span class="lineNum">     217 </span><span class="lineNoCov">          0 :   virtual void variables_impl(</span>
+<span class="lineNum">     218 </span>            :       gsl::not_null&lt;Scalar&lt;DataVector&gt;*&gt; dt_lapse, size_t output_l_max,
+<span class="lineNum">     219 </span>            :       double time, tmpl::type_&lt;::Tags::dt&lt;gr::Tags::Lapse&lt;DataVector&gt;&gt;&gt;
+<span class="lineNum">     220 </span>            :       /*meta*/) const noexcept;
+<span class="lineNum">     221 </span>            : 
+<span class="lineNum">     222 </span><span class="lineNoCov">          0 :   virtual void variables_impl(gsl::not_null&lt;Scalar&lt;DataVector&gt;*&gt; dr_lapse,</span>
+<span class="lineNum">     223 </span>            :                               size_t output_l_max, double time,
+<span class="lineNum">     224 </span>            :                               tmpl::type_&lt;Tags::Dr&lt;gr::Tags::Lapse&lt;DataVector&gt;&gt;&gt;
+<span class="lineNum">     225 </span>            :                               /*meta*/) const noexcept;
+<span class="lineNum">     226 </span>            : 
+<span class="lineNum">     227 </span><span class="lineNoCov">          0 :   virtual void variables_impl(</span>
+<span class="lineNum">     228 </span>            :       gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, -2&gt;&gt;*&gt; news,
+<span class="lineNum">     229 </span>            :       size_t output_l_max, double time, tmpl::type_&lt;Tags::News&gt; /*meta*/) const
+<span class="lineNum">     230 </span>            :       noexcept = 0;
+<span class="lineNum">     231 </span>            : 
+<span class="lineNum">     232 </span>            :   template &lt;typename Tag&gt;
+<span class="lineNum">     233 </span><span class="lineNoCov">          0 :   struct IntermediateCache {</span>
+<span class="lineNum">     234 </span><span class="lineNoCov">          0 :     db::item_type&lt;Tag&gt; data;</span>
+<span class="lineNum">     235 </span><span class="lineNoCov">          0 :     size_t l_max = 0;</span>
+<span class="lineNum">     236 </span><span class="lineNoCov">          0 :     double time = -std::numeric_limits&lt;double&gt;::infinity();</span>
+<span class="lineNum">     237 </span>            :   };
+<span class="lineNum">     238 </span>            : 
+<span class="lineNum">     239 </span>            :   template &lt;typename Tag&gt;
+<span class="lineNum">     240 </span><span class="lineNoCov">          0 :   struct IntermediateCacheTag {</span>
+<span class="lineNum">     241 </span><span class="lineNoCov">          0 :     using type = IntermediateCache&lt;Tag&gt;;</span>
+<span class="lineNum">     242 </span>            :   };
+<span class="lineNum">     243 </span>            : 
+<span class="lineNum">     244 </span><span class="lineNoCov">          0 :   using IntermediateCacheTuple =</span>
+<span class="lineNum">     245 </span>            :       tuples::tagged_tuple_from_typelist&lt;tmpl::transform&lt;
+<span class="lineNum">     246 </span>            :           tmpl::list&lt;
+<span class="lineNum">     247 </span>            :               Tags::CauchyCartesianCoords,
+<span class="lineNum">     248 </span>            :               Tags::Dr&lt;Tags::CauchyCartesianCoords&gt;,
+<span class="lineNum">     249 </span>            :               gr::Tags::SpacetimeMetric&lt;3, ::Frame::Inertial, DataVector&gt;,
+<span class="lineNum">     250 </span>            :               GeneralizedHarmonic::Tags::Pi&lt;3, ::Frame::Inertial&gt;,
+<span class="lineNum">     251 </span>            :               GeneralizedHarmonic::Tags::Phi&lt;3, ::Frame::Inertial&gt;,
+<span class="lineNum">     252 </span>            :               gr::Tags::SpatialMetric&lt;3, ::Frame::Inertial, DataVector&gt;,
+<span class="lineNum">     253 </span>            :               gr::Tags::Shift&lt;3, ::Frame::Inertial, DataVector&gt;,
+<span class="lineNum">     254 </span>            :               gr::Tags::Lapse&lt;DataVector&gt;,
+<span class="lineNum">     255 </span>            :               ::Tags::dt&lt;
+<span class="lineNum">     256 </span>            :                   gr::Tags::SpacetimeMetric&lt;3, ::Frame::Inertial, DataVector&gt;&gt;,
+<span class="lineNum">     257 </span>            :               ::Tags::dt&lt;
+<span class="lineNum">     258 </span>            :                   gr::Tags::SpatialMetric&lt;3, ::Frame::Inertial, DataVector&gt;&gt;,
+<span class="lineNum">     259 </span>            :               ::Tags::dt&lt;gr::Tags::Shift&lt;3, ::Frame::Inertial, DataVector&gt;&gt;,
+<span class="lineNum">     260 </span>            :               ::Tags::dt&lt;gr::Tags::Lapse&lt;DataVector&gt;&gt;,
+<span class="lineNum">     261 </span>            :               Tags::Dr&lt;
+<span class="lineNum">     262 </span>            :                   gr::Tags::SpatialMetric&lt;3, ::Frame::Inertial, DataVector&gt;&gt;,
+<span class="lineNum">     263 </span>            :               Tags::Dr&lt;gr::Tags::Shift&lt;3, ::Frame::Inertial, DataVector&gt;&gt;,
+<span class="lineNum">     264 </span>            :               Tags::Dr&lt;gr::Tags::Lapse&lt;DataVector&gt;&gt;, Tags::News&gt;,
+<span class="lineNum">     265 </span>            :           tmpl::bind&lt;IntermediateCacheTag, tmpl::_1&gt;&gt;&gt;;
+<span class="lineNum">     266 </span>            : 
+<span class="lineNum">     267 </span><span class="lineNoCov">          0 :   mutable IntermediateCacheTuple intermediate_cache_;</span>
+<span class="lineNum">     268 </span><span class="lineNoCov">          0 :   double extraction_radius_ = std::numeric_limits&lt;double&gt;::quiet_NaN();</span>
+<span class="lineNum">     269 </span>            : };
+<span class="lineNum">     270 </span>            : }  // namespace Solutions
+<span class="lineNum">     271 </span>            : }  // namespace Cce
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

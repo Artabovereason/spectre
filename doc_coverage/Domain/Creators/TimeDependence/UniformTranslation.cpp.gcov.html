@@ -1,0 +1,271 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - Domain/Creators/TimeDependence/UniformTranslation.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../index.html">top level</a> - <a href="index.html">Domain/Creators/TimeDependence</a> - UniformTranslation.cpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">5</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #include &quot;Domain/Creators/TimeDependence/UniformTranslation.hpp&quot;
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;array&gt;
+<span class="lineNum">       7 </span>            : #include &lt;cstddef&gt;
+<span class="lineNum">       8 </span>            : #include &lt;memory&gt;
+<span class="lineNum">       9 </span>            : #include &lt;ostream&gt;
+<span class="lineNum">      10 </span>            : #include &lt;string&gt;
+<span class="lineNum">      11 </span>            : #include &lt;vector&gt;
+<span class="lineNum">      12 </span>            : 
+<span class="lineNum">      13 </span>            : #include &quot;DataStructures/DataVector.hpp&quot;
+<span class="lineNum">      14 </span>            : #include &quot;DataStructures/Tensor/IndexType.hpp&quot;
+<span class="lineNum">      15 </span>            : #include &quot;Domain/CoordinateMaps/CoordinateMap.tpp&quot;
+<span class="lineNum">      16 </span>            : #include &quot;Domain/CoordinateMaps/MapInstantiationMacros.hpp&quot;
+<span class="lineNum">      17 </span>            : #include &quot;Domain/CoordinateMaps/TimeDependent/ProductMaps.hpp&quot;
+<span class="lineNum">      18 </span>            : #include &quot;Domain/CoordinateMaps/TimeDependent/ProductMaps.tpp&quot;
+<span class="lineNum">      19 </span>            : #include &quot;Domain/CoordinateMaps/TimeDependent/Translation.hpp&quot;
+<span class="lineNum">      20 </span>            : #include &quot;Domain/FunctionsOfTime/FunctionOfTime.hpp&quot;
+<span class="lineNum">      21 </span>            : #include &quot;Domain/FunctionsOfTime/PiecewisePolynomial.hpp&quot;
+<span class="lineNum">      22 </span>            : #include &quot;ErrorHandling/Assert.hpp&quot;
+<span class="lineNum">      23 </span>            : #include &quot;Utilities/GenerateInstantiations.hpp&quot;
+<span class="lineNum">      24 </span>            : #include &quot;Utilities/Gsl.hpp&quot;
+<span class="lineNum">      25 </span>            : 
+<span class="lineNum">      26 </span>            : namespace domain {
+<span class="lineNum">      27 </span>            : namespace creators {
+<span class="lineNum">      28 </span>            : namespace time_dependence {
+<span class="lineNum">      29 </span><span class="lineNoCov">          0 : namespace {</span>
+<span class="lineNum">      30 </span>            : std::array&lt;std::string, 3&gt; default_function_names_impl() noexcept {
+<span class="lineNum">      31 </span>            :   return {{&quot;TranslationX&quot;, &quot;TranslationY&quot;, &quot;TranslationZ&quot;}};
+<span class="lineNum">      32 </span>            : }
+<span class="lineNum">      33 </span>            : }  // namespace
+<span class="lineNum">      34 </span>            : 
+<span class="lineNum">      35 </span>            : template &lt;size_t MeshDim&gt;
+<span class="lineNum">      36 </span>            : UniformTranslation&lt;MeshDim&gt;::UniformTranslation(
+<span class="lineNum">      37 </span>            :     const double initial_time, const std::array&lt;double, MeshDim&gt;&amp; velocity,
+<span class="lineNum">      38 </span>            :     std::array&lt;std::string, MeshDim&gt; functions_of_time_names) noexcept
+<span class="lineNum">      39 </span>            :     : initial_time_(initial_time),
+<span class="lineNum">      40 </span>            :       velocity_(velocity),
+<span class="lineNum">      41 </span>            :       functions_of_time_names_(std::move(functions_of_time_names)) {}
+<span class="lineNum">      42 </span>            : 
+<span class="lineNum">      43 </span>            : template &lt;size_t MeshDim&gt;
+<span class="lineNum">      44 </span>            : std::unique_ptr&lt;TimeDependence&lt;MeshDim&gt;&gt;
+<span class="lineNum">      45 </span>            : UniformTranslation&lt;MeshDim&gt;::get_clone() const noexcept {
+<span class="lineNum">      46 </span>            :   return std::make_unique&lt;UniformTranslation&gt;(initial_time_, velocity_,
+<span class="lineNum">      47 </span>            :                                               functions_of_time_names_);
+<span class="lineNum">      48 </span>            : }
+<span class="lineNum">      49 </span>            : 
+<span class="lineNum">      50 </span>            : template &lt;size_t MeshDim&gt;
+<span class="lineNum">      51 </span>            : std::vector&lt;std::unique_ptr&lt;
+<span class="lineNum">      52 </span>            :     domain::CoordinateMapBase&lt;Frame::Grid, Frame::Inertial, MeshDim&gt;&gt;&gt;
+<span class="lineNum">      53 </span>            : UniformTranslation&lt;MeshDim&gt;::block_maps(const size_t number_of_blocks) const
+<span class="lineNum">      54 </span>            :     noexcept {
+<span class="lineNum">      55 </span>            :   ASSERT(number_of_blocks &gt; 0, &quot;Must have at least one block to create.&quot;);
+<span class="lineNum">      56 </span>            :   std::vector&lt;std::unique_ptr&lt;
+<span class="lineNum">      57 </span>            :       domain::CoordinateMapBase&lt;Frame::Grid, Frame::Inertial, MeshDim&gt;&gt;&gt;
+<span class="lineNum">      58 </span>            :       result{number_of_blocks};
+<span class="lineNum">      59 </span>            :   result[0] = std::make_unique&lt;MapForComposition&gt;(map_for_composition());
+<span class="lineNum">      60 </span>            :   for (size_t i = 1; i &lt; number_of_blocks; ++i) {
+<span class="lineNum">      61 </span>            :     result[i] = result[0]-&gt;get_clone();
+<span class="lineNum">      62 </span>            :   }
+<span class="lineNum">      63 </span>            :   return result;
+<span class="lineNum">      64 </span>            : }
+<span class="lineNum">      65 </span>            : 
+<span class="lineNum">      66 </span>            : template &lt;size_t MeshDim&gt;
+<span class="lineNum">      67 </span>            : std::unordered_map&lt;std::string,
+<span class="lineNum">      68 </span>            :                    std::unique_ptr&lt;domain::FunctionsOfTime::FunctionOfTime&gt;&gt;
+<span class="lineNum">      69 </span>            : UniformTranslation&lt;MeshDim&gt;::functions_of_time() const noexcept {
+<span class="lineNum">      70 </span>            :   std::unordered_map&lt;std::string,
+<span class="lineNum">      71 </span>            :                      std::unique_ptr&lt;domain::FunctionsOfTime::FunctionOfTime&gt;&gt;
+<span class="lineNum">      72 </span>            :       result{};
+<span class="lineNum">      73 </span>            :   // We use a `PiecewisePolynomial` with 2 derivs since some transformations
+<span class="lineNum">      74 </span>            :   // between different frames for moving meshes can require Hessians.
+<span class="lineNum">      75 </span>            :   result[functions_of_time_names_[0]] =
+<span class="lineNum">      76 </span>            :       std::make_unique&lt;FunctionsOfTime::PiecewisePolynomial&lt;2&gt;&gt;(
+<span class="lineNum">      77 </span>            :           initial_time_,
+<span class="lineNum">      78 </span>            :           std::array&lt;DataVector, 3&gt;{{{0.0}, {velocity_[0]}, {0.0}}});
+<span class="lineNum">      79 </span>            :   if (MeshDim &gt; 1) {
+<span class="lineNum">      80 </span>            :     result[gsl::at(functions_of_time_names_, 1)] =
+<span class="lineNum">      81 </span>            :         std::make_unique&lt;FunctionsOfTime::PiecewisePolynomial&lt;2&gt;&gt;(
+<span class="lineNum">      82 </span>            :             initial_time_,
+<span class="lineNum">      83 </span>            :             std::array&lt;DataVector, 3&gt;{{{0.0}, {gsl::at(velocity_, 1)}, {0.0}}});
+<span class="lineNum">      84 </span>            :   }
+<span class="lineNum">      85 </span>            :   if (MeshDim &gt; 2) {
+<span class="lineNum">      86 </span>            :     result[gsl::at(functions_of_time_names_, 2)] =
+<span class="lineNum">      87 </span>            :         std::make_unique&lt;FunctionsOfTime::PiecewisePolynomial&lt;2&gt;&gt;(
+<span class="lineNum">      88 </span>            :             initial_time_,
+<span class="lineNum">      89 </span>            :             std::array&lt;DataVector, 3&gt;{{{0.0}, {gsl::at(velocity_, 2)}, {0.0}}});
+<span class="lineNum">      90 </span>            :   }
+<span class="lineNum">      91 </span>            :   return result;
+<span class="lineNum">      92 </span>            : }
+<span class="lineNum">      93 </span>            : 
+<span class="lineNum">      94 </span>            : /// \cond
+<span class="lineNum">      95 </span>            : template &lt;&gt;
+<span class="lineNum">      96 </span>            : auto UniformTranslation&lt;1&gt;::map_for_composition() const noexcept
+<span class="lineNum">      97 </span>            :     -&gt; MapForComposition {
+<span class="lineNum">      98 </span>            :   return MapForComposition{domain::CoordinateMaps::TimeDependent::Translation{
+<span class="lineNum">      99 </span>            :       functions_of_time_names_[0]}};
+<span class="lineNum">     100 </span>            : }
+<span class="lineNum">     101 </span>            : 
+<span class="lineNum">     102 </span>            : template &lt;&gt;
+<span class="lineNum">     103 </span>            : auto UniformTranslation&lt;2&gt;::map_for_composition() const noexcept
+<span class="lineNum">     104 </span>            :     -&gt; MapForComposition {
+<span class="lineNum">     105 </span>            :   using ProductMap =
+<span class="lineNum">     106 </span>            :       domain::CoordinateMaps::TimeDependent::ProductOf2Maps&lt;Translation,
+<span class="lineNum">     107 </span>            :                                                             Translation&gt;;
+<span class="lineNum">     108 </span>            :   return MapForComposition{
+<span class="lineNum">     109 </span>            :       ProductMap{Translation{functions_of_time_names_[0]},
+<span class="lineNum">     110 </span>            :                  Translation{functions_of_time_names_[1]}}};
+<span class="lineNum">     111 </span>            : }
+<span class="lineNum">     112 </span>            : 
+<span class="lineNum">     113 </span>            : template &lt;&gt;
+<span class="lineNum">     114 </span>            : auto UniformTranslation&lt;3&gt;::map_for_composition() const noexcept
+<span class="lineNum">     115 </span>            :     -&gt; MapForComposition {
+<span class="lineNum">     116 </span>            :   using ProductMap = domain::CoordinateMaps::TimeDependent::ProductOf3Maps&lt;
+<span class="lineNum">     117 </span>            :       Translation, Translation, Translation&gt;;
+<span class="lineNum">     118 </span>            :   return MapForComposition{
+<span class="lineNum">     119 </span>            :       ProductMap{Translation{functions_of_time_names_[0]},
+<span class="lineNum">     120 </span>            :                  Translation{functions_of_time_names_[1]},
+<span class="lineNum">     121 </span>            :                  Translation{functions_of_time_names_[2]}}};
+<span class="lineNum">     122 </span>            : }
+<span class="lineNum">     123 </span>            : 
+<span class="lineNum">     124 </span>            : template &lt;&gt;
+<span class="lineNum">     125 </span>            : std::array&lt;std::string, 1&gt;
+<span class="lineNum">     126 </span>            : UniformTranslation&lt;1&gt;::default_function_names() noexcept {
+<span class="lineNum">     127 </span>            :   return {{default_function_names_impl()[0]}};
+<span class="lineNum">     128 </span>            : }
+<span class="lineNum">     129 </span>            : 
+<span class="lineNum">     130 </span>            : template &lt;&gt;
+<span class="lineNum">     131 </span>            : std::array&lt;std::string, 2&gt;
+<span class="lineNum">     132 </span>            : UniformTranslation&lt;2&gt;::default_function_names() noexcept {
+<span class="lineNum">     133 </span>            :   return {{default_function_names_impl()[0], default_function_names_impl()[1]}};
+<span class="lineNum">     134 </span>            : }
+<span class="lineNum">     135 </span>            : 
+<span class="lineNum">     136 </span>            : template &lt;&gt;
+<span class="lineNum">     137 </span>            : std::array&lt;std::string, 3&gt;
+<span class="lineNum">     138 </span>            : UniformTranslation&lt;3&gt;::default_function_names() noexcept {
+<span class="lineNum">     139 </span>            :   return default_function_names_impl();
+<span class="lineNum">     140 </span>            : }
+<span class="lineNum">     141 </span>            : 
+<span class="lineNum">     142 </span>            : template &lt;size_t Dim&gt;
+<span class="lineNum">     143 </span>            : bool operator==(const UniformTranslation&lt;Dim&gt;&amp; lhs,
+<span class="lineNum">     144 </span>            :                 const UniformTranslation&lt;Dim&gt;&amp; rhs) noexcept {
+<span class="lineNum">     145 </span>            :   return lhs.initial_time_ == rhs.initial_time_ and
+<span class="lineNum">     146 </span>            :          lhs.velocity_ == rhs.velocity_ and
+<span class="lineNum">     147 </span>            :          lhs.functions_of_time_names_ == rhs.functions_of_time_names_;
+<span class="lineNum">     148 </span>            : }
+<span class="lineNum">     149 </span>            : 
+<span class="lineNum">     150 </span>            : template &lt;size_t Dim&gt;
+<span class="lineNum">     151 </span>            : bool operator!=(const UniformTranslation&lt;Dim&gt;&amp; lhs,
+<span class="lineNum">     152 </span>            :                 const UniformTranslation&lt;Dim&gt;&amp; rhs) noexcept {
+<span class="lineNum">     153 </span>            :   return not(lhs == rhs);
+<span class="lineNum">     154 </span>            : }
+<span class="lineNum">     155 </span>            : 
+<span class="lineNum">     156 </span>            : #define GET_DIM(data) BOOST_PP_TUPLE_ELEM(0, data)
+<span class="lineNum">     157 </span>            : 
+<span class="lineNum">     158 </span>            : #define INSTANTIATION(r, data)                                            \
+<span class="lineNum">     159 </span>            :   template class UniformTranslation&lt;GET_DIM(data)&gt;;                       \
+<span class="lineNum">     160 </span>            :   template bool operator==                                                \
+<span class="lineNum">     161 </span>            :       &lt;GET_DIM(data)&gt;(const UniformTranslation&lt;GET_DIM(data)&gt;&amp;,           \
+<span class="lineNum">     162 </span>            :                       const UniformTranslation&lt;GET_DIM(data)&gt;&amp;) noexcept; \
+<span class="lineNum">     163 </span>            :   template bool operator!=                                                \
+<span class="lineNum">     164 </span>            :       &lt;GET_DIM(data)&gt;(const UniformTranslation&lt;GET_DIM(data)&gt;&amp;,           \
+<span class="lineNum">     165 </span>            :                       const UniformTranslation&lt;GET_DIM(data)&gt;&amp;) noexcept;
+<span class="lineNum">     166 </span>            : 
+<span class="lineNum">     167 </span>            : GENERATE_INSTANTIATIONS(INSTANTIATION, (1, 2, 3))
+<span class="lineNum">     168 </span>            : 
+<span class="lineNum">     169 </span>            : #undef GET_DIM
+<span class="lineNum">     170 </span>            : #undef INSTANTIATION
+<span class="lineNum">     171 </span>            : /// \endcond
+<span class="lineNum">     172 </span>            : }  // namespace time_dependence
+<span class="lineNum">     173 </span>            : }  // namespace creators
+<span class="lineNum">     174 </span>            : 
+<span class="lineNum">     175 </span><span class="lineNoCov">          0 : using Translation = CoordinateMaps::TimeDependent::Translation;</span>
+<span class="lineNum">     176 </span><span class="lineNoCov">          0 : using Translation2d =</span>
+<span class="lineNum">     177 </span>            :     CoordinateMaps::TimeDependent::ProductOf2Maps&lt;Translation, Translation&gt;;
+<span class="lineNum">     178 </span><span class="lineNoCov">          0 : using Translation3d =</span>
+<span class="lineNum">     179 </span>            :     CoordinateMaps::TimeDependent::ProductOf3Maps&lt;Translation, Translation,
+<span class="lineNum">     180 </span>            :                                                   Translation&gt;;
+<span class="lineNum">     181 </span>            : 
+<span class="lineNum">     182 </span>            : template class CoordinateMaps::TimeDependent::ProductOf2Maps&lt;Translation,
+<span class="lineNum">     183 </span>            :                                                              Translation&gt;;
+<span class="lineNum">     184 </span>            : template class CoordinateMaps::TimeDependent::ProductOf3Maps&lt;
+<span class="lineNum">     185 </span>            :     Translation, Translation, Translation&gt;;
+<span class="lineNum">     186 </span>            : 
+<span class="lineNum">     187 </span>            : INSTANTIATE_MAPS_FUNCTIONS(((Translation), (Translation2d), (Translation3d)),
+<span class="lineNum">     188 </span>            :                            (Frame::Grid), (Frame::Inertial),
+<span class="lineNum">     189 </span>            :                            (double, DataVector))
+<span class="lineNum">     190 </span>            : 
+<span class="lineNum">     191 </span>            : }  // namespace domain
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

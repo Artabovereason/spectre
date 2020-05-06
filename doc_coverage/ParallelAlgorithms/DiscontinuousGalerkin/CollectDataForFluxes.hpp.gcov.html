@@ -1,0 +1,283 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - ParallelAlgorithms/DiscontinuousGalerkin/CollectDataForFluxes.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">ParallelAlgorithms/DiscontinuousGalerkin</a> - CollectDataForFluxes.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntry">2</td>
+            <td class="headerCovTableEntryLo">50.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #pragma once
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;cstddef&gt;
+<span class="lineNum">       7 </span>            : 
+<span class="lineNum">       8 </span>            : #include &quot;DataStructures/DataBox/DataBox.hpp&quot;
+<span class="lineNum">       9 </span>            : #include &quot;Domain/InterfaceHelpers.hpp&quot;
+<span class="lineNum">      10 </span>            : #include &quot;Domain/Tags.hpp&quot;
+<span class="lineNum">      11 </span>            : #include &quot;NumericalAlgorithms/DiscontinuousGalerkin/MortarHelpers.hpp&quot;
+<span class="lineNum">      12 </span>            : #include &quot;NumericalAlgorithms/DiscontinuousGalerkin/Tags.hpp&quot;
+<span class="lineNum">      13 </span>            : #include &quot;NumericalAlgorithms/Spectral/Projection.hpp&quot;
+<span class="lineNum">      14 </span>            : #include &quot;Utilities/Gsl.hpp&quot;
+<span class="lineNum">      15 </span>            : 
+<span class="lineNum">      16 </span>            : /// \cond
+<span class="lineNum">      17 </span>            : namespace Parallel {
+<span class="lineNum">      18 </span>            : template &lt;typename Metavariables&gt;
+<span class="lineNum">      19 </span>            : struct ConstGlobalCache;
+<span class="lineNum">      20 </span>            : }  // namespace Parallel
+<span class="lineNum">      21 </span>            : namespace tuples {
+<span class="lineNum">      22 </span>            : template &lt;typename... Tags&gt;
+<span class="lineNum">      23 </span>            : struct TaggedTuple;
+<span class="lineNum">      24 </span>            : }  // namespace tuples
+<span class="lineNum">      25 </span>            : /// \endcond
+<span class="lineNum">      26 </span>            : 
+<span class="lineNum">      27 </span>            : namespace dg {
+<span class="lineNum">      28 </span>            : namespace Actions {
+<span class="lineNum">      29 </span>            : 
+<span class="lineNum">      30 </span>            : /*!
+<span class="lineNum">      31 </span>            :  * \ingroup ActionsGroup
+<span class="lineNum">      32 </span>            :  * \ingroup DiscontinuousGalerkinGroup
+<span class="lineNum">      33 </span>            :  * \brief Collect data that is needed to compute numerical fluxes and store it
+<span class="lineNum">      34 </span>            :  * on mortars, projecting it if necessary.
+<span class="lineNum">      35 </span>            :  *
+<span class="lineNum">      36 </span>            :  * Set the `DirectionsTag` template parameter to
+<span class="lineNum">      37 </span>            :  * `domain::Tags::InternalDirections` to collect data on internal element
+<span class="lineNum">      38 </span>            :  * interfaces, so they can be communicated to the element's neighbors in a
+<span class="lineNum">      39 </span>            :  * subsequent call to `dg::Actions::SendDataForFluxes`.
+<span class="lineNum">      40 </span>            :  *
+<span class="lineNum">      41 </span>            :  * Alternatively, set the `DirectionsTag` to
+<span class="lineNum">      42 </span>            :  * `domain::Tags::BoundaryDirectionsInterior` to collect data on external
+<span class="lineNum">      43 </span>            :  * element boundaries for imposing boundary conditions through numerical fluxes.
+<span class="lineNum">      44 </span>            :  * In this case, make sure mortars on external boundaries are initialized e.g.
+<span class="lineNum">      45 </span>            :  * by `dg::Actions::InitializeMortars`. Also, make sure the field data on
+<span class="lineNum">      46 </span>            :  * exterior (&quot;ghost&quot;) element boundaries (see
+<span class="lineNum">      47 </span>            :  * `domain::Tags::BoundaryDirectionsExterior`) has been updated to represent the
+<span class="lineNum">      48 </span>            :  * boundary conditions before invoking this action.
+<span class="lineNum">      49 </span>            :  *
+<span class="lineNum">      50 </span>            :  * Design decisions:
+<span class="lineNum">      51 </span>            :  *
+<span class="lineNum">      52 </span>            :  * - We assume that all data that is needed on an element to compute numerical
+<span class="lineNum">      53 </span>            :  * fluxes is also needed on its neighbor. This is reasonable since numerical
+<span class="lineNum">      54 </span>            :  * fluxes typically satisfy conservation criteria. It is possible that this
+<span class="lineNum">      55 </span>            :  * assumptions leads to slightly more data being communicated than is necessary,
+<span class="lineNum">      56 </span>            :  * e.g. in a strong-form scheme with a numerical flux that does not require all
+<span class="lineNum">      57 </span>            :  * normal-dot-fluxes remotely, but requires them locally to take the difference
+<span class="lineNum">      58 </span>            :  * to the normal-dot-numerical-fluxes. This overhead is probably negligible,
+<span class="lineNum">      59 </span>            :  * since the number of projection and communication steps is more relevant than
+<span class="lineNum">      60 </span>            :  * the amount of data being communicated. This assumption allows us to perform
+<span class="lineNum">      61 </span>            :  * only one projection to the mortar in each step, instead of projecting local
+<span class="lineNum">      62 </span>            :  * and remote data separately.
+<span class="lineNum">      63 </span>            :  * - Terminology: &quot;Boundary data&quot; is data collected on an element interface
+<span class="lineNum">      64 </span>            :  * that can be projected to a mortar. &quot;Mortar data&quot; is a collection of projected
+<span class="lineNum">      65 </span>            :  * boundary data from both elements that touch the mortar.
+<span class="lineNum">      66 </span>            :  */
+<span class="lineNum">      67 </span>            : template &lt;typename BoundaryScheme, typename DirectionsTag&gt;
+<span class="lineNum">      68 </span><span class="lineCov">          1 : struct CollectDataForFluxes;</span>
+<span class="lineNum">      69 </span>            : 
+<span class="lineNum">      70 </span>            : /// \cond
+<span class="lineNum">      71 </span>            : template &lt;typename BoundaryScheme&gt;
+<span class="lineNum">      72 </span>            : struct CollectDataForFluxes&lt;BoundaryScheme, domain::Tags::InternalDirections&lt;
+<span class="lineNum">      73 </span>            :                                                 BoundaryScheme::volume_dim&gt;&gt; {
+<span class="lineNum">      74 </span>            :  private:
+<span class="lineNum">      75 </span>            :   static constexpr size_t volume_dim = BoundaryScheme::volume_dim;
+<span class="lineNum">      76 </span>            :   using temporal_id_tag = typename BoundaryScheme::temporal_id_tag;
+<span class="lineNum">      77 </span>            :   using all_mortar_data_tag =
+<span class="lineNum">      78 </span>            :       ::Tags::Mortars&lt;typename BoundaryScheme::mortar_data_tag, volume_dim&gt;;
+<span class="lineNum">      79 </span>            :   using boundary_data_computer =
+<span class="lineNum">      80 </span>            :       typename BoundaryScheme::boundary_data_computer;
+<span class="lineNum">      81 </span>            : 
+<span class="lineNum">      82 </span>            :  public:
+<span class="lineNum">      83 </span>            :   template &lt;typename DbTags, typename... InboxTags, typename Metavariables,
+<span class="lineNum">      84 </span>            :             typename ArrayIndex, typename ActionList,
+<span class="lineNum">      85 </span>            :             typename ParallelComponent&gt;
+<span class="lineNum">      86 </span>            :   static std::tuple&lt;db::DataBox&lt;DbTags&gt;&amp;&amp;&gt; apply(
+<span class="lineNum">      87 </span>            :       db::DataBox&lt;DbTags&gt;&amp; box,
+<span class="lineNum">      88 </span>            :       const tuples::TaggedTuple&lt;InboxTags...&gt;&amp; /*inboxes*/,
+<span class="lineNum">      89 </span>            :       const Parallel::ConstGlobalCache&lt;Metavariables&gt;&amp; /*cache*/,
+<span class="lineNum">      90 </span>            :       const ArrayIndex&amp; /*array_index*/, const ActionList /*meta*/,
+<span class="lineNum">      91 </span>            :       const ParallelComponent* const /*meta*/) noexcept {
+<span class="lineNum">      92 </span>            :     // Collect data on element interfaces
+<span class="lineNum">      93 </span>            :     auto boundary_data_on_interfaces =
+<span class="lineNum">      94 </span>            :         interface_apply&lt;domain::Tags::InternalDirections&lt;volume_dim&gt;,
+<span class="lineNum">      95 </span>            :                         boundary_data_computer&gt;(box);
+<span class="lineNum">      96 </span>            : 
+<span class="lineNum">      97 </span>            :     // Project collected data to all internal mortars and store in DataBox
+<span class="lineNum">      98 </span>            :     const auto&amp; element = db::get&lt;domain::Tags::Element&lt;volume_dim&gt;&gt;(box);
+<span class="lineNum">      99 </span>            :     const auto&amp; face_meshes = get&lt;
+<span class="lineNum">     100 </span>            :         domain::Tags::Interface&lt;domain::Tags::InternalDirections&lt;volume_dim&gt;,
+<span class="lineNum">     101 </span>            :                                 domain::Tags::Mesh&lt;volume_dim - 1&gt;&gt;&gt;(box);
+<span class="lineNum">     102 </span>            :     const auto&amp; mortar_meshes =
+<span class="lineNum">     103 </span>            :         get&lt;Tags::Mortars&lt;domain::Tags::Mesh&lt;volume_dim - 1&gt;, volume_dim&gt;&gt;(box);
+<span class="lineNum">     104 </span>            :     const auto&amp; mortar_sizes =
+<span class="lineNum">     105 </span>            :         get&lt;Tags::Mortars&lt;Tags::MortarSize&lt;volume_dim - 1&gt;, volume_dim&gt;&gt;(box);
+<span class="lineNum">     106 </span>            :     const auto&amp; temporal_id = get&lt;temporal_id_tag&gt;(box);
+<span class="lineNum">     107 </span>            :     for (const auto&amp; direction_and_neighbors : element.neighbors()) {
+<span class="lineNum">     108 </span>            :       const auto&amp; direction = direction_and_neighbors.first;
+<span class="lineNum">     109 </span>            :       const auto&amp; face_mesh = face_meshes.at(direction);
+<span class="lineNum">     110 </span>            :       for (const auto&amp; neighbor : direction_and_neighbors.second) {
+<span class="lineNum">     111 </span>            :         const auto mortar_id = std::make_pair(direction, neighbor);
+<span class="lineNum">     112 </span>            :         const auto&amp; mortar_mesh = mortar_meshes.at(mortar_id);
+<span class="lineNum">     113 </span>            :         const auto&amp; mortar_size = mortar_sizes.at(mortar_id);
+<span class="lineNum">     114 </span>            : 
+<span class="lineNum">     115 </span>            :         // Project the data from the face to the mortar.
+<span class="lineNum">     116 </span>            :         // Where no projection is necessary we `std::move` the data directly to
+<span class="lineNum">     117 </span>            :         // avoid a copy. We can't move the data or modify it in-place when
+<span class="lineNum">     118 </span>            :         // projecting, because in that case the face may touch two mortars so we
+<span class="lineNum">     119 </span>            :         // need to keep the data around.
+<span class="lineNum">     120 </span>            :         auto boundary_data_on_mortar =
+<span class="lineNum">     121 </span>            :             dg::needs_projection(face_mesh, mortar_mesh, mortar_size)
+<span class="lineNum">     122 </span>            :                 ? boundary_data_on_interfaces.at(direction).project_to_mortar(
+<span class="lineNum">     123 </span>            :                       face_mesh, mortar_mesh, mortar_size)
+<span class="lineNum">     124 </span>            :                 : std::move(boundary_data_on_interfaces.at(direction));
+<span class="lineNum">     125 </span>            : 
+<span class="lineNum">     126 </span>            :         // Store the boundary data on this side of the mortar
+<span class="lineNum">     127 </span>            :         db::mutate&lt;all_mortar_data_tag&gt;(
+<span class="lineNum">     128 </span>            :             make_not_null(&amp;box),
+<span class="lineNum">     129 </span>            :             [&amp;mortar_id, &amp;temporal_id, &amp;boundary_data_on_mortar](
+<span class="lineNum">     130 </span>            :                 const gsl::not_null&lt;db::item_type&lt;all_mortar_data_tag&gt;*&gt;
+<span class="lineNum">     131 </span>            :                     all_mortar_data) noexcept {
+<span class="lineNum">     132 </span>            :               all_mortar_data-&gt;at(mortar_id).local_insert(
+<span class="lineNum">     133 </span>            :                   temporal_id, std::move(boundary_data_on_mortar));
+<span class="lineNum">     134 </span>            :             });
+<span class="lineNum">     135 </span>            :       }
+<span class="lineNum">     136 </span>            :     }
+<span class="lineNum">     137 </span>            :     return {std::move(box)};
+<span class="lineNum">     138 </span>            :   }
+<span class="lineNum">     139 </span>            : };
+<span class="lineNum">     140 </span>            : 
+<span class="lineNum">     141 </span>            : template &lt;typename BoundaryScheme&gt;
+<span class="lineNum">     142 </span>            : struct CollectDataForFluxes&lt;
+<span class="lineNum">     143 </span>            :     BoundaryScheme,
+<span class="lineNum">     144 </span>            :     domain::Tags::BoundaryDirectionsInterior&lt;BoundaryScheme::volume_dim&gt;&gt; {
+<span class="lineNum">     145 </span>            :  private:
+<span class="lineNum">     146 </span>            :   static constexpr size_t volume_dim = BoundaryScheme::volume_dim;
+<span class="lineNum">     147 </span>            :   using temporal_id_tag = typename BoundaryScheme::temporal_id_tag;
+<span class="lineNum">     148 </span>            :   using all_mortar_data_tag =
+<span class="lineNum">     149 </span>            :       ::Tags::Mortars&lt;typename BoundaryScheme::mortar_data_tag, volume_dim&gt;;
+<span class="lineNum">     150 </span>            :   using boundary_data_computer =
+<span class="lineNum">     151 </span>            :       typename BoundaryScheme::boundary_data_computer;
+<span class="lineNum">     152 </span>            : 
+<span class="lineNum">     153 </span>            :  public:
+<span class="lineNum">     154 </span>            :   template &lt;typename DbTags, typename... InboxTags, typename Metavariables,
+<span class="lineNum">     155 </span>            :             typename ArrayIndex, typename ActionList,
+<span class="lineNum">     156 </span>            :             typename ParallelComponent&gt;
+<span class="lineNum">     157 </span>            :   static std::tuple&lt;db::DataBox&lt;DbTags&gt;&amp;&amp;&gt; apply(
+<span class="lineNum">     158 </span>            :       db::DataBox&lt;DbTags&gt;&amp; box,
+<span class="lineNum">     159 </span>            :       const tuples::TaggedTuple&lt;InboxTags...&gt;&amp; /*inboxes*/,
+<span class="lineNum">     160 </span>            :       const Parallel::ConstGlobalCache&lt;Metavariables&gt;&amp; /*cache*/,
+<span class="lineNum">     161 </span>            :       const ArrayIndex&amp; /*array_index*/, const ActionList /*meta*/,
+<span class="lineNum">     162 </span>            :       const ParallelComponent* const /*meta*/) noexcept {
+<span class="lineNum">     163 </span>            :     // Collect data on external element boundaries
+<span class="lineNum">     164 </span>            :     auto interior_boundary_data =
+<span class="lineNum">     165 </span>            :         interface_apply&lt;domain::Tags::BoundaryDirectionsInterior&lt;volume_dim&gt;,
+<span class="lineNum">     166 </span>            :                         boundary_data_computer&gt;(box);
+<span class="lineNum">     167 </span>            :     auto exterior_boundary_data =
+<span class="lineNum">     168 </span>            :         interface_apply&lt;domain::Tags::BoundaryDirectionsExterior&lt;volume_dim&gt;,
+<span class="lineNum">     169 </span>            :                         boundary_data_computer&gt;(box);
+<span class="lineNum">     170 </span>            : 
+<span class="lineNum">     171 </span>            :     // Store the boundary data on mortars so the external boundaries are
+<span class="lineNum">     172 </span>            :     // treated exactly the same as internal boundaries between elements. In
+<span class="lineNum">     173 </span>            :     // particular, this is important where the
+<span class="lineNum">     174 </span>            :     // `BoundaryScheme::mortar_data_tag::type` is not just
+<span class="lineNum">     175 </span>            :     // `SimpleMortarData`, but e.g. keeps track of the mortar history for
+<span class="lineNum">     176 </span>            :     // local time stepping.
+<span class="lineNum">     177 </span>            :     const auto&amp; temporal_id = get&lt;temporal_id_tag&gt;(box);
+<span class="lineNum">     178 </span>            :     for (const auto&amp; direction :
+<span class="lineNum">     179 </span>            :          get&lt;domain::Tags::BoundaryDirectionsInterior&lt;volume_dim&gt;&gt;(box)) {
+<span class="lineNum">     180 </span>            :       const MortarId&lt;volume_dim&gt; mortar_id{
+<span class="lineNum">     181 </span>            :           direction, ::ElementId&lt;volume_dim&gt;::external_boundary_id()};
+<span class="lineNum">     182 </span>            :       db::mutate&lt;all_mortar_data_tag&gt;(
+<span class="lineNum">     183 </span>            :           make_not_null(&amp;box),
+<span class="lineNum">     184 </span>            :           [&amp;temporal_id, &amp;mortar_id, &amp;direction, &amp;interior_boundary_data,
+<span class="lineNum">     185 </span>            :            &amp;exterior_boundary_data](
+<span class="lineNum">     186 </span>            :               const gsl::not_null&lt;db::item_type&lt;all_mortar_data_tag&gt;*&gt;
+<span class="lineNum">     187 </span>            :                   all_mortar_data) noexcept {
+<span class="lineNum">     188 </span>            :             // We don't need to project the boundary data since mortars and
+<span class="lineNum">     189 </span>            :             // element faces are identical on external boundaries.
+<span class="lineNum">     190 </span>            :             all_mortar_data-&gt;at(mortar_id).local_insert(
+<span class="lineNum">     191 </span>            :                 temporal_id, std::move(interior_boundary_data.at(direction)));
+<span class="lineNum">     192 </span>            :             all_mortar_data-&gt;at(mortar_id).remote_insert(
+<span class="lineNum">     193 </span>            :                 temporal_id, std::move(exterior_boundary_data.at(direction)));
+<span class="lineNum">     194 </span>            :           });
+<span class="lineNum">     195 </span>            :     }
+<span class="lineNum">     196 </span>            : 
+<span class="lineNum">     197 </span>            :     return {std::move(box)};
+<span class="lineNum">     198 </span>            :   }
+<span class="lineNum">     199 </span>            : };
+<span class="lineNum">     200 </span>            : /// \endcond
+<span class="lineNum">     201 </span>            : 
+<span class="lineNum">     202 </span>            : }  // namespace Actions
+<span class="lineNum">     203 </span>            : }  // namespace dg
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

@@ -1,0 +1,160 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - Evolution/Systems/Cce/ReducedWorldtubeModeRecorder.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../index.html">top level</a> - <a href="index.html">Evolution/Systems/Cce</a> - ReducedWorldtubeModeRecorder.cpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #include &quot;Evolution/Systems/Cce/ReducedWorldtubeModeRecorder.hpp&quot;
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;cstddef&gt;
+<span class="lineNum">       7 </span>            : 
+<span class="lineNum">       8 </span>            : #include &quot;DataStructures/ComplexModalVector.hpp&quot;
+<span class="lineNum">       9 </span>            : #include &quot;IO/H5/Dat.hpp&quot;
+<span class="lineNum">      10 </span>            : #include &quot;IO/H5/File.hpp&quot;
+<span class="lineNum">      11 </span>            : #include &quot;NumericalAlgorithms/Spectral/SwshCoefficients.hpp&quot;
+<span class="lineNum">      12 </span>            : #include &quot;Utilities/ForceInline.hpp&quot;
+<span class="lineNum">      13 </span>            : 
+<span class="lineNum">      14 </span>            : namespace Cce {
+<span class="lineNum">      15 </span>            : 
+<span class="lineNum">      16 </span>            : void ReducedWorldtubeModeRecorder::append_worldtube_mode_data(
+<span class="lineNum">      17 </span>            :     const std::string&amp; dataset_path, const double time,
+<span class="lineNum">      18 </span>            :     const ComplexModalVector&amp; modes, const size_t l_max,
+<span class="lineNum">      19 </span>            :     const bool is_real) noexcept {
+<span class="lineNum">      20 </span>            :   std::vector&lt;std::string&gt; legend;
+<span class="lineNum">      21 </span>            :   const size_t output_size = square(l_max + 1);
+<span class="lineNum">      22 </span>            :   legend.reserve(is_real ? output_size + 1 : 2 * output_size + 1);
+<span class="lineNum">      23 </span>            :   legend.emplace_back(&quot;time&quot;);
+<span class="lineNum">      24 </span>            :   for (int l = 0; l &lt;= static_cast&lt;int&gt;(l_max); ++l) {
+<span class="lineNum">      25 </span>            :     for (int m = is_real ? 0 : -l; m &lt;= l; ++m) {
+<span class="lineNum">      26 </span>            :       legend.push_back(&quot;Re(&quot; + std::to_string(l) + &quot;,&quot; + std::to_string(m) +
+<span class="lineNum">      27 </span>            :                        &quot;)&quot;);
+<span class="lineNum">      28 </span>            :       if (LIKELY(not is_real or m != 0)) {
+<span class="lineNum">      29 </span>            :         legend.push_back(&quot;Im(&quot; + std::to_string(l) + &quot;,&quot; + std::to_string(m) +
+<span class="lineNum">      30 </span>            :                          &quot;)&quot;);
+<span class="lineNum">      31 </span>            :       }
+<span class="lineNum">      32 </span>            :     }
+<span class="lineNum">      33 </span>            :   }
+<span class="lineNum">      34 </span>            :   auto&amp; output_mode_dataset =
+<span class="lineNum">      35 </span>            :       output_file_.try_insert&lt;h5::Dat&gt;(dataset_path, legend, 0);
+<span class="lineNum">      36 </span>            :   std::vector&lt;double&gt; data_to_write;
+<span class="lineNum">      37 </span>            :   if (is_real) {
+<span class="lineNum">      38 </span>            :     data_to_write.resize(output_size + 1);
+<span class="lineNum">      39 </span>            :     data_to_write[0] = time;
+<span class="lineNum">      40 </span>            :     for (int l = 0; l &lt;= static_cast&lt;int&gt;(l_max); ++l) {
+<span class="lineNum">      41 </span>            :       data_to_write[static_cast&lt;size_t&gt;(square(l)) + 1] =
+<span class="lineNum">      42 </span>            :           real(modes[Spectral::Swsh::goldberg_mode_index(
+<span class="lineNum">      43 </span>            :               l_max, static_cast&lt;size_t&gt;(l), 0)]);
+<span class="lineNum">      44 </span>            :       for (int m = 1; m &lt;= l; ++m) {
+<span class="lineNum">      45 </span>            :         // this is the right order of the casts, other orders give the wrong
+<span class="lineNum">      46 </span>            :         // answer
+<span class="lineNum">      47 </span>            :         // NOLINTNEXTLINE(misc-misplaced-widening-cast)
+<span class="lineNum">      48 </span>            :         data_to_write[static_cast&lt;size_t&gt;(square(l) + 2 * m)] =
+<span class="lineNum">      49 </span>            :             real(modes[Spectral::Swsh::goldberg_mode_index(
+<span class="lineNum">      50 </span>            :                 l_max, static_cast&lt;size_t&gt;(l), m)]);
+<span class="lineNum">      51 </span>            :         // this is the right order of the casts, other orders give the wrong
+<span class="lineNum">      52 </span>            :         // answer
+<span class="lineNum">      53 </span>            :         // NOLINTNEXTLINE(misc-misplaced-widening-cast)
+<span class="lineNum">      54 </span>            :         data_to_write[static_cast&lt;size_t&gt;(square(l) + 2 * m + 1)] =
+<span class="lineNum">      55 </span>            :             imag(modes[Spectral::Swsh::goldberg_mode_index(
+<span class="lineNum">      56 </span>            :                 l_max, static_cast&lt;size_t&gt;(l), m)]);
+<span class="lineNum">      57 </span>            :       }
+<span class="lineNum">      58 </span>            :     }
+<span class="lineNum">      59 </span>            :   } else {
+<span class="lineNum">      60 </span>            :     data_to_write.resize(2 * output_size + 1);
+<span class="lineNum">      61 </span>            :     data_to_write[0] = time;
+<span class="lineNum">      62 </span>            :     for (int l = 0; l &lt;= static_cast&lt;int&gt;(l_max); ++l) {
+<span class="lineNum">      63 </span>            :       for (int m = -l; m &lt;= l; ++m) {
+<span class="lineNum">      64 </span>            :         data_to_write[2 * Spectral::Swsh::goldberg_mode_index(
+<span class="lineNum">      65 </span>            :                               l_max, static_cast&lt;size_t&gt;(l), m) +
+<span class="lineNum">      66 </span>            :                       1] =
+<span class="lineNum">      67 </span>            :             real(modes[Spectral::Swsh::goldberg_mode_index(
+<span class="lineNum">      68 </span>            :                 l_max, static_cast&lt;size_t&gt;(l), m)]);
+<span class="lineNum">      69 </span>            :         data_to_write[2 * Spectral::Swsh::goldberg_mode_index(
+<span class="lineNum">      70 </span>            :                               l_max, static_cast&lt;size_t&gt;(l), m) +
+<span class="lineNum">      71 </span>            :                       2] =
+<span class="lineNum">      72 </span>            :             imag(modes[Spectral::Swsh::goldberg_mode_index(
+<span class="lineNum">      73 </span>            :                 l_max, static_cast&lt;size_t&gt;(l), m)]);
+<span class="lineNum">      74 </span>            :       }
+<span class="lineNum">      75 </span>            :     }
+<span class="lineNum">      76 </span>            :   }
+<span class="lineNum">      77 </span>            :   output_mode_dataset.append(data_to_write);
+<span class="lineNum">      78 </span>            :   output_file_.close_current_object();
+<span class="lineNum">      79 </span>            : }
+<span class="lineNum">      80 </span>            : }  // namespace Cce
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

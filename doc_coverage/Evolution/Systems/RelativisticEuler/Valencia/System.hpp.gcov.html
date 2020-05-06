@@ -1,0 +1,148 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - Evolution/Systems/RelativisticEuler/Valencia/System.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../../index.html">top level</a> - <a href="index.html">Evolution/Systems/RelativisticEuler/Valencia</a> - System.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">16</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #pragma once
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;cstddef&gt;
+<span class="lineNum">       7 </span>            : 
+<span class="lineNum">       8 </span>            : #include &quot;DataStructures/Tensor/EagerMath/Magnitude.hpp&quot;
+<span class="lineNum">       9 </span>            : #include &quot;DataStructures/VariablesTag.hpp&quot;
+<span class="lineNum">      10 </span>            : #include &quot;Evolution/Systems/RelativisticEuler/Valencia/Characteristics.hpp&quot;
+<span class="lineNum">      11 </span>            : #include &quot;Evolution/Systems/RelativisticEuler/Valencia/ConservativeFromPrimitive.hpp&quot;
+<span class="lineNum">      12 </span>            : #include &quot;Evolution/Systems/RelativisticEuler/Valencia/Fluxes.hpp&quot;
+<span class="lineNum">      13 </span>            : #include &quot;Evolution/Systems/RelativisticEuler/Valencia/PrimitiveFromConservative.hpp&quot;
+<span class="lineNum">      14 </span>            : #include &quot;Evolution/Systems/RelativisticEuler/Valencia/Sources.hpp&quot;
+<span class="lineNum">      15 </span>            : #include &quot;Evolution/Systems/RelativisticEuler/Valencia/Tags.hpp&quot;
+<span class="lineNum">      16 </span>            : #include &quot;PointwiseFunctions/GeneralRelativity/Tags.hpp&quot;
+<span class="lineNum">      17 </span>            : #include &quot;PointwiseFunctions/Hydro/Tags.hpp&quot;
+<span class="lineNum">      18 </span>            : #include &quot;Utilities/TMPL.hpp&quot;
+<span class="lineNum">      19 </span>            : 
+<span class="lineNum">      20 </span>            : /// \ingroup EvolutionSystemsGroup
+<span class="lineNum">      21 </span>            : /// \brief Items related to evolving the relativistic Euler system
+<span class="lineNum">      22 </span>            : namespace RelativisticEuler {
+<span class="lineNum">      23 </span>            : /// \brief The Valencia formulation of the relativistic Euler System
+<span class="lineNum">      24 </span>            : /// See Chapter 7 of Relativistic Hydrodynamics by Luciano Rezzolla and Olindo
+<span class="lineNum">      25 </span>            : /// Zanotti or http://iopscience.iop.org/article/10.1086/303604
+<span class="lineNum">      26 </span>            : namespace Valencia {
+<span class="lineNum">      27 </span>            : 
+<span class="lineNum">      28 </span>            : template &lt;size_t Dim, typename EquationOfStateType&gt;
+<span class="lineNum">      29 </span><span class="lineNoCov">          0 : struct System {</span>
+<span class="lineNum">      30 </span><span class="lineNoCov">          0 :   static constexpr bool is_in_flux_conservative_form = true;</span>
+<span class="lineNum">      31 </span><span class="lineNoCov">          0 :   static constexpr bool has_primitive_and_conservative_vars = true;</span>
+<span class="lineNum">      32 </span><span class="lineNoCov">          0 :   static constexpr size_t volume_dim = Dim;</span>
+<span class="lineNum">      33 </span><span class="lineNoCov">          0 :   static constexpr size_t thermodynamic_dim =</span>
+<span class="lineNum">      34 </span>            :       EquationOfStateType::thermodynamic_dim;
+<span class="lineNum">      35 </span>            : 
+<span class="lineNum">      36 </span><span class="lineNoCov">          0 :   using primitive_variables_tag = ::Tags::Variables&lt;</span>
+<span class="lineNum">      37 </span>            :       tmpl::list&lt;hydro::Tags::RestMassDensity&lt;DataVector&gt;,
+<span class="lineNum">      38 </span>            :                  hydro::Tags::SpecificInternalEnergy&lt;DataVector&gt;,
+<span class="lineNum">      39 </span>            :                  hydro::Tags::LorentzFactor&lt;DataVector&gt;,
+<span class="lineNum">      40 </span>            :                  hydro::Tags::SpecificEnthalpy&lt;DataVector&gt;,
+<span class="lineNum">      41 </span>            :                  hydro::Tags::Pressure&lt;DataVector&gt;,
+<span class="lineNum">      42 </span>            :                  hydro::Tags::SpatialVelocity&lt;DataVector, Dim&gt;&gt;&gt;;
+<span class="lineNum">      43 </span><span class="lineNoCov">          0 :   using variables_tag = ::Tags::Variables&lt;</span>
+<span class="lineNum">      44 </span>            :       tmpl::list&lt;Tags::TildeD, Tags::TildeTau, Tags::TildeS&lt;Dim&gt;&gt;&gt;;
+<span class="lineNum">      45 </span>            : 
+<span class="lineNum">      46 </span><span class="lineNoCov">          0 :   using spacetime_variables_tag =</span>
+<span class="lineNum">      47 </span>            :       ::Tags::Variables&lt;gr::tags_for_hydro&lt;Dim, DataVector&gt;&gt;;
+<span class="lineNum">      48 </span>            : 
+<span class="lineNum">      49 </span><span class="lineNoCov">          0 :   using conservative_from_primitive = ConservativeFromPrimitive&lt;Dim&gt;;</span>
+<span class="lineNum">      50 </span><span class="lineNoCov">          0 :   using primitive_from_conservative =</span>
+<span class="lineNum">      51 </span>            :       PrimitiveFromConservative&lt;thermodynamic_dim, Dim&gt;;
+<span class="lineNum">      52 </span>            : 
+<span class="lineNum">      53 </span>            :   template &lt;typename Tag&gt;
+<span class="lineNum">      54 </span><span class="lineNoCov">          0 :   using magnitude_tag = ::Tags::NonEuclideanMagnitude&lt;</span>
+<span class="lineNum">      55 </span>            :       Tag, gr::Tags::InverseSpatialMetric&lt;Dim, Frame::Inertial, DataVector&gt;&gt;;
+<span class="lineNum">      56 </span>            : 
+<span class="lineNum">      57 </span><span class="lineNoCov">          0 :   using char_speeds_tag = Tags::CharacteristicSpeedsCompute&lt;Dim&gt;;</span>
+<span class="lineNum">      58 </span>            : 
+<span class="lineNum">      59 </span><span class="lineNoCov">          0 :   using volume_fluxes = ComputeFluxes&lt;Dim&gt;;</span>
+<span class="lineNum">      60 </span>            : 
+<span class="lineNum">      61 </span><span class="lineNoCov">          0 :   using volume_sources = ComputeSources&lt;Dim&gt;;</span>
+<span class="lineNum">      62 </span>            : 
+<span class="lineNum">      63 </span>            :   // source for TildeD is zero.
+<span class="lineNum">      64 </span><span class="lineNoCov">          0 :   using sourced_variables = tmpl::list&lt;Tags::TildeTau, Tags::TildeS&lt;Dim&gt;&gt;;</span>
+<span class="lineNum">      65 </span>            : };
+<span class="lineNum">      66 </span>            : 
+<span class="lineNum">      67 </span>            : }  // namespace Valencia
+<span class="lineNum">      68 </span>            : }  // namespace RelativisticEuler
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

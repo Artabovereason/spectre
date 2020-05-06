@@ -1,0 +1,461 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - ParallelAlgorithms/DiscontinuousGalerkin/FluxCommunication.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">ParallelAlgorithms/DiscontinuousGalerkin</a> - FluxCommunication.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">3</td>
+            <td class="headerCovTableEntry">20</td>
+            <td class="headerCovTableEntryLo">15.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #pragma once
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;algorithm&gt;
+<span class="lineNum">       7 </span>            : #include &lt;cstddef&gt;
+<span class="lineNum">       8 </span>            : #include &lt;tuple&gt;
+<span class="lineNum">       9 </span>            : #include &lt;utility&gt;
+<span class="lineNum">      10 </span>            : 
+<span class="lineNum">      11 </span>            : #include &quot;DataStructures/DataBox/DataBox.hpp&quot;
+<span class="lineNum">      12 </span>            : #include &quot;DataStructures/DataBox/DataBoxTag.hpp&quot;
+<span class="lineNum">      13 </span>            : #include &quot;DataStructures/FixedHashMap.hpp&quot;
+<span class="lineNum">      14 </span>            : #include &quot;Domain/Direction.hpp&quot;
+<span class="lineNum">      15 </span>            : #include &quot;Domain/Element.hpp&quot;
+<span class="lineNum">      16 </span>            : #include &quot;Domain/ElementId.hpp&quot;
+<span class="lineNum">      17 </span>            : #include &quot;Domain/MaxNumberOfNeighbors.hpp&quot;
+<span class="lineNum">      18 </span>            : #include &quot;Domain/OrientationMap.hpp&quot;
+<span class="lineNum">      19 </span>            : #include &quot;Domain/Tags.hpp&quot;
+<span class="lineNum">      20 </span>            : #include &quot;ErrorHandling/Assert.hpp&quot;
+<span class="lineNum">      21 </span>            : #include &quot;NumericalAlgorithms/DiscontinuousGalerkin/MortarHelpers.hpp&quot;
+<span class="lineNum">      22 </span>            : #include &quot;NumericalAlgorithms/DiscontinuousGalerkin/Tags.hpp&quot;
+<span class="lineNum">      23 </span>            : #include &quot;Parallel/ConstGlobalCache.hpp&quot;
+<span class="lineNum">      24 </span>            : #include &quot;Parallel/InboxInserters.hpp&quot;
+<span class="lineNum">      25 </span>            : #include &quot;Parallel/Invoke.hpp&quot;
+<span class="lineNum">      26 </span>            : #include &quot;ParallelAlgorithms/DiscontinuousGalerkin/HasReceivedFromAllMortars.hpp&quot;
+<span class="lineNum">      27 </span>            : #include &quot;Utilities/Gsl.hpp&quot;
+<span class="lineNum">      28 </span>            : #include &quot;Utilities/Requires.hpp&quot;
+<span class="lineNum">      29 </span>            : #include &quot;Utilities/TMPL.hpp&quot;
+<span class="lineNum">      30 </span>            : #include &quot;Utilities/TaggedTuple.hpp&quot;
+<span class="lineNum">      31 </span>            : 
+<span class="lineNum">      32 </span>            : namespace dg {
+<span class="lineNum">      33 </span>            : 
+<span class="lineNum">      34 </span>            : /// The inbox tag for flux communication
+<span class="lineNum">      35 </span>            : template &lt;typename BoundaryScheme&gt;
+<span class="lineNum">      36 </span>            : struct FluxesInboxTag
+<span class="lineNum">      37 </span><span class="lineCov">          1 :     : public Parallel::InboxInserters::Map&lt;FluxesInboxTag&lt;BoundaryScheme&gt;&gt; {</span>
+<span class="lineNum">      38 </span>            :  private:
+<span class="lineNum">      39 </span><span class="lineNoCov">          0 :   static constexpr size_t volume_dim = BoundaryScheme::volume_dim;</span>
+<span class="lineNum">      40 </span>            : 
+<span class="lineNum">      41 </span>            :  public:
+<span class="lineNum">      42 </span><span class="lineNoCov">          0 :   using temporal_id = db::item_type&lt;typename BoundaryScheme::temporal_id_tag&gt;;</span>
+<span class="lineNum">      43 </span><span class="lineNoCov">          0 :   using type = std::map&lt;</span>
+<span class="lineNum">      44 </span>            :       temporal_id,
+<span class="lineNum">      45 </span>            :       FixedHashMap&lt;
+<span class="lineNum">      46 </span>            :           maximum_number_of_neighbors(volume_dim), MortarId&lt;volume_dim&gt;,
+<span class="lineNum">      47 </span>            :           std::pair&lt;temporal_id, typename BoundaryScheme::BoundaryData&gt;,
+<span class="lineNum">      48 </span>            :           boost::hash&lt;MortarId&lt;volume_dim&gt;&gt;&gt;&gt;;
+<span class="lineNum">      49 </span>            : };
+<span class="lineNum">      50 </span>            : 
+<span class="lineNum">      51 </span>            : namespace Actions {
+<span class="lineNum">      52 </span>            : 
+<span class="lineNum">      53 </span>            : /*!
+<span class="lineNum">      54 </span>            :  * \ingroup ActionsGroup
+<span class="lineNum">      55 </span>            :  * \ingroup DiscontinuousGalerkinGroup
+<span class="lineNum">      56 </span>            :  * \brief Send local boundary data needed for fluxes to neighbors.
+<span class="lineNum">      57 </span>            :  *
+<span class="lineNum">      58 </span>            :  * Sends the data in `Tags::Mortars&lt;BoundaryScheme::mortar_data_tag,
+<span class="lineNum">      59 </span>            :  * volume_dim&gt;` to neighbors. Note that this action does not collect the data
+<span class="lineNum">      60 </span>            :  * from element interfaces or compute anything, it only sends the available data
+<span class="lineNum">      61 </span>            :  * to neighbors. Make sure to collect the data that should be sent before
+<span class="lineNum">      62 </span>            :  * invoking this action and store them in
+<span class="lineNum">      63 </span>            :  * `Tags::Mortars&lt;BoundaryScheme::mortar_data_tag, volume_dim&gt;`, including
+<span class="lineNum">      64 </span>            :  * projecting them to the mortar if necessary. See
+<span class="lineNum">      65 </span>            :  * `dg::Actions::CollectDataForFluxes` for an action that uses the interface
+<span class="lineNum">      66 </span>            :  * tag mechanism to do so.
+<span class="lineNum">      67 </span>            :  *
+<span class="lineNum">      68 </span>            :  * Uses:
+<span class="lineNum">      69 </span>            :  * - DataBox:
+<span class="lineNum">      70 </span>            :  *   - `Tags::Mortars&lt;typename BoundaryScheme::mortar_data_tag, volume_dim&gt;`
+<span class="lineNum">      71 </span>            :  *   - `Tags::Element&lt;volume_dim&gt;`
+<span class="lineNum">      72 </span>            :  *   - `BoundaryScheme::temporal_id_tag`
+<span class="lineNum">      73 </span>            :  *   - `BoundaryScheme::receive_temporal_id_tag`
+<span class="lineNum">      74 </span>            :  *   - `Tags::Mortars&lt;Tags::Mesh&lt;volume_dim - 1&gt;, volume_dim&gt;`
+<span class="lineNum">      75 </span>            :  *
+<span class="lineNum">      76 </span>            :  * \see `dg::Actions::ReceiveDataForFluxes`
+<span class="lineNum">      77 </span>            :  */
+<span class="lineNum">      78 </span>            : template &lt;typename BoundaryScheme&gt;
+<span class="lineNum">      79 </span><span class="lineCov">          1 : struct SendDataForFluxes {</span>
+<span class="lineNum">      80 </span>            :  private:
+<span class="lineNum">      81 </span><span class="lineNoCov">          0 :   static constexpr size_t volume_dim = BoundaryScheme::volume_dim;</span>
+<span class="lineNum">      82 </span><span class="lineNoCov">          0 :   using temporal_id_tag = typename BoundaryScheme::temporal_id_tag;</span>
+<span class="lineNum">      83 </span><span class="lineNoCov">          0 :   using receive_temporal_id_tag =</span>
+<span class="lineNum">      84 </span>            :       typename BoundaryScheme::receive_temporal_id_tag;
+<span class="lineNum">      85 </span><span class="lineNoCov">          0 :   using fluxes_inbox_tag = dg::FluxesInboxTag&lt;BoundaryScheme&gt;;</span>
+<span class="lineNum">      86 </span><span class="lineNoCov">          0 :   using all_mortar_data_tag =</span>
+<span class="lineNum">      87 </span>            :       ::Tags::Mortars&lt;typename BoundaryScheme::mortar_data_tag, volume_dim&gt;;
+<span class="lineNum">      88 </span>            : 
+<span class="lineNum">      89 </span>            :  public:
+<span class="lineNum">      90 </span>            :   template &lt;typename DbTags, typename... InboxTags, typename Metavariables,
+<span class="lineNum">      91 </span>            :             typename ArrayIndex, typename ActionList,
+<span class="lineNum">      92 </span>            :             typename ParallelComponent&gt;
+<span class="lineNum">      93 </span><span class="lineNoCov">          0 :   static std::tuple&lt;db::DataBox&lt;DbTags&gt;&amp;&amp;&gt; apply(</span>
+<span class="lineNum">      94 </span>            :       db::DataBox&lt;DbTags&gt;&amp; box, tuples::TaggedTuple&lt;InboxTags...&gt;&amp; /*inboxes*/,
+<span class="lineNum">      95 </span>            :       Parallel::ConstGlobalCache&lt;Metavariables&gt;&amp; cache,
+<span class="lineNum">      96 </span>            :       const ArrayIndex&amp; /*array_index*/, const ActionList /*meta*/,
+<span class="lineNum">      97 </span>            :       const ParallelComponent* const /*meta*/) noexcept {
+<span class="lineNum">      98 </span>            :     auto&amp; receiver_proxy =
+<span class="lineNum">      99 </span>            :         Parallel::get_parallel_component&lt;ParallelComponent&gt;(cache);
+<span class="lineNum">     100 </span>            : 
+<span class="lineNum">     101 </span>            :     const auto&amp; all_mortar_data = get&lt;all_mortar_data_tag&gt;(box);
+<span class="lineNum">     102 </span>            :     const auto&amp; element = db::get&lt;domain::Tags::Element&lt;volume_dim&gt;&gt;(box);
+<span class="lineNum">     103 </span>            :     const auto&amp; temporal_id = db::get&lt;temporal_id_tag&gt;(box);
+<span class="lineNum">     104 </span>            :     const auto&amp; receive_temporal_id = db::get&lt;receive_temporal_id_tag&gt;(box);
+<span class="lineNum">     105 </span>            :     const auto&amp; mortar_meshes =
+<span class="lineNum">     106 </span>            :         db::get&lt;Tags::Mortars&lt;domain::Tags::Mesh&lt;volume_dim - 1&gt;, volume_dim&gt;&gt;(
+<span class="lineNum">     107 </span>            :             box);
+<span class="lineNum">     108 </span>            : 
+<span class="lineNum">     109 </span>            :     // Iterate over neighbors
+<span class="lineNum">     110 </span>            :     for (const auto&amp; direction_and_neighbors : element.neighbors()) {
+<span class="lineNum">     111 </span>            :       const auto&amp; direction = direction_and_neighbors.first;
+<span class="lineNum">     112 </span>            :       const size_t dimension = direction.dimension();
+<span class="lineNum">     113 </span>            :       const auto&amp; neighbors_in_direction = direction_and_neighbors.second;
+<span class="lineNum">     114 </span>            :       const auto&amp; orientation = neighbors_in_direction.orientation();
+<span class="lineNum">     115 </span>            :       const auto direction_from_neighbor = orientation(direction.opposite());
+<span class="lineNum">     116 </span>            : 
+<span class="lineNum">     117 </span>            :       for (const auto&amp; neighbor : neighbors_in_direction) {
+<span class="lineNum">     118 </span>            :         const MortarId&lt;volume_dim&gt; mortar_id{direction, neighbor};
+<span class="lineNum">     119 </span>            : 
+<span class="lineNum">     120 </span>            :         // Make a copy of the local boundary data on the mortar to send to the
+<span class="lineNum">     121 </span>            :         // neighbor
+<span class="lineNum">     122 </span>            :         ASSERT(all_mortar_data.find(mortar_id) != all_mortar_data.end(),
+<span class="lineNum">     123 </span>            :                &quot;Mortar data on mortar &quot;
+<span class="lineNum">     124 </span>            :                    &lt;&lt; mortar_id
+<span class="lineNum">     125 </span>            :                    &lt;&lt; &quot; not available for sending. Did you forget to collect &quot;
+<span class="lineNum">     126 </span>            :                       &quot;the data on mortars?&quot;);
+<span class="lineNum">     127 </span>            :         auto remote_boundary_data_on_mortar =
+<span class="lineNum">     128 </span>            :             all_mortar_data.at(mortar_id).local_data(temporal_id);
+<span class="lineNum">     129 </span>            : 
+<span class="lineNum">     130 </span>            :         // Reorient the data to the neighbor orientation if necessary
+<span class="lineNum">     131 </span>            :         if (not orientation.is_aligned()) {
+<span class="lineNum">     132 </span>            :           remote_boundary_data_on_mortar.orient_on_slice(
+<span class="lineNum">     133 </span>            :               mortar_meshes.at(mortar_id).extents(), dimension, orientation);
+<span class="lineNum">     134 </span>            :         }
+<span class="lineNum">     135 </span>            : 
+<span class="lineNum">     136 </span>            :         // Send remote data to neighbor
+<span class="lineNum">     137 </span>            :         Parallel::receive_data&lt;fluxes_inbox_tag&gt;(
+<span class="lineNum">     138 </span>            :             receiver_proxy[neighbor], temporal_id,
+<span class="lineNum">     139 </span>            :             std::make_pair(
+<span class="lineNum">     140 </span>            :                 MortarId&lt;volume_dim&gt;{direction_from_neighbor, element.id()},
+<span class="lineNum">     141 </span>            :                 std::make_pair(receive_temporal_id,
+<span class="lineNum">     142 </span>            :                                std::move(remote_boundary_data_on_mortar))));
+<span class="lineNum">     143 </span>            :       }
+<span class="lineNum">     144 </span>            :     }
+<span class="lineNum">     145 </span>            :     return {std::move(box)};
+<span class="lineNum">     146 </span>            :   }
+<span class="lineNum">     147 </span>            : };
+<span class="lineNum">     148 </span>            : 
+<span class="lineNum">     149 </span>            : /*!
+<span class="lineNum">     150 </span>            :  * \ingroup ActionsGroup
+<span class="lineNum">     151 </span>            :  * \ingroup DiscontinuousGalerkinGroup
+<span class="lineNum">     152 </span>            :  * \brief Receive boundary data needed for fluxes from neighbors.
+<span class="lineNum">     153 </span>            :  *
+<span class="lineNum">     154 </span>            :  * Waits until remote boundary data from all internal mortars has arrived, then
+<span class="lineNum">     155 </span>            :  * contributes it to the data in `Tags::Mortars&lt;BoundaryScheme::mortar_data_tag,
+<span class="lineNum">     156 </span>            :  * volume_dim&gt;` that already holds the local boundary data.
+<span class="lineNum">     157 </span>            :  *
+<span class="lineNum">     158 </span>            :  * For boundary schemes that communicate asynchronously, in the sense that
+<span class="lineNum">     159 </span>            :  * neighboring elements may not send and receive data at the same temporal IDs
+<span class="lineNum">     160 </span>            :  * (e.g. for local time-stepping), see the documentation of this action's
+<span class="lineNum">     161 </span>            :  * template specialization.
+<span class="lineNum">     162 </span>            :  *
+<span class="lineNum">     163 </span>            :  * Uses:
+<span class="lineNum">     164 </span>            :  * - DataBox:
+<span class="lineNum">     165 </span>            :  *   - `Tags::Element&lt;volume_dim&gt;`
+<span class="lineNum">     166 </span>            :  *   - `BoundaryScheme::temporal_id`
+<span class="lineNum">     167 </span>            :  *
+<span class="lineNum">     168 </span>            :  * DataBox changes:
+<span class="lineNum">     169 </span>            :  * - Adds: nothing
+<span class="lineNum">     170 </span>            :  * - Removes: nothing
+<span class="lineNum">     171 </span>            :  * - Modifies:
+<span class="lineNum">     172 </span>            :  *   - `Tags::Mortars&lt;BoundaryScheme::mortar_data_tag, volume_dim&gt;`
+<span class="lineNum">     173 </span>            :  *
+<span class="lineNum">     174 </span>            :  * \see `dg::Actions::SendDataForFluxes`
+<span class="lineNum">     175 </span>            :  */
+<span class="lineNum">     176 </span>            : template &lt;typename BoundaryScheme, typename = std::nullptr_t&gt;
+<span class="lineNum">     177 </span><span class="lineCov">          1 : struct ReceiveDataForFluxes {</span>
+<span class="lineNum">     178 </span>            :  private:
+<span class="lineNum">     179 </span><span class="lineNoCov">          0 :   static constexpr size_t volume_dim = BoundaryScheme::volume_dim;</span>
+<span class="lineNum">     180 </span><span class="lineNoCov">          0 :   using temporal_id_tag = typename BoundaryScheme::temporal_id_tag;</span>
+<span class="lineNum">     181 </span><span class="lineNoCov">          0 :   using fluxes_inbox_tag = dg::FluxesInboxTag&lt;BoundaryScheme&gt;;</span>
+<span class="lineNum">     182 </span><span class="lineNoCov">          0 :   using all_mortar_data_tag =</span>
+<span class="lineNum">     183 </span>            :       ::Tags::Mortars&lt;typename BoundaryScheme::mortar_data_tag, volume_dim&gt;;
+<span class="lineNum">     184 </span>            : 
+<span class="lineNum">     185 </span>            :  public:
+<span class="lineNum">     186 </span><span class="lineNoCov">          0 :   using inbox_tags = tmpl::list&lt;fluxes_inbox_tag&gt;;</span>
+<span class="lineNum">     187 </span>            : 
+<span class="lineNum">     188 </span>            :   template &lt;typename DbTags, typename... InboxTags, typename Metavariables,
+<span class="lineNum">     189 </span>            :             typename ArrayIndex, typename ActionList,
+<span class="lineNum">     190 </span>            :             typename ParallelComponent&gt;
+<span class="lineNum">     191 </span><span class="lineNoCov">          0 :   static std::tuple&lt;db::DataBox&lt;DbTags&gt;&amp;&amp;&gt; apply(</span>
+<span class="lineNum">     192 </span>            :       db::DataBox&lt;DbTags&gt;&amp; box, tuples::TaggedTuple&lt;InboxTags...&gt;&amp; inboxes,
+<span class="lineNum">     193 </span>            :       const Parallel::ConstGlobalCache&lt;Metavariables&gt;&amp; /*cache*/,
+<span class="lineNum">     194 </span>            :       const ArrayIndex&amp; /*array_index*/, const ActionList /*meta*/,
+<span class="lineNum">     195 </span>            :       const ParallelComponent* const /*meta*/) noexcept {
+<span class="lineNum">     196 </span>            :     if (UNLIKELY(
+<span class="lineNum">     197 </span>            :             get&lt;domain::Tags::Element&lt;volume_dim&gt;&gt;(box).number_of_neighbors() ==
+<span class="lineNum">     198 </span>            :             0)) {
+<span class="lineNum">     199 </span>            :       return {std::move(box)};
+<span class="lineNum">     200 </span>            :     }
+<span class="lineNum">     201 </span>            :     auto&amp; inbox = tuples::get&lt;fluxes_inbox_tag&gt;(inboxes);
+<span class="lineNum">     202 </span>            :     const auto&amp; temporal_id = get&lt;temporal_id_tag&gt;(box);
+<span class="lineNum">     203 </span>            :     const auto temporal_received = inbox.find(temporal_id);
+<span class="lineNum">     204 </span>            :     db::mutate&lt;all_mortar_data_tag&gt;(
+<span class="lineNum">     205 </span>            :         make_not_null(&amp;box),
+<span class="lineNum">     206 </span>            :         [&amp;temporal_received](
+<span class="lineNum">     207 </span>            :             const gsl::not_null&lt;db::item_type&lt;all_mortar_data_tag&gt;*&gt;
+<span class="lineNum">     208 </span>            :                 mortar_data) noexcept {
+<span class="lineNum">     209 </span>            :           for (auto&amp; received_mortar_data : temporal_received-&gt;second) {
+<span class="lineNum">     210 </span>            :             const auto&amp; mortar_id = received_mortar_data.first;
+<span class="lineNum">     211 </span>            :             mortar_data-&gt;at(mortar_id).remote_insert(
+<span class="lineNum">     212 </span>            :                 temporal_received-&gt;first,
+<span class="lineNum">     213 </span>            :                 std::move(received_mortar_data.second.second));
+<span class="lineNum">     214 </span>            :           }
+<span class="lineNum">     215 </span>            :         });
+<span class="lineNum">     216 </span>            :     inbox.erase(temporal_received);
+<span class="lineNum">     217 </span>            :     return {std::move(box)};
+<span class="lineNum">     218 </span>            :   }
+<span class="lineNum">     219 </span>            : 
+<span class="lineNum">     220 </span>            :   template &lt;typename DbTags, typename... InboxTags, typename Metavariables,
+<span class="lineNum">     221 </span>            :             typename ArrayIndex&gt;
+<span class="lineNum">     222 </span><span class="lineNoCov">          0 :   static bool is_ready(</span>
+<span class="lineNum">     223 </span>            :       const db::DataBox&lt;DbTags&gt;&amp; box,
+<span class="lineNum">     224 </span>            :       const tuples::TaggedTuple&lt;InboxTags...&gt;&amp; inboxes,
+<span class="lineNum">     225 </span>            :       const Parallel::ConstGlobalCache&lt;Metavariables&gt;&amp; /*cache*/,
+<span class="lineNum">     226 </span>            :       const ArrayIndex&amp; /*array_index*/) noexcept {
+<span class="lineNum">     227 </span>            :     return has_received_from_all_mortars&lt;fluxes_inbox_tag&gt;(
+<span class="lineNum">     228 </span>            :         db::get&lt;temporal_id_tag&gt;(box),
+<span class="lineNum">     229 </span>            :         get&lt;domain::Tags::Element&lt;volume_dim&gt;&gt;(box), inboxes);
+<span class="lineNum">     230 </span>            :   }
+<span class="lineNum">     231 </span>            : };
+<span class="lineNum">     232 </span>            : 
+<span class="lineNum">     233 </span>            : /*!
+<span class="lineNum">     234 </span>            :  * \ingroup ActionsGroup
+<span class="lineNum">     235 </span>            :  * \ingroup DiscontinuousGalerkinGroup
+<span class="lineNum">     236 </span>            :  * \brief Receive asynchronous boundary data needed for fluxes from neighbors.
+<span class="lineNum">     237 </span>            :  *
+<span class="lineNum">     238 </span>            :  * Waits until remote boundary data from all internal mortars has arrived, then
+<span class="lineNum">     239 </span>            :  * contributes it to the data in `Tags::Mortars&lt;BoundaryScheme::mortar_data_tag,
+<span class="lineNum">     240 </span>            :  * volume_dim&gt;` that already holds the local boundary data.
+<span class="lineNum">     241 </span>            :  *
+<span class="lineNum">     242 </span>            :  * This template specialization handles asynchronous boundary schemes, e.g.
+<span class="lineNum">     243 </span>            :  * for local time-stepping. It proceeds only once the received boundary data
+<span class="lineNum">     244 </span>            :  * on every mortar has caught up with the `BoundaryScheme::receive_temporal_id`
+<span class="lineNum">     245 </span>            :  * on the element.
+<span class="lineNum">     246 </span>            :  *
+<span class="lineNum">     247 </span>            :  * Uses:
+<span class="lineNum">     248 </span>            :  * - DataBox:
+<span class="lineNum">     249 </span>            :  *   - `Tags::Element&lt;volume_dim&gt;`
+<span class="lineNum">     250 </span>            :  *   - `BoundaryScheme::receive_temporal_id`
+<span class="lineNum">     251 </span>            :  *
+<span class="lineNum">     252 </span>            :  * DataBox changes:
+<span class="lineNum">     253 </span>            :  * - Adds: nothing
+<span class="lineNum">     254 </span>            :  * - Removes: nothing
+<span class="lineNum">     255 </span>            :  * - Modifies:
+<span class="lineNum">     256 </span>            :  *   - `Tags::Mortars&lt;BoundaryScheme::mortar_data_tag, volume_dim&gt;`
+<span class="lineNum">     257 </span>            :  *   - `Tags::Mortars&lt;BoundaryScheme::receive_temporal_id_tag, volume_dim&gt;`
+<span class="lineNum">     258 </span>            :  *
+<span class="lineNum">     259 </span>            :  * \see `dg::Actions::SendDataForFluxes`
+<span class="lineNum">     260 </span>            :  * \see `dg::Actions::ReceiveDataForFluxes`
+<span class="lineNum">     261 </span>            :  */
+<span class="lineNum">     262 </span>            : template &lt;typename BoundaryScheme&gt;
+<span class="lineNum">     263 </span>            : struct ReceiveDataForFluxes&lt;
+<span class="lineNum">     264 </span>            :     BoundaryScheme, Requires&lt;not std::is_same_v&lt;
+<span class="lineNum">     265 </span>            :                         typename BoundaryScheme::receive_temporal_id_tag,
+<span class="lineNum">     266 </span>            :                         typename BoundaryScheme::temporal_id_tag&gt;&gt;&gt; {
+<span class="lineNum">     267 </span>            :  private:
+<span class="lineNum">     268 </span>            :   static constexpr size_t volume_dim = BoundaryScheme::volume_dim;
+<span class="lineNum">     269 </span>            :   using temporal_id_tag = typename BoundaryScheme::temporal_id_tag;
+<span class="lineNum">     270 </span>            :   using receive_temporal_id_tag =
+<span class="lineNum">     271 </span>            :       typename BoundaryScheme::receive_temporal_id_tag;
+<span class="lineNum">     272 </span>            :   using fluxes_inbox_tag = dg::FluxesInboxTag&lt;BoundaryScheme&gt;;
+<span class="lineNum">     273 </span>            :   using all_mortar_data_tag =
+<span class="lineNum">     274 </span>            :       ::Tags::Mortars&lt;typename BoundaryScheme::mortar_data_tag, volume_dim&gt;;
+<span class="lineNum">     275 </span>            : 
+<span class="lineNum">     276 </span>            :  public:
+<span class="lineNum">     277 </span>            :   using inbox_tags = tmpl::list&lt;fluxes_inbox_tag&gt;;
+<span class="lineNum">     278 </span>            : 
+<span class="lineNum">     279 </span>            :   template &lt;typename DbTags, typename... InboxTags, typename Metavariables,
+<span class="lineNum">     280 </span>            :             typename ArrayIndex, typename ActionList,
+<span class="lineNum">     281 </span>            :             typename ParallelComponent&gt;
+<span class="lineNum">     282 </span>            :   static std::tuple&lt;db::DataBox&lt;DbTags&gt;&amp;&amp;&gt; apply(
+<span class="lineNum">     283 </span>            :       db::DataBox&lt;DbTags&gt;&amp; box, tuples::TaggedTuple&lt;InboxTags...&gt;&amp; inboxes,
+<span class="lineNum">     284 </span>            :       const Parallel::ConstGlobalCache&lt;Metavariables&gt;&amp; /*cache*/,
+<span class="lineNum">     285 </span>            :       const ArrayIndex&amp; /*array_index*/, const ActionList /*meta*/,
+<span class="lineNum">     286 </span>            :       const ParallelComponent* const /*meta*/) noexcept {
+<span class="lineNum">     287 </span>            :     db::mutate&lt;all_mortar_data_tag,
+<span class="lineNum">     288 </span>            :                Tags::Mortars&lt;receive_temporal_id_tag, volume_dim&gt;&gt;(
+<span class="lineNum">     289 </span>            :         make_not_null(&amp;box),
+<span class="lineNum">     290 </span>            :         [&amp;inboxes](const gsl::not_null&lt;db::item_type&lt;all_mortar_data_tag&gt;*&gt;
+<span class="lineNum">     291 </span>            :                        mortar_data,
+<span class="lineNum">     292 </span>            :                    const gsl::not_null&lt;db::item_type&lt;
+<span class="lineNum">     293 </span>            :                        Tags::Mortars&lt;receive_temporal_id_tag, volume_dim&gt;&gt;*&gt;
+<span class="lineNum">     294 </span>            :                        neighbor_next_temporal_ids,
+<span class="lineNum">     295 </span>            :                    const db::const_item_type&lt;receive_temporal_id_tag&gt;&amp;
+<span class="lineNum">     296 </span>            :                        local_next_temporal_id) noexcept {
+<span class="lineNum">     297 </span>            :           auto&amp; inbox = tuples::get&lt;fluxes_inbox_tag&gt;(inboxes);
+<span class="lineNum">     298 </span>            :           for (auto received_data = inbox.begin();
+<span class="lineNum">     299 </span>            :                received_data != inbox.end() and
+<span class="lineNum">     300 </span>            :                    received_data-&gt;first &lt; local_next_temporal_id;
+<span class="lineNum">     301 </span>            :                received_data = inbox.erase(received_data)) {
+<span class="lineNum">     302 </span>            :             const auto&amp; receive_temporal_id = received_data-&gt;first;
+<span class="lineNum">     303 </span>            :             for (auto&amp; received_mortar_data : received_data-&gt;second) {
+<span class="lineNum">     304 </span>            :               const auto mortar_id = received_mortar_data.first;
+<span class="lineNum">     305 </span>            :               ASSERT(neighbor_next_temporal_ids-&gt;at(mortar_id) ==
+<span class="lineNum">     306 </span>            :                          receive_temporal_id,
+<span class="lineNum">     307 </span>            :                      &quot;Expected data at &quot;
+<span class="lineNum">     308 </span>            :                      &lt;&lt; neighbor_next_temporal_ids-&gt;at(mortar_id)
+<span class="lineNum">     309 </span>            :                      &lt;&lt; &quot; but received at &quot; &lt;&lt; receive_temporal_id);
+<span class="lineNum">     310 </span>            :               neighbor_next_temporal_ids-&gt;at(mortar_id) =
+<span class="lineNum">     311 </span>            :                   received_mortar_data.second.first;
+<span class="lineNum">     312 </span>            :               mortar_data-&gt;at(mortar_id).remote_insert(
+<span class="lineNum">     313 </span>            :                   receive_temporal_id,
+<span class="lineNum">     314 </span>            :                   std::move(received_mortar_data.second.second));
+<span class="lineNum">     315 </span>            :             }
+<span class="lineNum">     316 </span>            :           }
+<span class="lineNum">     317 </span>            : 
+<span class="lineNum">     318 </span>            :           // The apparently pointless lambda wrapping this check
+<span class="lineNum">     319 </span>            :           // prevents gcc-7.3.0 from segfaulting.
+<span class="lineNum">     320 </span>            :           ASSERT(([
+<span class="lineNum">     321 </span>            :                    &amp;neighbor_next_temporal_ids, &amp;local_next_temporal_id
+<span class="lineNum">     322 </span>            :                  ]() noexcept {
+<span class="lineNum">     323 </span>            :                    return std::all_of(
+<span class="lineNum">     324 </span>            :                        neighbor_next_temporal_ids-&gt;begin(),
+<span class="lineNum">     325 </span>            :                        neighbor_next_temporal_ids-&gt;end(),
+<span class="lineNum">     326 </span>            :                        [&amp;local_next_temporal_id](const auto&amp; next) noexcept {
+<span class="lineNum">     327 </span>            :                          return next.first.second ==
+<span class="lineNum">     328 </span>            :                                     ElementId&lt;
+<span class="lineNum">     329 </span>            :                                         volume_dim&gt;::external_boundary_id() or
+<span class="lineNum">     330 </span>            :                                 next.second &gt;= local_next_temporal_id;
+<span class="lineNum">     331 </span>            :                        });
+<span class="lineNum">     332 </span>            :                  }()),
+<span class="lineNum">     333 </span>            :                  &quot;apply called before all data received&quot;);
+<span class="lineNum">     334 </span>            :           ASSERT(
+<span class="lineNum">     335 </span>            :               inbox.empty() or (inbox.size() == 1 and
+<span class="lineNum">     336 </span>            :                                 inbox.begin()-&gt;first == local_next_temporal_id),
+<span class="lineNum">     337 </span>            :               &quot;Shouldn't have received data that depended upon the step being &quot;
+<span class="lineNum">     338 </span>            :               &quot;taken: Received data at &quot; &lt;&lt; inbox.begin()-&gt;first
+<span class="lineNum">     339 </span>            :               &lt;&lt; &quot; while stepping to &quot; &lt;&lt; local_next_temporal_id);
+<span class="lineNum">     340 </span>            :         },
+<span class="lineNum">     341 </span>            :         db::get&lt;receive_temporal_id_tag&gt;(box));
+<span class="lineNum">     342 </span>            : 
+<span class="lineNum">     343 </span>            :     return std::forward_as_tuple(std::move(box));
+<span class="lineNum">     344 </span>            :   }
+<span class="lineNum">     345 </span>            : 
+<span class="lineNum">     346 </span>            :   template &lt;typename DbTags, typename... InboxTags, typename Metavariables,
+<span class="lineNum">     347 </span>            :             typename ArrayIndex&gt;
+<span class="lineNum">     348 </span>            :   static bool is_ready(
+<span class="lineNum">     349 </span>            :       const db::DataBox&lt;DbTags&gt;&amp; box,
+<span class="lineNum">     350 </span>            :       const tuples::TaggedTuple&lt;InboxTags...&gt;&amp; inboxes,
+<span class="lineNum">     351 </span>            :       const Parallel::ConstGlobalCache&lt;Metavariables&gt;&amp; /*cache*/,
+<span class="lineNum">     352 </span>            :       const ArrayIndex&amp; /*array_index*/) noexcept {
+<span class="lineNum">     353 </span>            :     const auto&amp; inbox = tuples::get&lt;fluxes_inbox_tag&gt;(inboxes);
+<span class="lineNum">     354 </span>            :     const auto&amp; local_next_temporal_id = db::get&lt;receive_temporal_id_tag&gt;(box);
+<span class="lineNum">     355 </span>            :     const auto&amp; mortars_next_temporal_id =
+<span class="lineNum">     356 </span>            :         db::get&lt;Tags::Mortars&lt;receive_temporal_id_tag, volume_dim&gt;&gt;(box);
+<span class="lineNum">     357 </span>            :     for (const auto&amp; mortar_id_next_temporal_id : mortars_next_temporal_id) {
+<span class="lineNum">     358 </span>            :       const auto&amp; mortar_id = mortar_id_next_temporal_id.first;
+<span class="lineNum">     359 </span>            :       // If on an external boundary
+<span class="lineNum">     360 </span>            :       if (mortar_id.second == ElementId&lt;volume_dim&gt;::external_boundary_id()) {
+<span class="lineNum">     361 </span>            :         continue;
+<span class="lineNum">     362 </span>            :       }
+<span class="lineNum">     363 </span>            :       auto next_temporal_id = mortar_id_next_temporal_id.second;
+<span class="lineNum">     364 </span>            :       while (next_temporal_id &lt; local_next_temporal_id) {
+<span class="lineNum">     365 </span>            :         const auto temporal_received = inbox.find(next_temporal_id);
+<span class="lineNum">     366 </span>            :         if (temporal_received == inbox.end()) {
+<span class="lineNum">     367 </span>            :           return false;
+<span class="lineNum">     368 </span>            :         }
+<span class="lineNum">     369 </span>            :         const auto mortar_received = temporal_received-&gt;second.find(mortar_id);
+<span class="lineNum">     370 </span>            :         if (mortar_received == temporal_received-&gt;second.end()) {
+<span class="lineNum">     371 </span>            :           return false;
+<span class="lineNum">     372 </span>            :         }
+<span class="lineNum">     373 </span>            :         next_temporal_id = mortar_received-&gt;second.first;
+<span class="lineNum">     374 </span>            :       }
+<span class="lineNum">     375 </span>            :     }
+<span class="lineNum">     376 </span>            :     return true;
+<span class="lineNum">     377 </span>            :   }
+<span class="lineNum">     378 </span>            : };
+<span class="lineNum">     379 </span>            : 
+<span class="lineNum">     380 </span>            : }  // namespace Actions
+<span class="lineNum">     381 </span>            : }  // namespace dg
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

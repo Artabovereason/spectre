@@ -1,0 +1,267 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - Evolution/Systems/Cce/AnalyticSolutions/BouncingBlackHole.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../../index.html">top level</a> - <a href="index.html">Evolution/Systems/Cce/AnalyticSolutions</a> - BouncingBlackHole.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">5</td>
+            <td class="headerCovTableEntry">37</td>
+            <td class="headerCovTableEntryLo">13.5 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #pragma once
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;cstddef&gt;
+<span class="lineNum">       7 </span>            : #include &lt;memory&gt;
+<span class="lineNum">       8 </span>            : 
+<span class="lineNum">       9 </span>            : #include &quot;DataStructures/SpinWeighted.hpp&quot;
+<span class="lineNum">      10 </span>            : #include &quot;DataStructures/Tensor/Tensor.hpp&quot;
+<span class="lineNum">      11 </span>            : #include &quot;Evolution/Systems/Cce/AnalyticSolutions/WorldtubeData.hpp&quot;
+<span class="lineNum">      12 </span>            : #include &quot;Evolution/Systems/Cce/Tags.hpp&quot;
+<span class="lineNum">      13 </span>            : #include &quot;Evolution/Systems/GeneralizedHarmonic/Tags.hpp&quot;
+<span class="lineNum">      14 </span>            : #include &quot;Parallel/CharmPupable.hpp&quot;
+<span class="lineNum">      15 </span>            : #include &quot;PointwiseFunctions/GeneralRelativity/Tags.hpp&quot;
+<span class="lineNum">      16 </span>            : #include &quot;Utilities/Gsl.hpp&quot;
+<span class="lineNum">      17 </span>            : #include &quot;Utilities/Literals.hpp&quot;
+<span class="lineNum">      18 </span>            : #include &quot;Utilities/TMPL.hpp&quot;
+<span class="lineNum">      19 </span>            : 
+<span class="lineNum">      20 </span>            : /// \cond
+<span class="lineNum">      21 </span>            : class DataVector;
+<span class="lineNum">      22 </span>            : /// \endcond
+<span class="lineNum">      23 </span>            : 
+<span class="lineNum">      24 </span>            : namespace Cce {
+<span class="lineNum">      25 </span>            : namespace Solutions {
+<span class="lineNum">      26 </span>            : 
+<span class="lineNum">      27 </span>            : /*!
+<span class="lineNum">      28 </span>            :  * \brief Analytic solution representing a coordinate oscillation about a
+<span class="lineNum">      29 </span>            :  * stationary Schwarzschild black hole.
+<span class="lineNum">      30 </span>            :  *
+<span class="lineNum">      31 </span>            :  * \details As the oscillation in the metric data at the worldtube is a pure
+<span class="lineNum">      32 </span>            :  * coordinate effect, the system evolved using this worldtube data should
+<span class="lineNum">      33 </span>            :  * produce zero news. The solution is a coordinate transform applied to the
+<span class="lineNum">      34 </span>            :  * Schwarzschild solution in Kerr-Schild coordinates.
+<span class="lineNum">      35 </span>            :  */
+<span class="lineNum">      36 </span><span class="lineCov">          1 : struct BouncingBlackHole : public WorldtubeData {</span>
+<span class="lineNum">      37 </span><span class="lineNoCov">          0 :   struct Amplitude {</span>
+<span class="lineNum">      38 </span><span class="lineNoCov">          0 :     using type = double;</span>
+<span class="lineNum">      39 </span><span class="lineNoCov">          0 :     static constexpr OptionString help{</span>
+<span class="lineNum">      40 </span>            :         &quot;The coordinate distance of the gauge oscillation&quot;};
+<span class="lineNum">      41 </span><span class="lineNoCov">          0 :     static type lower_bound() noexcept { return 0.0; }</span>
+<span class="lineNum">      42 </span><span class="lineNoCov">          0 :     static type default_value() noexcept { return 2.0; }</span>
+<span class="lineNum">      43 </span>            :   };
+<span class="lineNum">      44 </span><span class="lineNoCov">          0 :   struct ExtractionRadius {</span>
+<span class="lineNum">      45 </span><span class="lineNoCov">          0 :     using type = double;</span>
+<span class="lineNum">      46 </span><span class="lineNoCov">          0 :     static constexpr OptionString help{</span>
+<span class="lineNum">      47 </span>            :         &quot;The extraction radius of the spherical solution&quot;};
+<span class="lineNum">      48 </span><span class="lineNoCov">          0 :     static type lower_bound() noexcept { return 0.0; }</span>
+<span class="lineNum">      49 </span><span class="lineNoCov">          0 :     static type default_value() noexcept { return 20.0; }</span>
+<span class="lineNum">      50 </span>            :   };
+<span class="lineNum">      51 </span><span class="lineNoCov">          0 :   struct Mass {</span>
+<span class="lineNum">      52 </span><span class="lineNoCov">          0 :     using type = double;</span>
+<span class="lineNum">      53 </span><span class="lineNoCov">          0 :     static constexpr OptionString help{</span>
+<span class="lineNum">      54 </span>            :       &quot;The mass of the Schwarzschild black hole&quot;};
+<span class="lineNum">      55 </span><span class="lineNoCov">          0 :     static type lower_bound() noexcept { return 0.0; }</span>
+<span class="lineNum">      56 </span><span class="lineNoCov">          0 :     static type default_value() noexcept { return 1.0; }</span>
+<span class="lineNum">      57 </span>            :   };
+<span class="lineNum">      58 </span><span class="lineNoCov">          0 :   struct Period {</span>
+<span class="lineNum">      59 </span><span class="lineNoCov">          0 :     using type = double;</span>
+<span class="lineNum">      60 </span><span class="lineNoCov">          0 :     static constexpr OptionString help{</span>
+<span class="lineNum">      61 </span>            :         &quot;The period of the coordinate oscillation&quot;};
+<span class="lineNum">      62 </span><span class="lineNoCov">          0 :     static type lower_bound() noexcept { return 0.0; }</span>
+<span class="lineNum">      63 </span><span class="lineNoCov">          0 :     static type default_value() noexcept { return 40.0; }</span>
+<span class="lineNum">      64 </span>            :   };
+<span class="lineNum">      65 </span>            : 
+<span class="lineNum">      66 </span><span class="lineNoCov">          0 :   using options = tmpl::list&lt;Amplitude, ExtractionRadius, Mass, Period&gt;;</span>
+<span class="lineNum">      67 </span>            : 
+<span class="lineNum">      68 </span><span class="lineNoCov">          0 :   WRAPPED_PUPable_decl_template(BouncingBlackHole);  // NOLINT</span>
+<span class="lineNum">      69 </span>            : 
+<span class="lineNum">      70 </span><span class="lineNoCov">          0 :   explicit BouncingBlackHole(CkMigrateMessage* /*unused*/) noexcept {}</span>
+<span class="lineNum">      71 </span>            : 
+<span class="lineNum">      72 </span>            : 
+<span class="lineNum">      73 </span>            :   // clang doesn't manage to use = default correctly in this case
+<span class="lineNum">      74 </span>            :   // NOLINTNEXTLINE(hicpp-use-equals-default)
+<span class="lineNum">      75 </span><span class="lineNoCov">          0 :   BouncingBlackHole() noexcept {};</span>
+<span class="lineNum">      76 </span>            : 
+<span class="lineNum">      77 </span><span class="lineNoCov">          0 :   BouncingBlackHole(double amplitude, double extraction_radius, double mass,</span>
+<span class="lineNum">      78 </span>            :                     double period) noexcept;
+<span class="lineNum">      79 </span>            : 
+<span class="lineNum">      80 </span><span class="lineNoCov">          0 :   std::unique_ptr&lt;WorldtubeData&gt; get_clone() const noexcept override;</span>
+<span class="lineNum">      81 </span>            : 
+<span class="lineNum">      82 </span><span class="lineNoCov">          0 :   void pup(PUP::er&amp; p) noexcept override;</span>
+<span class="lineNum">      83 </span>            : 
+<span class="lineNum">      84 </span>            :  protected:
+<span class="lineNum">      85 </span>            :   // The bouncing black hole solution is easily computed directly, so requires
+<span class="lineNum">      86 </span>            :   // no additional preparation.
+<span class="lineNum">      87 </span><span class="lineNoCov">          0 :   void prepare_solution(const size_t /*l_max*/, const double /*time*/) const</span>
+<span class="lineNum">      88 </span>            :       noexcept override{};
+<span class="lineNum">      89 </span>            : 
+<span class="lineNum">      90 </span>            :   using WorldtubeData::variables_impl;
+<span class="lineNum">      91 </span>            : 
+<span class="lineNum">      92 </span>            :   /*!
+<span class="lineNum">      93 </span>            :    * \brief The implementation function that computes the spacetime metric on
+<span class="lineNum">      94 </span>            :    * the extraction sphere at collocation points associated with angular
+<span class="lineNum">      95 </span>            :    * resolution `l_max`.
+<span class="lineNum">      96 </span>            :    *
+<span class="lineNum">      97 </span>            :    * \details The spacetime metric \f$g_{a b}\f$ is determined by evaluating the
+<span class="lineNum">      98 </span>            :    * Kerr-Schild metric at a set of transformed coordinates \f$t^\prime = t,
+<span class="lineNum">      99 </span>            :    * y^\prime = y, z^\prime = z\f$, and
+<span class="lineNum">     100 </span>            :    *
+<span class="lineNum">     101 </span>            :    * \f{align*}{
+<span class="lineNum">     102 </span>            :    * x = x^\prime + A \left(\sin\left(\frac{2 \pi t}{T}\right)\right)^4,
+<span class="lineNum">     103 </span>            :    * \f}
+<span class="lineNum">     104 </span>            :    *
+<span class="lineNum">     105 </span>            :    * where the amplitude \f$A\f$ is set by the option `Amplitude` and the period
+<span class="lineNum">     106 </span>            :    * \f$T\f$ is set by the option `Period`. In this notation we take
+<span class="lineNum">     107 </span>            :    * the primed coordinates to be the coordinates for which the black hole has
+<span class="lineNum">     108 </span>            :    * time-dependent coordinate position.
+<span class="lineNum">     109 </span>            :    */
+<span class="lineNum">     110 </span><span class="lineCov">          1 :   void variables_impl(gsl::not_null&lt;tnsr::aa&lt;DataVector, 3&gt;*&gt; spacetime_metric,</span>
+<span class="lineNum">     111 </span>            :                       size_t l_max, double time,
+<span class="lineNum">     112 </span>            :                       tmpl::type_&lt;gr::Tags::SpacetimeMetric&lt;
+<span class="lineNum">     113 </span>            :                           3, ::Frame::Inertial, DataVector&gt;&gt; /*meta*/) const
+<span class="lineNum">     114 </span>            :       noexcept override;
+<span class="lineNum">     115 </span>            : 
+<span class="lineNum">     116 </span>            :   /*!
+<span class="lineNum">     117 </span>            :    * \brief The implementation function that computes the first time derivative
+<span class="lineNum">     118 </span>            :    * of the spacetime metric on the extraction sphere.
+<span class="lineNum">     119 </span>            :    *
+<span class="lineNum">     120 </span>            :    * \details The time derivative of the spacetime metric
+<span class="lineNum">     121 </span>            :    * \f$\partial_t g_{a b}\f$ comes entirely from the Jacobian factor:
+<span class="lineNum">     122 </span>            :    *
+<span class="lineNum">     123 </span>            :    * \f{align*}{
+<span class="lineNum">     124 </span>            :    * \partial_t x = \frac{8 \pi A}{T} \cos\left(\frac{2 \pi t}{T}\right)
+<span class="lineNum">     125 </span>            :    * \left(\sin\left(\frac{2 \pi t}{T}\right)\right)^3,
+<span class="lineNum">     126 </span>            :    * \f}
+<span class="lineNum">     127 </span>            :    *
+<span class="lineNum">     128 </span>            :    * so the transformed metric derivative is,
+<span class="lineNum">     129 </span>            :    *
+<span class="lineNum">     130 </span>            :    * \f{align*}{
+<span class="lineNum">     131 </span>            :    * \partial_t g_{a^\prime b^\prime} = 2 \partial_{(a^\prime} \partial_t x
+<span class="lineNum">     132 </span>            :    * \partial_{b^\prime)} x^a g_{x a}.
+<span class="lineNum">     133 </span>            :    * \f}
+<span class="lineNum">     134 </span>            :    *
+<span class="lineNum">     135 </span>            :    * In this notation we take the primed coordinates to be the coordinates for
+<span class="lineNum">     136 </span>            :    * which the black hole has time-dependent coordinate position.
+<span class="lineNum">     137 </span>            :    */
+<span class="lineNum">     138 </span><span class="lineCov">          1 :   void variables_impl(</span>
+<span class="lineNum">     139 </span>            :       gsl::not_null&lt;tnsr::aa&lt;DataVector, 3&gt;*&gt; dt_spacetime_metric, size_t l_max,
+<span class="lineNum">     140 </span>            :       double time,
+<span class="lineNum">     141 </span>            :       tmpl::type_&lt;::Tags::dt&lt;gr::Tags::SpacetimeMetric&lt;
+<span class="lineNum">     142 </span>            :           3, ::Frame::Inertial, DataVector&gt;&gt;&gt; /*meta*/) const noexcept override;
+<span class="lineNum">     143 </span>            : 
+<span class="lineNum">     144 </span>            :   /*!
+<span class="lineNum">     145 </span>            :    * \brief The implementation function that computes the first spatial
+<span class="lineNum">     146 </span>            :    * derivative of the spacetime metric on the extraction sphere.
+<span class="lineNum">     147 </span>            :    *
+<span class="lineNum">     148 </span>            :    * \details The calculation proceeds by standard coordinate transform
+<span class="lineNum">     149 </span>            :    * techniques for the transformation given by \f$t^\prime = t,
+<span class="lineNum">     150 </span>            :    * y^\prime = y, z^\prime = z\f$, and
+<span class="lineNum">     151 </span>            :    *
+<span class="lineNum">     152 </span>            :    * \f{align*}{
+<span class="lineNum">     153 </span>            :    * x = x^\prime + A \left(\sin\left(\frac{2 \pi t}{T}\right)\right)^4,
+<span class="lineNum">     154 </span>            :    * \f}
+<span class="lineNum">     155 </span>            :    *
+<span class="lineNum">     156 </span>            :    * The general coordinate transformation formula that gives the metric
+<span class="lineNum">     157 </span>            :    * is then
+<span class="lineNum">     158 </span>            :    * \f{align*}{
+<span class="lineNum">     159 </span>            :    * \partial_a g_{b c} =
+<span class="lineNum">     160 </span>            :    * \partial_a \partial_b x^{\prime a^\prime} \partial_c x^{\prime b^\prime}
+<span class="lineNum">     161 </span>            :    * g_{a^\prime b^\prime}
+<span class="lineNum">     162 </span>            :    * + \partial_b x^{\prime a^\prime} \partial_a \partial_c x^{\prime b^\prime}
+<span class="lineNum">     163 </span>            :    * g_{a^\prime b^\prime}
+<span class="lineNum">     164 </span>            :    * + \partial_a x^{\prime a^\prime} \partial_b x^{\prime b^\prime}
+<span class="lineNum">     165 </span>            :    * \partial_c x^{\prime c^\prime} \partial_a g_{b c}
+<span class="lineNum">     166 </span>            :    * \f}
+<span class="lineNum">     167 </span>            :    */
+<span class="lineNum">     168 </span><span class="lineCov">          1 :   void variables_impl(</span>
+<span class="lineNum">     169 </span>            :       gsl::not_null&lt;tnsr::iaa&lt;DataVector, 3&gt;*&gt; d_spacetime_metric, size_t l_max,
+<span class="lineNum">     170 </span>            :       double time,
+<span class="lineNum">     171 </span>            :       tmpl::type_&lt;
+<span class="lineNum">     172 </span>            :           GeneralizedHarmonic::Tags::Phi&lt;3, ::Frame::Inertial&gt;&gt; /*meta*/) const
+<span class="lineNum">     173 </span>            :       noexcept override;
+<span class="lineNum">     174 </span>            : 
+<span class="lineNum">     175 </span>            :   /// The News in the bouncing black hole solution vanishes, as the oscillation
+<span class="lineNum">     176 </span>            :   /// comes entirely from a coordinate transform.
+<span class="lineNum">     177 </span><span class="lineCov">          1 :   void variables_impl(</span>
+<span class="lineNum">     178 </span>            :       gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, -2&gt;&gt;*&gt; news,
+<span class="lineNum">     179 </span>            :       size_t output_l_max, double time, tmpl::type_&lt;Tags::News&gt; /*meta*/) const
+<span class="lineNum">     180 </span>            :       noexcept override;
+<span class="lineNum">     181 </span>            : 
+<span class="lineNum">     182 </span><span class="lineNoCov">          0 :   double amplitude_ = std::numeric_limits&lt;double&gt;::signaling_NaN();</span>
+<span class="lineNum">     183 </span><span class="lineNoCov">          0 :   double mass_ = std::numeric_limits&lt;double&gt;::signaling_NaN();</span>
+<span class="lineNum">     184 </span><span class="lineNoCov">          0 :   double frequency_ = std::numeric_limits&lt;double&gt;::signaling_NaN();</span>
+<span class="lineNum">     185 </span>            : };
+<span class="lineNum">     186 </span>            : }  // namespace Solutions
+<span class="lineNum">     187 </span>            : }  // namespace Cce
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

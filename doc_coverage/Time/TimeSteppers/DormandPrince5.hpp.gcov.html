@@ -1,0 +1,318 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - Time/TimeSteppers/DormandPrince5.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">Time/TimeSteppers</a> - DormandPrince5.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">2</td>
+            <td class="headerCovTableEntry">32</td>
+            <td class="headerCovTableEntryLo">6.2 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineCov">          1 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : /// \file
+<span class="lineNum">       5 </span>            : /// Defines class DormandPrince5.
+<span class="lineNum">       6 </span>            : 
+<span class="lineNum">       7 </span>            : #pragma once
+<span class="lineNum">       8 </span>            : 
+<span class="lineNum">       9 </span>            : #include &lt;cstddef&gt;
+<span class="lineNum">      10 </span>            : #include &lt;cstdint&gt;
+<span class="lineNum">      11 </span>            : #include &lt;ostream&gt;
+<span class="lineNum">      12 </span>            : #include &lt;pup.h&gt;
+<span class="lineNum">      13 </span>            : 
+<span class="lineNum">      14 </span>            : #include &quot;ErrorHandling/Assert.hpp&quot;
+<span class="lineNum">      15 </span>            : #include &quot;ErrorHandling/Error.hpp&quot;
+<span class="lineNum">      16 </span>            : #include &quot;Options/Options.hpp&quot;
+<span class="lineNum">      17 </span>            : #include &quot;Parallel/CharmPupable.hpp&quot;
+<span class="lineNum">      18 </span>            : #include &quot;Time/Time.hpp&quot;
+<span class="lineNum">      19 </span>            : #include &quot;Time/TimeSteppers/TimeStepper.hpp&quot;
+<span class="lineNum">      20 </span>            : #include &quot;Utilities/ConstantExpressions.hpp&quot;
+<span class="lineNum">      21 </span>            : #include &quot;Utilities/Gsl.hpp&quot;
+<span class="lineNum">      22 </span>            : #include &quot;Utilities/TMPL.hpp&quot;
+<span class="lineNum">      23 </span>            : 
+<span class="lineNum">      24 </span>            : /// \cond
+<span class="lineNum">      25 </span>            : struct TimeStepId;
+<span class="lineNum">      26 </span>            : namespace TimeSteppers {
+<span class="lineNum">      27 </span>            : template &lt;typename Vars, typename DerivVars&gt;
+<span class="lineNum">      28 </span>            : class History;
+<span class="lineNum">      29 </span>            : }  // namespace TimeSteppers
+<span class="lineNum">      30 </span>            : /// \endcond
+<span class="lineNum">      31 </span>            : 
+<span class="lineNum">      32 </span>            : namespace TimeSteppers {
+<span class="lineNum">      33 </span>            : 
+<span class="lineNum">      34 </span>            : /*!
+<span class="lineNum">      35 </span>            :  * \ingroup TimeSteppersGroup
+<span class="lineNum">      36 </span>            :  *
+<span class="lineNum">      37 </span>            :  * The standard 5th-order Dormand-Prince time stepping method, given e.g. in
+<span class="lineNum">      38 </span>            :  * Sec. 7.2 of \cite NumericalRecipes.
+<span class="lineNum">      39 </span>            :  *
+<span class="lineNum">      40 </span>            :  * \f{eqnarray}{
+<span class="lineNum">      41 </span>            :  * \frac{du}{dt} &amp; = &amp; \mathcal{L}(t,u).
+<span class="lineNum">      42 </span>            :  * \f}
+<span class="lineNum">      43 </span>            :  * Given a solution \f$u(t^n)=u^n\f$, this stepper computes
+<span class="lineNum">      44 </span>            :  * \f$u(t^{n+1})=u^{n+1}\f$ using the following equations:
+<span class="lineNum">      45 </span>            :  *
+<span class="lineNum">      46 </span>            :  * \f{align}{
+<span class="lineNum">      47 </span>            :  * k^{(1)} &amp; = dt \mathcal{L}(t^n, u^n),\\
+<span class="lineNum">      48 </span>            :  * k^{(i)} &amp; = dt \mathcal{L}(t^n + c_i dt,
+<span class="lineNum">      49 </span>            :  *                              u^n + \sum_{j=1}^{i-1} a_{ij} k^{(j)}),
+<span class="lineNum">      50 </span>            :  *                              \mbox{ } 2 \leq i \leq 6,\\
+<span class="lineNum">      51 </span>            :  * u^{n+1} &amp; = u^n + \sum_{i=1}^{6} b_i k^{(i)}.
+<span class="lineNum">      52 </span>            :  * \f}
+<span class="lineNum">      53 </span>            :  *
+<span class="lineNum">      54 </span>            :  * Here the coefficients \f$a_{ij}\f$, \f$b_i\f$, and \f$c_i\f$ are given
+<span class="lineNum">      55 </span>            :  * in e.g. Sec. 7.2 of \cite NumericalRecipes. Note that \f$c_1 = 0\f$.
+<span class="lineNum">      56 </span>            :  *
+<span class="lineNum">      57 </span>            :  */
+<span class="lineNum">      58 </span><span class="lineCov">          1 : class DormandPrince5 : public TimeStepper::Inherit {</span>
+<span class="lineNum">      59 </span>            :  public:
+<span class="lineNum">      60 </span><span class="lineNoCov">          0 :   using options = tmpl::list&lt;&gt;;</span>
+<span class="lineNum">      61 </span><span class="lineNoCov">          0 :   static constexpr OptionString help = {</span>
+<span class="lineNum">      62 </span>            :       &quot;The standard Dormand-Prince 5th-order time stepper.&quot;};
+<span class="lineNum">      63 </span>            : 
+<span class="lineNum">      64 </span><span class="lineNoCov">          0 :   DormandPrince5() = default;</span>
+<span class="lineNum">      65 </span><span class="lineNoCov">          0 :   DormandPrince5(const DormandPrince5&amp;) noexcept = default;</span>
+<span class="lineNum">      66 </span><span class="lineNoCov">          0 :   DormandPrince5&amp; operator=(const DormandPrince5&amp;) noexcept = default;</span>
+<span class="lineNum">      67 </span><span class="lineNoCov">          0 :   DormandPrince5(DormandPrince5&amp;&amp;) noexcept = default;</span>
+<span class="lineNum">      68 </span><span class="lineNoCov">          0 :   DormandPrince5&amp; operator=(DormandPrince5&amp;&amp;) noexcept = default;</span>
+<span class="lineNum">      69 </span><span class="lineNoCov">          0 :   ~DormandPrince5() noexcept override = default;</span>
+<span class="lineNum">      70 </span>            : 
+<span class="lineNum">      71 </span>            :   template &lt;typename Vars, typename DerivVars&gt;
+<span class="lineNum">      72 </span><span class="lineNoCov">          0 :   void update_u(gsl::not_null&lt;Vars*&gt; u,</span>
+<span class="lineNum">      73 </span>            :                 gsl::not_null&lt;History&lt;Vars, DerivVars&gt;*&gt; history,
+<span class="lineNum">      74 </span>            :                 const TimeDelta&amp; time_step) const noexcept;
+<span class="lineNum">      75 </span>            : 
+<span class="lineNum">      76 </span>            :   template &lt;typename Vars, typename DerivVars&gt;
+<span class="lineNum">      77 </span><span class="lineNoCov">          0 :   void dense_update_u(gsl::not_null&lt;Vars*&gt; u,</span>
+<span class="lineNum">      78 </span>            :                       const History&lt;Vars, DerivVars&gt;&amp; history,
+<span class="lineNum">      79 </span>            :                       double time) const noexcept;
+<span class="lineNum">      80 </span>            : 
+<span class="lineNum">      81 </span><span class="lineNoCov">          0 :   uint64_t number_of_substeps() const noexcept override;</span>
+<span class="lineNum">      82 </span>            : 
+<span class="lineNum">      83 </span><span class="lineNoCov">          0 :   size_t number_of_past_steps() const noexcept override;</span>
+<span class="lineNum">      84 </span>            : 
+<span class="lineNum">      85 </span><span class="lineNoCov">          0 :   double stable_step() const noexcept override;</span>
+<span class="lineNum">      86 </span>            : 
+<span class="lineNum">      87 </span><span class="lineNoCov">          0 :   TimeStepId next_time_id(const TimeStepId&amp; current_id,</span>
+<span class="lineNum">      88 </span>            :                           const TimeDelta&amp; time_step) const noexcept override;
+<span class="lineNum">      89 </span>            : 
+<span class="lineNum">      90 </span>            :   template &lt;typename Vars, typename DerivVars&gt;
+<span class="lineNum">      91 </span><span class="lineNoCov">          0 :   bool can_change_step_size(</span>
+<span class="lineNum">      92 </span>            :       const TimeStepId&amp; time_id,
+<span class="lineNum">      93 </span>            :       const TimeSteppers::History&lt;Vars, DerivVars&gt;&amp; /*history*/) const
+<span class="lineNum">      94 </span>            :       noexcept {
+<span class="lineNum">      95 </span>            :     return time_id.substep() == 0;
+<span class="lineNum">      96 </span>            :   }
+<span class="lineNum">      97 </span>            : 
+<span class="lineNum">      98 </span><span class="lineNoCov">          0 :   WRAPPED_PUPable_decl_template(DormandPrince5);  // NOLINT</span>
+<span class="lineNum">      99 </span>            : 
+<span class="lineNum">     100 </span><span class="lineNoCov">          0 :   explicit DormandPrince5(CkMigrateMessage* /*unused*/) noexcept {}</span>
+<span class="lineNum">     101 </span>            : 
+<span class="lineNum">     102 </span>            :   // clang-tidy: do not pass by non-const reference
+<span class="lineNum">     103 </span><span class="lineNoCov">          0 :   void pup(PUP::er&amp; p) noexcept override {  // NOLINT</span>
+<span class="lineNum">     104 </span>            :     TimeStepper::Inherit::pup(p);
+<span class="lineNum">     105 </span>            :   }
+<span class="lineNum">     106 </span>            : 
+<span class="lineNum">     107 </span>            :  private:
+<span class="lineNum">     108 </span>            :   // Coefficients from the Dormand-Prince 5 Butcher tableau (e.g. Sec. 7.2
+<span class="lineNum">     109 </span>            :   // of \cite NumericalRecipes).
+<span class="lineNum">     110 </span><span class="lineNoCov">          0 :   static constexpr double _a2 = 0.2;</span>
+<span class="lineNum">     111 </span><span class="lineNoCov">          0 :   static constexpr std::array&lt;double, 2&gt; _a3{{3.0 / 40.0, 9.0 / 40.0}};</span>
+<span class="lineNum">     112 </span><span class="lineNoCov">          0 :   static constexpr std::array&lt;double, 3&gt; _a4{</span>
+<span class="lineNum">     113 </span>            :       {44.0 / 45.0, -56.0 / 15.0, 32.0 / 9.0}};
+<span class="lineNum">     114 </span><span class="lineNoCov">          0 :   static constexpr std::array&lt;double, 4&gt; _a5{</span>
+<span class="lineNum">     115 </span>            :       {19372.0 / 6561.0, -25360.0 / 2187.0, 64448.0 / 6561.0, -212.0 / 729.0}};
+<span class="lineNum">     116 </span><span class="lineNoCov">          0 :   static constexpr std::array&lt;double, 5&gt; _a6{{9017.0 / 3168.0, -355.0 / 33.0,</span>
+<span class="lineNum">     117 </span>            :                                               46732.0 / 5247.0, 49.0 / 176.0,
+<span class="lineNum">     118 </span>            :                                               -5103.0 / 18656.0}};
+<span class="lineNum">     119 </span><span class="lineNoCov">          0 :   static constexpr std::array&lt;double, 6&gt; _b{{35.0 / 384.0, 0.0, 500.0 / 1113.0,</span>
+<span class="lineNum">     120 </span>            :                                              125.0 / 192.0, -2187.0 / 6784.0,
+<span class="lineNum">     121 </span>            :                                              11.0 / 84.0}};
+<span class="lineNum">     122 </span><span class="lineNoCov">          0 :   static const std::array&lt;Time::rational_t, 5&gt; _c;</span>
+<span class="lineNum">     123 </span>            : 
+<span class="lineNum">     124 </span>            :   // Coefficients for dense output, taken from Sec. 7.2 of
+<span class="lineNum">     125 </span>            :   // \cite NumericalRecipes
+<span class="lineNum">     126 </span><span class="lineNoCov">          0 :   static constexpr std::array&lt;double, 6&gt; _d{</span>
+<span class="lineNum">     127 </span>            :       {-12715105075.0 / 11282082432.0, 87487479700.0 / 32700410799.0,
+<span class="lineNum">     128 </span>            :        -10690763975.0 / 1880347072.0, 701980252875.0 / 199316789632.0,
+<span class="lineNum">     129 </span>            :        -1453857185.0 / 822651844.0, 69997945.0 / 29380423.0}};
+<span class="lineNum">     130 </span>            : };
+<span class="lineNum">     131 </span>            : 
+<span class="lineNum">     132 </span><span class="lineNoCov">          0 : inline bool constexpr operator==(const DormandPrince5&amp; /*lhs*/,</span>
+<span class="lineNum">     133 </span>            :                                  const DormandPrince5&amp; /*rhs*/) noexcept {
+<span class="lineNum">     134 </span>            :   return true;
+<span class="lineNum">     135 </span>            : }
+<span class="lineNum">     136 </span>            : 
+<span class="lineNum">     137 </span><span class="lineNoCov">          0 : inline bool constexpr operator!=(const DormandPrince5&amp; /*lhs*/,</span>
+<span class="lineNum">     138 </span>            :                                  const DormandPrince5&amp; /*rhs*/) noexcept {
+<span class="lineNum">     139 </span>            :   return false;
+<span class="lineNum">     140 </span>            : }
+<span class="lineNum">     141 </span>            : 
+<span class="lineNum">     142 </span>            : template &lt;typename Vars, typename DerivVars&gt;
+<span class="lineNum">     143 </span><span class="lineNoCov">          0 : void DormandPrince5::update_u(</span>
+<span class="lineNum">     144 </span>            :     const gsl::not_null&lt;Vars*&gt; u,
+<span class="lineNum">     145 </span>            :     const gsl::not_null&lt;History&lt;Vars, DerivVars&gt;*&gt; history,
+<span class="lineNum">     146 </span>            :     const TimeDelta&amp; time_step) const noexcept {
+<span class="lineNum">     147 </span>            :   const size_t substep = history-&gt;size() - 1;
+<span class="lineNum">     148 </span>            :   const auto&amp; u0 = history-&gt;begin().value();
+<span class="lineNum">     149 </span>            :   const double dt = time_step.value();
+<span class="lineNum">     150 </span>            : 
+<span class="lineNum">     151 </span>            :   const auto increment_u = [&amp;u, &amp;history, &amp;dt](const auto&amp; coeffs) noexcept {
+<span class="lineNum">     152 </span>            :     for (size_t i = 0; i &lt; coeffs.size(); ++i) {
+<span class="lineNum">     153 </span>            :       *u += (gsl::at(coeffs, i) * dt) *
+<span class="lineNum">     154 </span>            :             (history-&gt;begin() + static_cast&lt;int&gt;(i)).derivative();
+<span class="lineNum">     155 </span>            :     }
+<span class="lineNum">     156 </span>            :   };
+<span class="lineNum">     157 </span>            : 
+<span class="lineNum">     158 </span>            :   if (substep == 0) {
+<span class="lineNum">     159 </span>            :     *u += (_a2 * dt) * history-&gt;begin().derivative();
+<span class="lineNum">     160 </span>            :   } else if (substep &lt; 6) {
+<span class="lineNum">     161 </span>            :     *u = u0;
+<span class="lineNum">     162 </span>            :     if (substep == 1) {
+<span class="lineNum">     163 </span>            :       increment_u(_a3);
+<span class="lineNum">     164 </span>            :     } else if (substep == 2) {
+<span class="lineNum">     165 </span>            :       increment_u(_a4);
+<span class="lineNum">     166 </span>            :     } else if (substep == 3) {
+<span class="lineNum">     167 </span>            :       increment_u(_a5);
+<span class="lineNum">     168 </span>            :     } else if (substep == 4) {
+<span class="lineNum">     169 </span>            :       increment_u(_a6);
+<span class="lineNum">     170 </span>            :     } else {
+<span class="lineNum">     171 </span>            :       increment_u(_b);
+<span class="lineNum">     172 </span>            :     }
+<span class="lineNum">     173 </span>            :   } else {
+<span class="lineNum">     174 </span>            :     ERROR(&quot;Substep in DP5 should be one of 0,1,2,3,4,5, not &quot; &lt;&lt; substep);
+<span class="lineNum">     175 </span>            :   }
+<span class="lineNum">     176 </span>            : 
+<span class="lineNum">     177 </span>            :   // Clean up old history
+<span class="lineNum">     178 </span>            :   if (history-&gt;size() == number_of_substeps()) {
+<span class="lineNum">     179 </span>            :     history-&gt;mark_unneeded(history-&gt;end());
+<span class="lineNum">     180 </span>            :   }
+<span class="lineNum">     181 </span>            : }
+<span class="lineNum">     182 </span>            : 
+<span class="lineNum">     183 </span>            : template &lt;typename Vars, typename DerivVars&gt;
+<span class="lineNum">     184 </span><span class="lineNoCov">          0 : void DormandPrince5::dense_update_u(const gsl::not_null&lt;Vars*&gt; u,</span>
+<span class="lineNum">     185 </span>            :                                     const History&lt;Vars, DerivVars&gt;&amp; history,
+<span class="lineNum">     186 </span>            :                                     const double time) const noexcept {
+<span class="lineNum">     187 </span>            :   ASSERT(history.size() == number_of_substeps(),
+<span class="lineNum">     188 </span>            :          &quot;DP5 can only dense output on last substep (&quot;
+<span class="lineNum">     189 </span>            :              &lt;&lt; number_of_substeps() - 1 &lt;&lt; &quot;), not substep &quot;
+<span class="lineNum">     190 </span>            :              &lt;&lt; history.size() - 1);
+<span class="lineNum">     191 </span>            :   const double t0 = history[0].value();
+<span class="lineNum">     192 </span>            :   const double t_end = history[history.size() - 1].value();
+<span class="lineNum">     193 </span>            :   // The history does not contain the final step; specifically,
+<span class="lineNum">     194 </span>            :   // step_end = t0 + c[4] * dt, so dt = (t_end - t0) / c[4]. But since
+<span class="lineNum">     195 </span>            :   // c[4] = 1.0 for DP5, we don't need to divide by c[4] here.
+<span class="lineNum">     196 </span>            :   const double dt = t_end - t0;
+<span class="lineNum">     197 </span>            :   const double output_fraction = (time - t0) / dt;
+<span class="lineNum">     198 </span>            :   ASSERT(output_fraction &gt;= 0.0, &quot;Attempting dense output at time &quot;
+<span class="lineNum">     199 </span>            :                                      &lt;&lt; time &lt;&lt; &quot;, but already progressed past &quot;
+<span class="lineNum">     200 </span>            :                                      &lt;&lt; t0);
+<span class="lineNum">     201 </span>            :   ASSERT(output_fraction &lt;= 1.0, &quot;Requested time (&quot;
+<span class="lineNum">     202 </span>            :                                      &lt;&lt; time &lt;&lt; &quot;) not within step [&quot; &lt;&lt; t0
+<span class="lineNum">     203 </span>            :                                      &lt;&lt; &quot;, &quot; &lt;&lt; t0 + dt &lt;&lt; &quot;]&quot;);
+<span class="lineNum">     204 </span>            : 
+<span class="lineNum">     205 </span>            :   // Get the solution u1 at the final time
+<span class="lineNum">     206 </span>            :   const auto&amp; u0 = history.begin().value();
+<span class="lineNum">     207 </span>            :   Vars u1 = u0;
+<span class="lineNum">     208 </span>            :   for (size_t i = 0; i &lt; 6; ++i) {
+<span class="lineNum">     209 </span>            :     u1 += (gsl::at(_b, i) * dt) *
+<span class="lineNum">     210 </span>            :           (history.begin() + static_cast&lt;int&gt;(i)).derivative();
+<span class="lineNum">     211 </span>            :   }
+<span class="lineNum">     212 </span>            : 
+<span class="lineNum">     213 </span>            :   // We need the following: k1, k3, k4, k5, k6.
+<span class="lineNum">     214 </span>            :   // Here k1 = dt * l1, k3 = dt * l3, etc.
+<span class="lineNum">     215 </span>            :   const auto&amp; l1 = history.begin().derivative();
+<span class="lineNum">     216 </span>            :   const auto&amp; l3 = (history.begin() + 2).derivative();
+<span class="lineNum">     217 </span>            :   const auto&amp; l4 = (history.begin() + 3).derivative();
+<span class="lineNum">     218 </span>            :   const auto&amp; l5 = (history.begin() + 4).derivative();
+<span class="lineNum">     219 </span>            :   const auto&amp; l6 = (history.begin() + 5).derivative();
+<span class="lineNum">     220 </span>            : 
+<span class="lineNum">     221 </span>            :   // Compute the updating coefficents, called rcontN in Numerical recipes,
+<span class="lineNum">     222 </span>            :   // that will be reused, so I don't have to compute them more than once.
+<span class="lineNum">     223 </span>            :   const Vars rcont2 = u1 - u0;
+<span class="lineNum">     224 </span>            :   const Vars rcont3 = dt * l1 - rcont2;
+<span class="lineNum">     225 </span>            : 
+<span class="lineNum">     226 </span>            :   // The formula for dense output is given in Numerical Recipes Sec. 17.2.3.
+<span class="lineNum">     227 </span>            :   // Note: L(t+dt, u1) after the step is unavailable in the history; so here,
+<span class="lineNum">     228 </span>            :   // approximate L(t+dt, u1) by l6.
+<span class="lineNum">     229 </span>            :   *u = u0 + output_fraction *
+<span class="lineNum">     230 </span>            :                 (rcont2 +
+<span class="lineNum">     231 </span>            :                  (1.0 - output_fraction) *
+<span class="lineNum">     232 </span>            :                      (rcont3 + output_fraction *
+<span class="lineNum">     233 </span>            :                                    ((rcont2 - dt * l6 - rcont3) +
+<span class="lineNum">     234 </span>            :                                     ((1.0 - output_fraction) * dt) *
+<span class="lineNum">     235 </span>            :                                         (_d[0] * l1 + _d[1] * l3 + _d[2] * l4 +
+<span class="lineNum">     236 </span>            :                                          _d[3] * l5 + (_d[4] + _d[5]) * l6))));
+<span class="lineNum">     237 </span>            : }
+<span class="lineNum">     238 </span>            : }  // namespace TimeSteppers
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

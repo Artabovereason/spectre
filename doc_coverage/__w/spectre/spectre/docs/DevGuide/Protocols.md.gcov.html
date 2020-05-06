@@ -1,0 +1,233 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - /__w/spectre/spectre/docs/DevGuide/Protocols.md</title>
+  <link rel="stylesheet" type="text/css" href="../../../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../../../index.html">top level</a> - <a href="index.html">__w/spectre/spectre/docs/DevGuide</a> - Protocols.md</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : \cond NEVER</span>
+<span class="lineNum">       2 </span>            : Distributed under the MIT License.
+<span class="lineNum">       3 </span>            : See LICENSE.txt for details.
+<span class="lineNum">       4 </span>            : \endcond
+<span class="lineNum">       5 </span>            : # Protocols {#protocols}
+<span class="lineNum">       6 </span>            : 
+<span class="lineNum">       7 </span>            : \tableofcontents
+<span class="lineNum">       8 </span>            : 
+<span class="lineNum">       9 </span>            : # Overview of protocols {#protocols_overview}
+<span class="lineNum">      10 </span>            : 
+<span class="lineNum">      11 </span>            : Protocols are a concept we use in SpECTRE to define metaprogramming interfaces.
+<span class="lineNum">      12 </span>            : A variation of this concept is built into many languages, so this is a quote
+<span class="lineNum">      13 </span>            : from the [Swift documentation](https://docs.swift.org/swift-book/LanguageGuide/Protocols.html):
+<span class="lineNum">      14 </span>            : 
+<span class="lineNum">      15 </span>            : &gt; A protocol defines a blueprint of methods, properties, and other requirements
+<span class="lineNum">      16 </span>            : &gt; that suit a particular task or piece of functionality. The protocol can then
+<span class="lineNum">      17 </span>            : &gt; be adopted by a class, structure, or enumeration to provide an actual
+<span class="lineNum">      18 </span>            : &gt; implementation of those requirements. Any type that satisfies the requirements
+<span class="lineNum">      19 </span>            : &gt; of a protocol is said to conform to that protocol.
+<span class="lineNum">      20 </span>            : 
+<span class="lineNum">      21 </span>            : You should define a protocol when you need a template parameter to conform to an
+<span class="lineNum">      22 </span>            : interface. Protocols are implemented as unary type traits. Here is an example of
+<span class="lineNum">      23 </span>            : a protocol that is adapted from the
+<span class="lineNum">      24 </span>            : [Swift documentation](https://docs.swift.org/swift-book/LanguageGuide/Protocols.html):
+<span class="lineNum">      25 </span>            : 
+<span class="lineNum">      26 </span>            : \snippet Utilities/Test_ProtocolHelpers.cpp named_protocol
+<span class="lineNum">      27 </span>            : 
+<span class="lineNum">      28 </span>            : The protocol defines an interface that any type that adopts it must implement.
+<span class="lineNum">      29 </span>            : For example, the following class conforms to the protocol we just defined:
+<span class="lineNum">      30 </span>            : 
+<span class="lineNum">      31 </span>            : \snippet Utilities/Test_ProtocolHelpers.cpp named_conformance
+<span class="lineNum">      32 </span>            : 
+<span class="lineNum">      33 </span>            : The class indicates it conforms to the protocol by (publicly) inheriting from
+<span class="lineNum">      34 </span>            : `tt::ConformsTo&lt;TheProtocol&gt;`.
+<span class="lineNum">      35 </span>            : 
+<span class="lineNum">      36 </span>            : Once you have defined a protocol, you can check if a class conforms to it using
+<span class="lineNum">      37 </span>            : the `tt::conforms_to` metafunction:
+<span class="lineNum">      38 </span>            : 
+<span class="lineNum">      39 </span>            : \snippet Utilities/Test_ProtocolHelpers.cpp conforms_to
+<span class="lineNum">      40 </span>            : 
+<span class="lineNum">      41 </span>            : Note that checking for protocol conformance is cheap, because the
+<span class="lineNum">      42 </span>            : `tt::conforms_to` metafunction only checks if the class _indicates_ it conforms
+<span class="lineNum">      43 </span>            : to the protocol via the above inheritance. The rigorous test whether the class
+<span class="lineNum">      44 </span>            : actually fullfills all of the protocol's requirements is deferred to its unit
+<span class="lineNum">      45 </span>            : tests (see \ref protocols_testing_conformance). Therefore you may freely use
+<span class="lineNum">      46 </span>            : protocol conformance checks in your code.
+<span class="lineNum">      47 </span>            : 
+<span class="lineNum">      48 </span>            : This is how you can write code that relies on the interface defined by the
+<span class="lineNum">      49 </span>            : protocol:
+<span class="lineNum">      50 </span>            : 
+<span class="lineNum">      51 </span>            : \snippet Utilities/Test_ProtocolHelpers.cpp using_named_protocol
+<span class="lineNum">      52 </span>            : 
+<span class="lineNum">      53 </span>            : Checking for protocol conformance here makes it clear that we are expecting
+<span class="lineNum">      54 </span>            : a template parameter that exposes the particular interface we have defined in
+<span class="lineNum">      55 </span>            : the protocol. Therefore, the author of the protocol and of the code that uses it
+<span class="lineNum">      56 </span>            : has explicitly defined (and documented!) the interface they expect. And the
+<span class="lineNum">      57 </span>            : developer who consumes the protocol by writing classes that conform to it knows
+<span class="lineNum">      58 </span>            : exactly what needs to be implemented.
+<span class="lineNum">      59 </span>            : 
+<span class="lineNum">      60 </span>            : Note that the `tt::conforms_to` metafunction is SFINAE-friendly, so you can also
+<span class="lineNum">      61 </span>            : use it like this:
+<span class="lineNum">      62 </span>            : 
+<span class="lineNum">      63 </span>            : \snippet Utilities/Test_ProtocolHelpers.cpp protocol_sfinae
+<span class="lineNum">      64 </span>            : 
+<span class="lineNum">      65 </span>            : We typically define protocols in a file named `Protocols.hpp` and within a
+<span class="lineNum">      66 </span>            : `protocols` namespace, similar to how we write \ref DataBoxTagsGroup &quot;tags&quot; in a
+<span class="lineNum">      67 </span>            : `Tags.hpp` file and within a `Tags` namespace. The file should be placed in the
+<span class="lineNum">      68 </span>            : directory associated with the code that depends on classes conforming to the
+<span class="lineNum">      69 </span>            : protocols. For example, the protocol `Named` in the example above would be
+<span class="lineNum">      70 </span>            : placed in directory that also has the `greet` function.
+<span class="lineNum">      71 </span>            : 
+<span class="lineNum">      72 </span>            : # Protocol users: Testing protocol conformance {#protocols_testing_conformance}
+<span class="lineNum">      73 </span>            : 
+<span class="lineNum">      74 </span>            : Any class that indicates it conforms to the protocol must test that it actually
+<span class="lineNum">      75 </span>            : does using the `test_protocol_conformance` metafunction from
+<span class="lineNum">      76 </span>            : `tests/Unit/ProtocolTestHelpers.hpp`:
+<span class="lineNum">      77 </span>            : 
+<span class="lineNum">      78 </span>            : \snippet Utilities/Test_ProtocolHelpers.cpp test_protocol_conformance
+<span class="lineNum">      79 </span>            : 
+<span class="lineNum">      80 </span>            : # Protocol authors: Protocols must be unary type traits {#protocols_author}
+<span class="lineNum">      81 </span>            : 
+<span class="lineNum">      82 </span>            : When you author a new protocol, keep in mind that protocols must be unary type
+<span class="lineNum">      83 </span>            : traits. This means they take a single template parameter (typically named
+<span class="lineNum">      84 </span>            : `ConformingType`) and inherit from `std::true_type` or `std::false_type`
+<span class="lineNum">      85 </span>            : depending on whether the `ConformingType` fullfills the protocol's requirements.
+<span class="lineNum">      86 </span>            : Make sure to implement the protocol in a SFINAE-friendly way. You may find the
+<span class="lineNum">      87 </span>            : macros in `Utilities/TypeTraits.hpp` useful. For example, we use
+<span class="lineNum">      88 </span>            : `CREATE_IS_CALLABLE` in the protocols above for testing the existence and return
+<span class="lineNum">      89 </span>            : type of a member function.
+<span class="lineNum">      90 </span>            : 
+<span class="lineNum">      91 </span>            : Occasionally, you might be tempted to add additional template parameters to the
+<span class="lineNum">      92 </span>            : protocol. In those situations, make the additional parameters part of your
+<span class="lineNum">      93 </span>            : protocol instead. The reason for this guideline is that protocols
+<span class="lineNum">      94 </span>            : will always be used as unary type traits when inheriting from
+<span class="lineNum">      95 </span>            : `tt::ConformsTo&lt;Protocol&gt;`. Therefore, any template parameters of the protocol
+<span class="lineNum">      96 </span>            : must also be template parameters of their conforming classes, which means the
+<span class="lineNum">      97 </span>            : protocol can just check them.
+<span class="lineNum">      98 </span>            : 
+<span class="lineNum">      99 </span>            : For example, we could be tempted to follow this antipattern:
+<span class="lineNum">     100 </span>            : 
+<span class="lineNum">     101 </span>            : \snippet Utilities/Test_ProtocolHelpers.cpp named_antipattern
+<span class="lineNum">     102 </span>            : 
+<span class="lineNum">     103 </span>            : However, instead of making the protocol a non-unary template we should add a
+<span class="lineNum">     104 </span>            : requirement to it:
+<span class="lineNum">     105 </span>            : 
+<span class="lineNum">     106 </span>            : \snippet Utilities/Test_ProtocolHelpers.cpp named_with_type
+<span class="lineNum">     107 </span>            : 
+<span class="lineNum">     108 </span>            : Classes would need to specify the additional template parameters for any
+<span class="lineNum">     109 </span>            : protocols they conform to anyway, if the protocols had any. So they might as
+<span class="lineNum">     110 </span>            : well expose them:
+<span class="lineNum">     111 </span>            : 
+<span class="lineNum">     112 </span>            : \snippet Utilities/Test_ProtocolHelpers.cpp person_with_name_type
+<span class="lineNum">     113 </span>            : 
+<span class="lineNum">     114 </span>            : This pattern also allows us to check for protocol conformance first and then add
+<span class="lineNum">     115 </span>            : further checks about the types if we wanted to:
+<span class="lineNum">     116 </span>            : 
+<span class="lineNum">     117 </span>            : \snippet Utilities/Test_ProtocolHelpers.cpp example_check_name_type
+<span class="lineNum">     118 </span>            : 
+<span class="lineNum">     119 </span>            : # Protocol authors: Testing a protocol {#protocols_testing}
+<span class="lineNum">     120 </span>            : 
+<span class="lineNum">     121 </span>            : We are currently testing protocol conformance as part of our unit tests, so
+<span class="lineNum">     122 </span>            : that the global `tt::conforms_to` convenience metafunction only needs to check
+<span class="lineNum">     123 </span>            : if a type inherits off the protocol, but doesn't need to check the protocol's
+<span class="lineNum">     124 </span>            : (possibly fairly expensive) implementation. This is primarily to keep compile
+<span class="lineNum">     125 </span>            : times low, and may be reconsidered when transitioning to C++ &quot;concepts&quot;. Full
+<span class="lineNum">     126 </span>            : protocol conformance is tested in the `test_protocol_conformance` metafunction
+<span class="lineNum">     127 </span>            : mentioned above.
+<span class="lineNum">     128 </span>            : 
+<span class="lineNum">     129 </span>            : To make sure their protocol functions correctly, protocol authors must test
+<span class="lineNum">     130 </span>            : its implementation in a unit test (e.g. in a `Test_Protocols.hpp`):
+<span class="lineNum">     131 </span>            : 
+<span class="lineNum">     132 </span>            : \snippet Utilities/Test_ProtocolHelpers.cpp testing_a_protocol
+<span class="lineNum">     133 </span>            : 
+<span class="lineNum">     134 </span>            : They should make sure to test the implementation with classes that conform to
+<span class="lineNum">     135 </span>            : the protocol, and others that don't. This means the test will always include an
+<span class="lineNum">     136 </span>            : example implementation of a class that conforms to the protocol, and the
+<span class="lineNum">     137 </span>            : protocol author should add it to the documentation of the protocol through a
+<span class="lineNum">     138 </span>            : Doxygen snippet. This gives users a convenient way to see how the author intends
+<span class="lineNum">     139 </span>            : their interface to be implemented.
+<span class="lineNum">     140 </span>            : 
+<span class="lineNum">     141 </span>            : # Protocols and C++20 &quot;Constraints and concepts&quot; {#protocols_and_constraints}
+<span class="lineNum">     142 </span>            : 
+<span class="lineNum">     143 </span>            : A feature related to protocols is in C++20 and goes under the name of
+<span class="lineNum">     144 </span>            : [constraints and concepts](https://en.cppreference.com/w/cpp/language/constraints).
+<span class="lineNum">     145 </span>            : Every protocol defines a _concept_, but it defers checking its requirements to
+<span class="lineNum">     146 </span>            : the unit tests to save compile time. In other words, protocols provide a way to
+<span class="lineNum">     147 </span>            : _indicate_ that a class fulfills a set of requirements, whereas C++20
+<span class="lineNum">     148 </span>            : constraints provide a way to _check_ that a class fulfills a set of
+<span class="lineNum">     149 </span>            : requirements. Therefore, the two features complement each other. Once C++20
+<span class="lineNum">     150 </span>            : becomes available in SpECTRE we can either gradually convert our protocols to
+<span class="lineNum">     151 </span>            : concepts and use them as constraints directly if we find the impact on compile
+<span class="lineNum">     152 </span>            : time negligible, or we can add a concept that checks protocol conformance the
+<span class="lineNum">     153 </span>            : same way that `tt::conforms_to_v` currently does (i.e. by checking inheritance).
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

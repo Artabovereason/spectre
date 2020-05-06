@@ -1,0 +1,159 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - NumericalAlgorithms/DiscontinuousGalerkin/BoundarySchemes/FirstOrder/BoundaryData.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../../index.html">top level</a> - <a href="index.html">NumericalAlgorithms/DiscontinuousGalerkin/BoundarySchemes/FirstOrder</a> - BoundaryData.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">3</td>
+            <td class="headerCovTableEntry">4</td>
+            <td class="headerCovTableEntryMed">75.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #pragma once
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &quot;DataStructures/DataBox/DataBoxTag.hpp&quot;
+<span class="lineNum">       7 </span>            : #include &quot;DataStructures/DataBox/Prefixes.hpp&quot;
+<span class="lineNum">       8 </span>            : #include &quot;DataStructures/Variables.hpp&quot;
+<span class="lineNum">       9 </span>            : #include &quot;Domain/Mesh.hpp&quot;
+<span class="lineNum">      10 </span>            : #include &quot;NumericalAlgorithms/DiscontinuousGalerkin/NumericalFluxes/NumericalFluxHelpers.hpp&quot;
+<span class="lineNum">      11 </span>            : #include &quot;NumericalAlgorithms/DiscontinuousGalerkin/Protocols.hpp&quot;
+<span class="lineNum">      12 </span>            : #include &quot;NumericalAlgorithms/DiscontinuousGalerkin/SimpleBoundaryData.hpp&quot;
+<span class="lineNum">      13 </span>            : #include &quot;Utilities/ProtocolHelpers.hpp&quot;
+<span class="lineNum">      14 </span>            : #include &quot;Utilities/Requires.hpp&quot;
+<span class="lineNum">      15 </span>            : #include &quot;Utilities/TMPL.hpp&quot;
+<span class="lineNum">      16 </span>            : 
+<span class="lineNum">      17 </span>            : namespace dg {
+<span class="lineNum">      18 </span><span class="lineCov">          1 : namespace FirstOrderScheme {</span>
+<span class="lineNum">      19 </span>            : 
+<span class="lineNum">      20 </span>            : namespace detail {
+<span class="lineNum">      21 </span>            : template &lt;typename NumericalFluxType&gt;
+<span class="lineNum">      22 </span>            : struct BoundaryDataImpl {
+<span class="lineNum">      23 </span>            :   static_assert(tt::conforms_to_v&lt;NumericalFluxType, protocols::NumericalFlux&gt;,
+<span class="lineNum">      24 </span>            :                 &quot;The 'NumericalFluxType' must conform to the &quot;
+<span class="lineNum">      25 </span>            :                 &quot;'dg::protocols::NumericalFlux'.&quot;);
+<span class="lineNum">      26 </span>            :   using type = dg::SimpleBoundaryData&lt;
+<span class="lineNum">      27 </span>            :       tmpl::remove_duplicates&lt;tmpl::append&lt;
+<span class="lineNum">      28 </span>            :           db::wrap_tags_in&lt;::Tags::NormalDotFlux,
+<span class="lineNum">      29 </span>            :                            typename NumericalFluxType::variables_tags&gt;,
+<span class="lineNum">      30 </span>            :           typename NumericalFluxType::package_field_tags&gt;&gt;,
+<span class="lineNum">      31 </span>            :       typename NumericalFluxType::package_extra_tags&gt;;
+<span class="lineNum">      32 </span>            : };
+<span class="lineNum">      33 </span>            : }  // namespace detail
+<span class="lineNum">      34 </span>            : 
+<span class="lineNum">      35 </span>            : /*!
+<span class="lineNum">      36 </span>            :  * \brief The data on element boundaries that's needed for the (strong)
+<span class="lineNum">      37 </span>            :  * first-order boundary scheme
+<span class="lineNum">      38 </span>            :  *
+<span class="lineNum">      39 </span>            :  * The boundary data includes the `NumericalFluxType`'s packaged data plus all
+<span class="lineNum">      40 </span>            :  * &quot;normal-dot-fluxes&quot; so the strong boundary scheme can compute the difference
+<span class="lineNum">      41 </span>            :  * between the normal-dot-numerical-fluxes and the normal-dot-fluxes
+<span class="lineNum">      42 </span>            :  * (see `dg::FirstOrder`). For the weak formulation the normal-dot-fluxes
+<span class="lineNum">      43 </span>            :  * need not be included explicitly, but the `NumericalFluxType` may require
+<span class="lineNum">      44 </span>            :  * a subset of them.
+<span class="lineNum">      45 </span>            :  */
+<span class="lineNum">      46 </span>            : template &lt;typename NumericalFluxType&gt;
+<span class="lineNum">      47 </span><span class="lineCov">          1 : using BoundaryData = typename detail::BoundaryDataImpl&lt;NumericalFluxType&gt;::type;</span>
+<span class="lineNum">      48 </span>            : 
+<span class="lineNum">      49 </span>            : /*!
+<span class="lineNum">      50 </span>            :  * \brief Package the data on element boundaries that's needed for the (strong)
+<span class="lineNum">      51 </span>            :  * first-order boundary scheme.
+<span class="lineNum">      52 </span>            :  *
+<span class="lineNum">      53 </span>            :  * This function currently packages the data required by the `NumericalFluxType`
+<span class="lineNum">      54 </span>            :  * plus all &quot;normal-dot-fluxes&quot;, which are needed for the strong first-order
+<span class="lineNum">      55 </span>            :  * boundary scheme (see `dg::FirstOrderScheme::BoundaryData`). Note that for
+<span class="lineNum">      56 </span>            :  * the weak formulation the normal-dot-fluxes need not be included explicitly,
+<span class="lineNum">      57 </span>            :  * but the `NumericalFluxType` may require a subset of them.
+<span class="lineNum">      58 </span>            :  */
+<span class="lineNum">      59 </span>            : template &lt;
+<span class="lineNum">      60 </span>            :     size_t FaceDim, typename NumericalFluxType, typename... NumericalFluxArgs,
+<span class="lineNum">      61 </span>            :     Requires&lt;tt::conforms_to_v&lt;NumericalFluxType, protocols::NumericalFlux&gt;&gt; =
+<span class="lineNum">      62 </span>            :         nullptr&gt;
+<span class="lineNum">      63 </span><span class="lineCov">          1 : auto package_boundary_data(</span>
+<span class="lineNum">      64 </span>            :     const NumericalFluxType&amp; numerical_flux_computer,
+<span class="lineNum">      65 </span>            :     const Mesh&lt;FaceDim&gt;&amp; face_mesh,
+<span class="lineNum">      66 </span>            :     const Variables&lt;db::wrap_tags_in&lt;
+<span class="lineNum">      67 </span>            :         ::Tags::NormalDotFlux, typename NumericalFluxType::variables_tags&gt;&gt;&amp;
+<span class="lineNum">      68 </span>            :         normal_dot_fluxes,
+<span class="lineNum">      69 </span>            :     const NumericalFluxArgs&amp;... args) noexcept {
+<span class="lineNum">      70 </span>            :   BoundaryData&lt;NumericalFluxType&gt; boundary_data{
+<span class="lineNum">      71 </span>            :       face_mesh.number_of_grid_points()};
+<span class="lineNum">      72 </span>            :   boundary_data.field_data.assign_subset(normal_dot_fluxes);
+<span class="lineNum">      73 </span>            :   dg::NumericalFluxes::package_data(make_not_null(&amp;boundary_data),
+<span class="lineNum">      74 </span>            :                                     numerical_flux_computer, args...);
+<span class="lineNum">      75 </span>            :   return boundary_data;
+<span class="lineNum">      76 </span>            : }
+<span class="lineNum">      77 </span>            : 
+<span class="lineNum">      78 </span>            : }  // namespace FirstOrderScheme
+<span class="lineNum">      79 </span>            : }  // namespace dg
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

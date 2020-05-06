@@ -1,0 +1,265 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - Time/Time.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">Time</a> - Time.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">13</td>
+            <td class="headerCovTableEntry">68</td>
+            <td class="headerCovTableEntryLo">19.1 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineCov">          1 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : /// \file
+<span class="lineNum">       5 </span>            : /// Defines Time and TimeDelta
+<span class="lineNum">       6 </span>            : 
+<span class="lineNum">       7 </span>            : #pragma once
+<span class="lineNum">       8 </span>            : 
+<span class="lineNum">       9 </span>            : #include &lt;cstddef&gt;
+<span class="lineNum">      10 </span>            : #include &lt;functional&gt;
+<span class="lineNum">      11 </span>            : #include &lt;iosfwd&gt;
+<span class="lineNum">      12 </span>            : #include &lt;limits&gt;
+<span class="lineNum">      13 </span>            : 
+<span class="lineNum">      14 </span>            : #include &quot;Time/Slab.hpp&quot;
+<span class="lineNum">      15 </span>            : #include &quot;Utilities/Rational.hpp&quot;
+<span class="lineNum">      16 </span>            : 
+<span class="lineNum">      17 </span>            : /// \cond
+<span class="lineNum">      18 </span>            : namespace PUP {
+<span class="lineNum">      19 </span>            : class er;
+<span class="lineNum">      20 </span>            : }  // namespace PUP
+<span class="lineNum">      21 </span>            : class TimeDelta;
+<span class="lineNum">      22 </span>            : /// \endcond
+<span class="lineNum">      23 </span>            : 
+<span class="lineNum">      24 </span>            : /// \ingroup TimeGroup
+<span class="lineNum">      25 </span>            : ///
+<span class="lineNum">      26 </span>            : /// The time in a simulation.  Times can be safely compared for exact
+<span class="lineNum">      27 </span>            : /// equality as long as they do not belong to overlapping unequal
+<span class="lineNum">      28 </span>            : /// slabs.
+<span class="lineNum">      29 </span><span class="lineCov">          1 : class Time {</span>
+<span class="lineNum">      30 </span>            :  public:
+<span class="lineNum">      31 </span><span class="lineNoCov">          0 :   using rational_t = Rational;</span>
+<span class="lineNum">      32 </span>            : 
+<span class="lineNum">      33 </span>            :   /// Default constructor gives an invalid Time.
+<span class="lineNum">      34 </span><span class="lineCov">          1 :   Time() noexcept = default;</span>
+<span class="lineNum">      35 </span>            : 
+<span class="lineNum">      36 </span>            :   /// A time a given fraction of the way through the given slab.
+<span class="lineNum">      37 </span><span class="lineCov">          1 :   Time(Slab slab, rational_t fraction) noexcept;</span>
+<span class="lineNum">      38 </span>            : 
+<span class="lineNum">      39 </span>            :   /// Move the time to a different slab.  The time must be at an end
+<span class="lineNum">      40 </span>            :   /// of the current slab and the new slab must share that endpoint.
+<span class="lineNum">      41 </span><span class="lineCov">          1 :   Time with_slab(const Slab&amp; new_slab) const noexcept;</span>
+<span class="lineNum">      42 </span>            : 
+<span class="lineNum">      43 </span>            :   /// Approximate numerical value of the Time.
+<span class="lineNum">      44 </span><span class="lineCov">          1 :   double value() const noexcept { return value_; }</span>
+<span class="lineNum">      45 </span><span class="lineNoCov">          0 :   const Slab&amp; slab() const noexcept { return slab_; }</span>
+<span class="lineNum">      46 </span><span class="lineNoCov">          0 :   const rational_t&amp; fraction() const noexcept { return fraction_; }</span>
+<span class="lineNum">      47 </span>            : 
+<span class="lineNum">      48 </span><span class="lineNoCov">          0 :   Time&amp; operator+=(const TimeDelta&amp; delta) noexcept;</span>
+<span class="lineNum">      49 </span><span class="lineNoCov">          0 :   Time&amp; operator-=(const TimeDelta&amp; delta) noexcept;</span>
+<span class="lineNum">      50 </span>            : 
+<span class="lineNum">      51 </span><span class="lineNoCov">          0 :   bool is_at_slab_start() const noexcept;</span>
+<span class="lineNum">      52 </span><span class="lineNoCov">          0 :   bool is_at_slab_end() const noexcept;</span>
+<span class="lineNum">      53 </span><span class="lineNoCov">          0 :   bool is_at_slab_boundary() const noexcept;</span>
+<span class="lineNum">      54 </span>            : 
+<span class="lineNum">      55 </span>            :   // clang-tidy: google-runtime-references
+<span class="lineNum">      56 </span><span class="lineNoCov">          0 :   void pup(PUP::er&amp; p) noexcept;  // NOLINT</span>
+<span class="lineNum">      57 </span>            : 
+<span class="lineNum">      58 </span>            :   /// A comparison operator that compares Times structurally, i.e.,
+<span class="lineNum">      59 </span>            :   /// just looking at the class members.  This is only intended for
+<span class="lineNum">      60 </span>            :   /// use as the comparator in a map.  The returned ordering does not
+<span class="lineNum">      61 </span>            :   /// match the time ordering and opposite sides of slab boundaries do
+<span class="lineNum">      62 </span>            :   /// not compare equal.  It is, however, much faster to compute than
+<span class="lineNum">      63 </span>            :   /// the temporal ordering, so it is useful when an ordering is
+<span class="lineNum">      64 </span>            :   /// required, but the ordering does not have to be physically
+<span class="lineNum">      65 </span>            :   /// meaningful.
+<span class="lineNum">      66 </span><span class="lineCov">          1 :   struct StructuralCompare {</span>
+<span class="lineNum">      67 </span><span class="lineNoCov">          0 :     bool operator()(const Time&amp; a, const Time&amp; b) const;</span>
+<span class="lineNum">      68 </span>            :   };
+<span class="lineNum">      69 </span>            : 
+<span class="lineNum">      70 </span>            :  private:
+<span class="lineNum">      71 </span><span class="lineNoCov">          0 :   Slab slab_;</span>
+<span class="lineNum">      72 </span><span class="lineNoCov">          0 :   rational_t fraction_;</span>
+<span class="lineNum">      73 </span><span class="lineNoCov">          0 :   double value_ = std::numeric_limits&lt;double&gt;::signaling_NaN();</span>
+<span class="lineNum">      74 </span>            : 
+<span class="lineNum">      75 </span>            :   // The value is precomputed so that we can avoid doing the rational
+<span class="lineNum">      76 </span>            :   // math repeatedly.  The value of a Time should almost always be
+<span class="lineNum">      77 </span>            :   // needed at some point.
+<span class="lineNum">      78 </span><span class="lineNoCov">          0 :   void compute_value() noexcept;</span>
+<span class="lineNum">      79 </span>            : 
+<span class="lineNum">      80 </span><span class="lineNoCov">          0 :   void range_check() const noexcept;</span>
+<span class="lineNum">      81 </span>            : 
+<span class="lineNum">      82 </span><span class="lineNoCov">          0 :   friend class TimeDelta;</span>
+<span class="lineNum">      83 </span>            : };
+<span class="lineNum">      84 </span>            : 
+<span class="lineNum">      85 </span>            : /// \ingroup TimeGroup
+<span class="lineNum">      86 </span>            : ///
+<span class="lineNum">      87 </span>            : /// Represents an interval of time within a single slab.
+<span class="lineNum">      88 </span><span class="lineCov">          1 : class TimeDelta {</span>
+<span class="lineNum">      89 </span>            :  public:
+<span class="lineNum">      90 </span><span class="lineNoCov">          0 :   using rational_t = Time::rational_t;</span>
+<span class="lineNum">      91 </span>            : 
+<span class="lineNum">      92 </span>            :   /// Default constructor gives an invalid TimeDelta.
+<span class="lineNum">      93 </span><span class="lineCov">          1 :   TimeDelta() noexcept = default;</span>
+<span class="lineNum">      94 </span>            : 
+<span class="lineNum">      95 </span>            :   /// An interval covering a given fraction of the slab.
+<span class="lineNum">      96 </span><span class="lineCov">          1 :   TimeDelta(Slab slab, rational_t fraction) noexcept;</span>
+<span class="lineNum">      97 </span>            : 
+<span class="lineNum">      98 </span>            :   /// Move the interval to a different slab.  The resulting interval
+<span class="lineNum">      99 </span>            :   /// will in general not be the same length, but will take up the
+<span class="lineNum">     100 </span>            :   /// same fraction of its slab.
+<span class="lineNum">     101 </span><span class="lineCov">          1 :   TimeDelta with_slab(const Slab&amp; new_slab) const noexcept;</span>
+<span class="lineNum">     102 </span>            : 
+<span class="lineNum">     103 </span><span class="lineNoCov">          0 :   Slab slab() const noexcept { return slab_; }</span>
+<span class="lineNum">     104 </span><span class="lineNoCov">          0 :   rational_t fraction() const noexcept { return fraction_; }</span>
+<span class="lineNum">     105 </span>            : 
+<span class="lineNum">     106 </span>            :   /// Approximate numerical length of the interval.
+<span class="lineNum">     107 </span><span class="lineCov">          1 :   double value() const noexcept;</span>
+<span class="lineNum">     108 </span>            : 
+<span class="lineNum">     109 </span>            :   /// Test if the interval is oriented towards larger time.
+<span class="lineNum">     110 </span><span class="lineCov">          1 :   bool is_positive() const noexcept;</span>
+<span class="lineNum">     111 </span>            : 
+<span class="lineNum">     112 </span><span class="lineNoCov">          0 :   TimeDelta&amp; operator+=(const TimeDelta&amp; other) noexcept;</span>
+<span class="lineNum">     113 </span><span class="lineNoCov">          0 :   TimeDelta&amp; operator-=(const TimeDelta&amp; other) noexcept;</span>
+<span class="lineNum">     114 </span><span class="lineNoCov">          0 :   TimeDelta operator+() const noexcept;</span>
+<span class="lineNum">     115 </span><span class="lineNoCov">          0 :   TimeDelta operator-() const noexcept;</span>
+<span class="lineNum">     116 </span><span class="lineNoCov">          0 :   TimeDelta&amp; operator*=(const rational_t&amp; mult) noexcept;</span>
+<span class="lineNum">     117 </span><span class="lineNoCov">          0 :   TimeDelta&amp; operator/=(const rational_t&amp; div) noexcept;</span>
+<span class="lineNum">     118 </span>            : 
+<span class="lineNum">     119 </span>            :   // clang-tidy: google-runtime-references
+<span class="lineNum">     120 </span><span class="lineNoCov">          0 :   void pup(PUP::er&amp; p) noexcept;  // NOLINT</span>
+<span class="lineNum">     121 </span>            : 
+<span class="lineNum">     122 </span>            :  private:
+<span class="lineNum">     123 </span><span class="lineNoCov">          0 :   Slab slab_;</span>
+<span class="lineNum">     124 </span><span class="lineNoCov">          0 :   rational_t fraction_;</span>
+<span class="lineNum">     125 </span>            : 
+<span class="lineNum">     126 </span><span class="lineNoCov">          0 :   friend class Time;</span>
+<span class="lineNum">     127 </span>            : };
+<span class="lineNum">     128 </span>            : 
+<span class="lineNum">     129 </span>            : // Time &lt;cmp&gt; Time
+<span class="lineNum">     130 </span>            : // clang-tidy: clang-tidy wants this removed in favor of friend
+<span class="lineNum">     131 </span>            : // declaration in different header.
+<span class="lineNum">     132 </span><span class="lineNoCov">          0 : bool operator==(const Time&amp; a, const Time&amp; b) noexcept;  // NOLINT</span>
+<span class="lineNum">     133 </span><span class="lineNoCov">          0 : bool operator!=(const Time&amp; a, const Time&amp; b) noexcept;</span>
+<span class="lineNum">     134 </span><span class="lineNoCov">          0 : bool operator&lt;(const Time&amp; a, const Time&amp; b) noexcept;</span>
+<span class="lineNum">     135 </span><span class="lineNoCov">          0 : bool operator&gt;(const Time&amp; a, const Time&amp; b) noexcept;</span>
+<span class="lineNum">     136 </span><span class="lineNoCov">          0 : bool operator&lt;=(const Time&amp; a, const Time&amp; b) noexcept;</span>
+<span class="lineNum">     137 </span><span class="lineNoCov">          0 : bool operator&gt;=(const Time&amp; a, const Time&amp; b) noexcept;</span>
+<span class="lineNum">     138 </span>            : 
+<span class="lineNum">     139 </span>            : // TimeDelta &lt;cmp&gt; TimeDelta
+<span class="lineNum">     140 </span><span class="lineNoCov">          0 : bool operator==(const TimeDelta&amp; a, const TimeDelta&amp; b) noexcept;</span>
+<span class="lineNum">     141 </span><span class="lineNoCov">          0 : bool operator!=(const TimeDelta&amp; a, const TimeDelta&amp; b) noexcept;</span>
+<span class="lineNum">     142 </span><span class="lineNoCov">          0 : bool operator&lt;(const TimeDelta&amp; a, const TimeDelta&amp; b) noexcept;</span>
+<span class="lineNum">     143 </span><span class="lineNoCov">          0 : bool operator&gt;(const TimeDelta&amp; a, const TimeDelta&amp; b) noexcept;</span>
+<span class="lineNum">     144 </span><span class="lineNoCov">          0 : bool operator&lt;=(const TimeDelta&amp; a, const TimeDelta&amp; b) noexcept;</span>
+<span class="lineNum">     145 </span><span class="lineNoCov">          0 : bool operator&gt;=(const TimeDelta&amp; a, const TimeDelta&amp; b) noexcept;</span>
+<span class="lineNum">     146 </span>            : 
+<span class="lineNum">     147 </span>            : // Time &lt;op&gt; Time
+<span class="lineNum">     148 </span><span class="lineNoCov">          0 : TimeDelta operator-(const Time&amp; a, const Time&amp; b) noexcept;</span>
+<span class="lineNum">     149 </span>            : 
+<span class="lineNum">     150 </span>            : // Time &lt;op&gt; TimeDelta, TimeDelta &lt;op&gt; Time
+<span class="lineNum">     151 </span><span class="lineNoCov">          0 : Time operator+(Time a, const TimeDelta&amp; b) noexcept;</span>
+<span class="lineNum">     152 </span><span class="lineNoCov">          0 : Time operator+(const TimeDelta&amp; a, Time b) noexcept;</span>
+<span class="lineNum">     153 </span><span class="lineNoCov">          0 : Time operator-(Time a, const TimeDelta&amp; b) noexcept;</span>
+<span class="lineNum">     154 </span>            : 
+<span class="lineNum">     155 </span>            : // TimeDelta &lt;op&gt; TimeDelta
+<span class="lineNum">     156 </span><span class="lineNoCov">          0 : TimeDelta operator+(TimeDelta a, const TimeDelta&amp; b) noexcept;</span>
+<span class="lineNum">     157 </span><span class="lineNoCov">          0 : TimeDelta operator-(TimeDelta a, const TimeDelta&amp; b) noexcept;</span>
+<span class="lineNum">     158 </span>            : 
+<span class="lineNum">     159 </span>            : // This returns a double rather than a rational so we can compare dt
+<span class="lineNum">     160 </span>            : // in different slabs.
+<span class="lineNum">     161 </span><span class="lineNoCov">          0 : double operator/(const TimeDelta&amp; a, const TimeDelta&amp; b) noexcept;</span>
+<span class="lineNum">     162 </span>            : 
+<span class="lineNum">     163 </span>            : // rational &lt;op&gt; TimeDelta, TimeDelta &lt;op&gt; rational
+<span class="lineNum">     164 </span><span class="lineNoCov">          0 : TimeDelta operator*(TimeDelta a, const TimeDelta::rational_t&amp; b) noexcept;</span>
+<span class="lineNum">     165 </span><span class="lineNoCov">          0 : TimeDelta operator*(const TimeDelta::rational_t&amp; a, TimeDelta b) noexcept;</span>
+<span class="lineNum">     166 </span><span class="lineNoCov">          0 : TimeDelta operator/(TimeDelta a, const TimeDelta::rational_t&amp; b) noexcept;</span>
+<span class="lineNum">     167 </span>            : 
+<span class="lineNum">     168 </span>            : // Miscellaneous other functions for Time
+<span class="lineNum">     169 </span>            : 
+<span class="lineNum">     170 </span><span class="lineNoCov">          0 : std::ostream&amp; operator&lt;&lt;(std::ostream&amp; os, const Time&amp; t) noexcept;</span>
+<span class="lineNum">     171 </span>            : 
+<span class="lineNum">     172 </span><span class="lineNoCov">          0 : size_t hash_value(const Time&amp; t) noexcept;</span>
+<span class="lineNum">     173 </span>            : 
+<span class="lineNum">     174 </span>            : namespace std {
+<span class="lineNum">     175 </span>            : template &lt;&gt;
+<span class="lineNum">     176 </span>            : struct hash&lt;Time&gt; {
+<span class="lineNum">     177 </span>            :   size_t operator()(const Time&amp; t) const noexcept;
+<span class="lineNum">     178 </span>            : };
+<span class="lineNum">     179 </span>            : }  // namespace std
+<span class="lineNum">     180 </span>            : 
+<span class="lineNum">     181 </span>            : // Miscellaneous other functions for TimeDelta
+<span class="lineNum">     182 </span>            : 
+<span class="lineNum">     183 </span><span class="lineNoCov">          0 : TimeDelta abs(TimeDelta t) noexcept;</span>
+<span class="lineNum">     184 </span>            : 
+<span class="lineNum">     185 </span><span class="lineNoCov">          0 : std::ostream&amp; operator&lt;&lt;(std::ostream&amp; os, const TimeDelta&amp; dt) noexcept;</span>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

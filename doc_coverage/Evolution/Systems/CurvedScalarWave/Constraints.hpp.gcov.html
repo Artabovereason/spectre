@@ -1,0 +1,220 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - Evolution/Systems/CurvedScalarWave/Constraints.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../index.html">top level</a> - <a href="index.html">Evolution/Systems/CurvedScalarWave</a> - Constraints.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">8</td>
+            <td class="headerCovTableEntry">22</td>
+            <td class="headerCovTableEntryLo">36.4 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineCov">          1 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : ///\file
+<span class="lineNum">       5 </span>            : /// Defines functions to calculate the scalar wave constraints in
+<span class="lineNum">       6 </span>            : /// curved spacetime
+<span class="lineNum">       7 </span>            : 
+<span class="lineNum">       8 </span>            : #pragma once
+<span class="lineNum">       9 </span>            : 
+<span class="lineNum">      10 </span>            : #include &lt;cstddef&gt;
+<span class="lineNum">      11 </span>            : 
+<span class="lineNum">      12 </span>            : #include &quot;DataStructures/DataBox/Tag.hpp&quot;
+<span class="lineNum">      13 </span>            : #include &quot;DataStructures/Tensor/Tensor.hpp&quot;
+<span class="lineNum">      14 </span>            : #include &quot;Evolution/Systems/CurvedScalarWave/Tags.hpp&quot;
+<span class="lineNum">      15 </span>            : #include &quot;NumericalAlgorithms/LinearOperators/PartialDerivatives.hpp&quot;
+<span class="lineNum">      16 </span>            : #include &quot;Utilities/Gsl.hpp&quot;
+<span class="lineNum">      17 </span>            : #include &quot;Utilities/MakeWithValue.hpp&quot;
+<span class="lineNum">      18 </span>            : #include &quot;Utilities/TMPL.hpp&quot;
+<span class="lineNum">      19 </span>            : 
+<span class="lineNum">      20 </span>            : namespace CurvedScalarWave {
+<span class="lineNum">      21 </span><span class="lineCov">          1 : namespace Tags {</span>
+<span class="lineNum">      22 </span>            : /*!
+<span class="lineNum">      23 </span>            :  * \brief Compute items to compute constraint damping parameters.
+<span class="lineNum">      24 </span>            :  *
+<span class="lineNum">      25 </span>            :  * \details For the evolution system with constraint damping parameters
+<span class="lineNum">      26 </span>            :  * to be symmetric-hyperbolic, we need \f$\gamma_1 \gamma_2 = 0\f$. When
+<span class="lineNum">      27 </span>            :  * \f$\gamma_1 = 0\f$, Ref. \cite Holst2004wt shows that the one-index
+<span class="lineNum">      28 </span>            :  * constraint decays exponentially on a time-scale \f$ 1/\gamma_2\f$.
+<span class="lineNum">      29 </span>            :  * Conversely, they also show that using \f$\gamma_2 &gt; 0\f$ leads to
+<span class="lineNum">      30 </span>            :  * exponential suppression of constraint violations.
+<span class="lineNum">      31 </span>            :  *
+<span class="lineNum">      32 </span>            :  * Can be retrieved using `CurvedScalarWave::Tags::ConstraintGamma1`
+<span class="lineNum">      33 </span>            :  * and `CurvedScalarWave::Tags::ConstraintGamma2`.
+<span class="lineNum">      34 </span>            :  */
+<span class="lineNum">      35 </span><span class="lineCov">          1 : struct ConstraintGamma1Compute : ConstraintGamma1, db::ComputeTag {</span>
+<span class="lineNum">      36 </span><span class="lineNoCov">          0 :   using argument_tags = tmpl::list&lt;Psi&gt;;</span>
+<span class="lineNum">      37 </span><span class="lineNoCov">          0 :   static auto function(const Scalar&lt;DataVector&gt;&amp; used_for_size) noexcept {</span>
+<span class="lineNum">      38 </span>            :     return make_with_value&lt;type&gt;(used_for_size, 0.);
+<span class="lineNum">      39 </span>            :   }
+<span class="lineNum">      40 </span><span class="lineNoCov">          0 :   using base = ConstraintGamma1;</span>
+<span class="lineNum">      41 </span>            : };
+<span class="lineNum">      42 </span>            : /// \copydoc ConstraintGamma1Compute
+<span class="lineNum">      43 </span><span class="lineCov">          1 : struct ConstraintGamma2Compute : ConstraintGamma2, db::ComputeTag {</span>
+<span class="lineNum">      44 </span><span class="lineNoCov">          0 :   using argument_tags = tmpl::list&lt;Psi&gt;;</span>
+<span class="lineNum">      45 </span><span class="lineNoCov">          0 :   static auto function(const Scalar&lt;DataVector&gt;&amp; used_for_size) noexcept {</span>
+<span class="lineNum">      46 </span>            :     return make_with_value&lt;type&gt;(used_for_size, 1.);
+<span class="lineNum">      47 </span>            :   }
+<span class="lineNum">      48 </span><span class="lineNoCov">          0 :   using base = ConstraintGamma2;</span>
+<span class="lineNum">      49 </span>            : };
+<span class="lineNum">      50 </span>            : }  // namespace Tags
+<span class="lineNum">      51 </span>            : 
+<span class="lineNum">      52 </span>            : // @{
+<span class="lineNum">      53 </span>            : /*!
+<span class="lineNum">      54 </span>            :  * \brief Computes the scalar-wave one-index constraint.
+<span class="lineNum">      55 </span>            :  *
+<span class="lineNum">      56 </span>            :  * \details Computes the scalar-wave one-index constraint,
+<span class="lineNum">      57 </span>            :  * \f$C_{i} = \partial_i\psi - \Phi_{i},\f$ which is
+<span class="lineNum">      58 </span>            :  * given by Eq. (19) of \cite Holst2004wt
+<span class="lineNum">      59 </span>            :  */
+<span class="lineNum">      60 </span>            : template &lt;size_t SpatialDim&gt;
+<span class="lineNum">      61 </span>            : tnsr::i&lt;DataVector, SpatialDim, Frame::Inertial&gt; one_index_constraint(
+<span class="lineNum">      62 </span>            :     const tnsr::i&lt;DataVector, SpatialDim, Frame::Inertial&gt;&amp; d_psi,
+<span class="lineNum">      63 </span>            :     const tnsr::i&lt;DataVector, SpatialDim, Frame::Inertial&gt;&amp; phi) noexcept;
+<span class="lineNum">      64 </span>            : 
+<span class="lineNum">      65 </span>            : template &lt;size_t SpatialDim&gt;
+<span class="lineNum">      66 </span><span class="lineCov">          1 : void one_index_constraint(</span>
+<span class="lineNum">      67 </span>            :     gsl::not_null&lt;tnsr::i&lt;DataVector, SpatialDim, Frame::Inertial&gt;*&gt; constraint,
+<span class="lineNum">      68 </span>            :     const tnsr::i&lt;DataVector, SpatialDim, Frame::Inertial&gt;&amp; d_psi,
+<span class="lineNum">      69 </span>            :     const tnsr::i&lt;DataVector, SpatialDim, Frame::Inertial&gt;&amp; phi) noexcept;
+<span class="lineNum">      70 </span>            : // @}
+<span class="lineNum">      71 </span>            : 
+<span class="lineNum">      72 </span>            : // @{
+<span class="lineNum">      73 </span>            : /*!
+<span class="lineNum">      74 </span>            :  * \brief Computes the scalar-wave 2-index constraint.
+<span class="lineNum">      75 </span>            :  *
+<span class="lineNum">      76 </span>            :  * \details Computes the scalar-wave 2-index FOSH constraint
+<span class="lineNum">      77 </span>            :  * [Eq. (20) of \cite Holst2004wt],
+<span class="lineNum">      78 </span>            :  *
+<span class="lineNum">      79 </span>            :  * \f{eqnarray}{
+<span class="lineNum">      80 </span>            :  * C_{ij} &amp;\equiv&amp; \partial_i \Phi_j - \partial_j \Phi_i
+<span class="lineNum">      81 </span>            :  * \f}
+<span class="lineNum">      82 </span>            :  *
+<span class="lineNum">      83 </span>            :  * where \f$\Phi_{i} = \partial_i\psi\f$; and \f$\psi\f$ is the scalar field.
+<span class="lineNum">      84 </span>            :  */
+<span class="lineNum">      85 </span>            : template &lt;size_t SpatialDim&gt;
+<span class="lineNum">      86 </span>            : tnsr::ij&lt;DataVector, SpatialDim, Frame::Inertial&gt; two_index_constraint(
+<span class="lineNum">      87 </span>            :     const tnsr::ij&lt;DataVector, SpatialDim, Frame::Inertial&gt;&amp; d_phi) noexcept;
+<span class="lineNum">      88 </span>            : 
+<span class="lineNum">      89 </span>            : template &lt;size_t SpatialDim&gt;
+<span class="lineNum">      90 </span><span class="lineCov">          1 : void two_index_constraint(</span>
+<span class="lineNum">      91 </span>            :     gsl::not_null&lt;tnsr::ij&lt;DataVector, SpatialDim, Frame::Inertial&gt;*&gt;
+<span class="lineNum">      92 </span>            :         constraint,
+<span class="lineNum">      93 </span>            :     const tnsr::ij&lt;DataVector, SpatialDim, Frame::Inertial&gt;&amp; d_phi) noexcept;
+<span class="lineNum">      94 </span>            : // @}
+<span class="lineNum">      95 </span>            : 
+<span class="lineNum">      96 </span>            : namespace Tags {
+<span class="lineNum">      97 </span>            : /*!
+<span class="lineNum">      98 </span>            :  * \brief Compute item to get the one-index constraint for the scalar-wave
+<span class="lineNum">      99 </span>            :  * evolution system.
+<span class="lineNum">     100 </span>            :  *
+<span class="lineNum">     101 </span>            :  * \details See `one_index_constraint()`. Can be retrieved using
+<span class="lineNum">     102 </span>            :  * `CurvedScalarWave::Tags::OneIndexConstraint`.
+<span class="lineNum">     103 </span>            :  */
+<span class="lineNum">     104 </span>            : template &lt;size_t SpatialDim&gt;
+<span class="lineNum">     105 </span>            : struct OneIndexConstraintCompute : OneIndexConstraint&lt;SpatialDim&gt;,
+<span class="lineNum">     106 </span><span class="lineCov">          1 :                                    db::ComputeTag {</span>
+<span class="lineNum">     107 </span><span class="lineNoCov">          0 :   using argument_tags =</span>
+<span class="lineNum">     108 </span>            :       tmpl::list&lt;::Tags::deriv&lt;Psi, tmpl::size_t&lt;SpatialDim&gt;, Frame::Inertial&gt;,
+<span class="lineNum">     109 </span>            :                  Phi&lt;SpatialDim&gt;&gt;;
+<span class="lineNum">     110 </span><span class="lineNoCov">          0 :   using return_type = tnsr::i&lt;DataVector, SpatialDim, Frame::Inertial&gt;;</span>
+<span class="lineNum">     111 </span><span class="lineNoCov">          0 :   static constexpr void (*function)(</span>
+<span class="lineNum">     112 </span>            :       const gsl::not_null&lt;return_type*&gt; result,
+<span class="lineNum">     113 </span>            :       const tnsr::i&lt;DataVector, SpatialDim, Frame::Inertial&gt;&amp;,
+<span class="lineNum">     114 </span>            :       const tnsr::i&lt;DataVector, SpatialDim, Frame::Inertial&gt;&amp;) =
+<span class="lineNum">     115 </span>            :       &amp;one_index_constraint&lt;SpatialDim&gt;;
+<span class="lineNum">     116 </span><span class="lineNoCov">          0 :   using base = OneIndexConstraint&lt;SpatialDim&gt;;</span>
+<span class="lineNum">     117 </span>            : };
+<span class="lineNum">     118 </span>            : 
+<span class="lineNum">     119 </span>            : /*!
+<span class="lineNum">     120 </span>            :  * \brief Compute item to get the two-index constraint for the scalar-wave
+<span class="lineNum">     121 </span>            :  * evolution system.
+<span class="lineNum">     122 </span>            :  *
+<span class="lineNum">     123 </span>            :  * \details See `two_index_constraint()`. Can be retrieved using
+<span class="lineNum">     124 </span>            :  * `CurvedScalarWave::Tags::TwoIndexConstraint`.
+<span class="lineNum">     125 </span>            :  */
+<span class="lineNum">     126 </span>            : template &lt;size_t SpatialDim&gt;
+<span class="lineNum">     127 </span>            : struct TwoIndexConstraintCompute : TwoIndexConstraint&lt;SpatialDim&gt;,
+<span class="lineNum">     128 </span><span class="lineCov">          1 :                                    db::ComputeTag {</span>
+<span class="lineNum">     129 </span><span class="lineNoCov">          0 :   using argument_tags =</span>
+<span class="lineNum">     130 </span>            :       tmpl::list&lt;::Tags::deriv&lt;Phi&lt;SpatialDim&gt;, tmpl::size_t&lt;SpatialDim&gt;,
+<span class="lineNum">     131 </span>            :                                Frame::Inertial&gt;&gt;;
+<span class="lineNum">     132 </span><span class="lineNoCov">          0 :   using return_type = tnsr::ij&lt;DataVector, SpatialDim, Frame::Inertial&gt;;</span>
+<span class="lineNum">     133 </span><span class="lineNoCov">          0 :   static constexpr void (*function)(</span>
+<span class="lineNum">     134 </span>            :       const gsl::not_null&lt;return_type*&gt; result,
+<span class="lineNum">     135 </span>            :       const tnsr::ij&lt;DataVector, SpatialDim, Frame::Inertial&gt;&amp;) =
+<span class="lineNum">     136 </span>            :       &amp;two_index_constraint&lt;SpatialDim&gt;;
+<span class="lineNum">     137 </span><span class="lineNoCov">          0 :   using base = TwoIndexConstraint&lt;SpatialDim&gt;;</span>
+<span class="lineNum">     138 </span>            : };
+<span class="lineNum">     139 </span>            : }  // namespace Tags
+<span class="lineNum">     140 </span>            : }  // namespace CurvedScalarWave
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

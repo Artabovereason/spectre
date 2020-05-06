@@ -1,0 +1,282 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - IO/Importers/ReadSpecThirdOrderPiecewisePolynomial.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">IO/Importers</a> - ReadSpecThirdOrderPiecewisePolynomial.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntry">3</td>
+            <td class="headerCovTableEntryLo">33.3 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #pragma once
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;array&gt;
+<span class="lineNum">       7 </span>            : #include &lt;cstddef&gt;
+<span class="lineNum">       8 </span>            : #include &lt;memory&gt;
+<span class="lineNum">       9 </span>            : #include &lt;tuple&gt;
+<span class="lineNum">      10 </span>            : #include &lt;unordered_map&gt;
+<span class="lineNum">      11 </span>            : #include &lt;utility&gt;
+<span class="lineNum">      12 </span>            : #include &lt;vector&gt;
+<span class="lineNum">      13 </span>            : 
+<span class="lineNum">      14 </span>            : #include &quot;DataStructures/DataBox/DataBox.hpp&quot;
+<span class="lineNum">      15 </span>            : #include &quot;DataStructures/Matrix.hpp&quot;
+<span class="lineNum">      16 </span>            : #include &quot;Domain/FunctionsOfTime/FunctionOfTime.hpp&quot;
+<span class="lineNum">      17 </span>            : #include &quot;Domain/FunctionsOfTime/PiecewisePolynomial.hpp&quot;
+<span class="lineNum">      18 </span>            : #include &quot;Domain/FunctionsOfTime/Tags.hpp&quot;
+<span class="lineNum">      19 </span>            : #include &quot;ErrorHandling/Assert.hpp&quot;
+<span class="lineNum">      20 </span>            : #include &quot;ErrorHandling/Error.hpp&quot;
+<span class="lineNum">      21 </span>            : #include &quot;IO/H5/AccessType.hpp&quot;
+<span class="lineNum">      22 </span>            : #include &quot;IO/H5/Dat.hpp&quot;
+<span class="lineNum">      23 </span>            : #include &quot;IO/H5/File.hpp&quot;
+<span class="lineNum">      24 </span>            : #include &quot;IO/Importers/Tags.hpp&quot;
+<span class="lineNum">      25 </span>            : #include &quot;Parallel/ConstGlobalCache.hpp&quot;
+<span class="lineNum">      26 </span>            : #include &quot;ParallelAlgorithms/Initialization/MergeIntoDataBox.hpp&quot;
+<span class="lineNum">      27 </span>            : #include &quot;Utilities/Gsl.hpp&quot;
+<span class="lineNum">      28 </span>            : #include &quot;Utilities/Requires.hpp&quot;
+<span class="lineNum">      29 </span>            : #include &quot;Utilities/TMPL.hpp&quot;
+<span class="lineNum">      30 </span>            : #include &quot;Utilities/TaggedTuple.hpp&quot;
+<span class="lineNum">      31 </span>            : 
+<span class="lineNum">      32 </span>            : namespace importers {
+<span class="lineNum">      33 </span>            : namespace Actions {
+<span class="lineNum">      34 </span>            : /// \brief Import SpEC `FunctionOfTime` data from an H5 file.
+<span class="lineNum">      35 </span>            : ///
+<span class="lineNum">      36 </span>            : /// Uses:
+<span class="lineNum">      37 </span>            : ///  - DataBox:
+<span class="lineNum">      38 </span>            : ///    - `importers::Tags::FunctionOfTimeFile`
+<span class="lineNum">      39 </span>            : ///    - `importers::Tags::FunctionOfTimeNameMap`
+<span class="lineNum">      40 </span>            : ///
+<span class="lineNum">      41 </span>            : /// DataBox changes:
+<span class="lineNum">      42 </span>            : /// - Adds: nothing
+<span class="lineNum">      43 </span>            : /// - Removes: nothing
+<span class="lineNum">      44 </span>            : /// - Modifies:
+<span class="lineNum">      45 </span>            : ///   - `::domain::Tags::FunctionsOfTime`
+<span class="lineNum">      46 </span>            : ///
+<span class="lineNum">      47 </span>            : /// Columns in the file to be read must have the following form:
+<span class="lineNum">      48 </span>            : ///   - 0 = time
+<span class="lineNum">      49 </span>            : ///   - 1 = time of last update
+<span class="lineNum">      50 </span>            : ///   - 2 = number of components
+<span class="lineNum">      51 </span>            : ///   - 3 = maximum derivative order
+<span class="lineNum">      52 </span>            : ///   - 4 = version
+<span class="lineNum">      53 </span>            : ///   - 5 = function
+<span class="lineNum">      54 </span>            : ///   - 6 = d/dt (function)
+<span class="lineNum">      55 </span>            : ///   - 7 = d^2/dt^2 (function)
+<span class="lineNum">      56 </span>            : ///   - 8 = d^3/dt^3 (function)
+<span class="lineNum">      57 </span>            : ///
+<span class="lineNum">      58 </span>            : /// If the function has more than one component, columns 5-8 give
+<span class="lineNum">      59 </span>            : /// the first component and its derivatives, columns 9-12 give the second
+<span class="lineNum">      60 </span>            : /// component and its derivatives, etc.
+<span class="lineNum">      61 </span>            : ///
+<span class="lineNum">      62 </span><span class="lineCov">          1 : struct ReadSpecThirdOrderPiecewisePolynomial {</span>
+<span class="lineNum">      63 </span>            :   template &lt;
+<span class="lineNum">      64 </span>            :       typename DbTagsList, typename... InboxTags, typename Metavariables,
+<span class="lineNum">      65 </span>            :       typename ArrayIndex, typename ActionList, typename ParallelComponent,
+<span class="lineNum">      66 </span>            :       Requires&lt;db::tag_is_retrievable_v&lt;importers::Tags::FunctionOfTimeFile,
+<span class="lineNum">      67 </span>            :                                         db::DataBox&lt;DbTagsList&gt;&gt; and
+<span class="lineNum">      68 </span>            :                db::tag_is_retrievable_v&lt;importers::Tags::FunctionOfTimeNameMap,
+<span class="lineNum">      69 </span>            :                                         db::DataBox&lt;DbTagsList&gt;&gt; and
+<span class="lineNum">      70 </span>            :                db::tag_is_retrievable_v&lt;::domain::Tags::FunctionsOfTime,
+<span class="lineNum">      71 </span>            :                                         db::DataBox&lt;DbTagsList&gt;&gt;&gt; = nullptr&gt;
+<span class="lineNum">      72 </span><span class="lineNoCov">          0 :   static auto apply(db::DataBox&lt;DbTagsList&gt;&amp; box,</span>
+<span class="lineNum">      73 </span>            :                     const tuples::TaggedTuple&lt;InboxTags...&gt;&amp; /*inboxes*/,
+<span class="lineNum">      74 </span>            :                     const Parallel::ConstGlobalCache&lt;Metavariables&gt;&amp; /*cache*/,
+<span class="lineNum">      75 </span>            :                     const ArrayIndex&amp; /*array_index*/,
+<span class="lineNum">      76 </span>            :                     const ActionList /*meta*/,
+<span class="lineNum">      77 </span>            :                     const ParallelComponent* const /*meta*/) noexcept {
+<span class="lineNum">      78 </span>            :     const std::string&amp; file_name{
+<span class="lineNum">      79 </span>            :         db::get&lt;importers::Tags::FunctionOfTimeFile&gt;(box)};
+<span class="lineNum">      80 </span>            : 
+<span class="lineNum">      81 </span>            :     // Get the map of SpEC -&gt; SpECTRE FunctionofTime names
+<span class="lineNum">      82 </span>            :     const std::map&lt;std::string, std::string&gt;&amp; dataset_name_map{
+<span class="lineNum">      83 </span>            :         db::get&lt;importers::Tags::FunctionOfTimeNameMap&gt;(box)};
+<span class="lineNum">      84 </span>            : 
+<span class="lineNum">      85 </span>            :     // Currently, only support order 3 piecewise polynomials.
+<span class="lineNum">      86 </span>            :     // This could be generalized later, but the SpEC functions of time
+<span class="lineNum">      87 </span>            :     // that we will read in with this action will always be 3rd-order
+<span class="lineNum">      88 </span>            :     // piecewise polynomials
+<span class="lineNum">      89 </span>            :     constexpr size_t max_deriv{3};
+<span class="lineNum">      90 </span>            : 
+<span class="lineNum">      91 </span>            :     std::unordered_map&lt;std::string,
+<span class="lineNum">      92 </span>            :                        domain::FunctionsOfTime::PiecewisePolynomial&lt;max_deriv&gt;&gt;
+<span class="lineNum">      93 </span>            :         spec_functions_of_time;
+<span class="lineNum">      94 </span>            : 
+<span class="lineNum">      95 </span>            :     std::unique_ptr&lt;h5::H5File&lt;h5::AccessType::ReadOnly&gt;&gt; file =
+<span class="lineNum">      96 </span>            :         std::make_unique&lt;h5::H5File&lt;h5::AccessType::ReadOnly&gt;&gt;(file_name);
+<span class="lineNum">      97 </span>            :     for (const auto&amp; spec_and_spectre_names : dataset_name_map) {
+<span class="lineNum">      98 </span>            :       const std::string&amp; spec_name = std::get&lt;0&gt;(spec_and_spectre_names);
+<span class="lineNum">      99 </span>            :       const std::string&amp; spectre_name = std::get&lt;1&gt;(spec_and_spectre_names);
+<span class="lineNum">     100 </span>            :       // clang-tidy: use auto when initializing with a template cast to avoid
+<span class="lineNum">     101 </span>            :       // duplicating the type name
+<span class="lineNum">     102 </span>            :       const h5::Dat&amp; dat_file = file-&gt;get&lt;h5::Dat&gt;(&quot;/&quot; + spec_name);  // NOLINT
+<span class="lineNum">     103 </span>            :       const Matrix&amp; dat_data = dat_file.get_data();
+<span class="lineNum">     104 </span>            : 
+<span class="lineNum">     105 </span>            :       // Check that the data in the file uses deriv order 3
+<span class="lineNum">     106 </span>            :       // Column 3 of the file contains the derivative order
+<span class="lineNum">     107 </span>            :       const size_t dat_max_deriv = dat_data(0, 3);
+<span class="lineNum">     108 </span>            :       if (dat_max_deriv != max_deriv) {
+<span class="lineNum">     109 </span>            :         file.reset();
+<span class="lineNum">     110 </span>            :         ERROR(&quot;Deriv order in &quot; &lt;&lt; file_name &lt;&lt; &quot; should be &quot; &lt;&lt; max_deriv
+<span class="lineNum">     111 </span>            :                                 &lt;&lt; &quot;, not &quot; &lt;&lt; dat_max_deriv);
+<span class="lineNum">     112 </span>            :       }
+<span class="lineNum">     113 </span>            : 
+<span class="lineNum">     114 </span>            :       // Get the initial time ('time of last update') from the file
+<span class="lineNum">     115 </span>            :       // and the values of the function and its derivatives at that time
+<span class="lineNum">     116 </span>            :       const double start_time = dat_data(0, 1);
+<span class="lineNum">     117 </span>            : 
+<span class="lineNum">     118 </span>            :       // Currently, assume the same number of components are used
+<span class="lineNum">     119 </span>            :       // at each time. This could be generalized if needed
+<span class="lineNum">     120 </span>            :       const size_t number_of_components = dat_data(0, 2);
+<span class="lineNum">     121 </span>            : 
+<span class="lineNum">     122 </span>            :       std::array&lt;DataVector, max_deriv + 1&gt; initial_coefficients;
+<span class="lineNum">     123 </span>            :       for (size_t deriv_order = 0; deriv_order &lt; max_deriv + 1; ++deriv_order) {
+<span class="lineNum">     124 </span>            :         gsl::at(initial_coefficients, deriv_order) =
+<span class="lineNum">     125 </span>            :             DataVector(number_of_components);
+<span class="lineNum">     126 </span>            :         for (size_t component = 0; component &lt; number_of_components;
+<span class="lineNum">     127 </span>            :              ++component) {
+<span class="lineNum">     128 </span>            :           gsl::at(initial_coefficients, deriv_order)[component] =
+<span class="lineNum">     129 </span>            :               dat_data(0, 5 + (max_deriv + 1) * component + deriv_order);
+<span class="lineNum">     130 </span>            :         }
+<span class="lineNum">     131 </span>            :       }
+<span class="lineNum">     132 </span>            :       spec_functions_of_time[spectre_name] =
+<span class="lineNum">     133 </span>            :           domain::FunctionsOfTime::PiecewisePolynomial&lt;3&gt;(start_time,
+<span class="lineNum">     134 </span>            :                                                           initial_coefficients);
+<span class="lineNum">     135 </span>            : 
+<span class="lineNum">     136 </span>            :       // Loop over the remaining times, updating the function of time
+<span class="lineNum">     137 </span>            :       DataVector highest_derivative(number_of_components);
+<span class="lineNum">     138 </span>            :       double time_last_updated = start_time;
+<span class="lineNum">     139 </span>            :       for (size_t row = 1; row &lt; dat_data.rows(); ++row) {
+<span class="lineNum">     140 </span>            :         // If time of last update has changed, then update the FunctionOfTime
+<span class="lineNum">     141 </span>            :         // The time of last update is stored in column 1 in the dat file
+<span class="lineNum">     142 </span>            :         if (dat_data(row, 1) &gt; time_last_updated) {
+<span class="lineNum">     143 </span>            :           time_last_updated = dat_data(row, 1);
+<span class="lineNum">     144 </span>            :           for (size_t a = 0; a &lt; number_of_components; ++a) {
+<span class="lineNum">     145 </span>            :             highest_derivative[a] =
+<span class="lineNum">     146 </span>            :                 dat_data(row, 4 + (max_deriv + 1) * a + max_deriv);
+<span class="lineNum">     147 </span>            :           }
+<span class="lineNum">     148 </span>            :           spec_functions_of_time[spectre_name].update(time_last_updated,
+<span class="lineNum">     149 </span>            :                                                       highest_derivative);
+<span class="lineNum">     150 </span>            :         } else {
+<span class="lineNum">     151 </span>            :           file.reset();
+<span class="lineNum">     152 </span>            :           ERROR(&quot;Non-monotonic time found in FunctionOfTime data. &quot;
+<span class="lineNum">     153 </span>            :                 &lt;&lt; &quot;Time &quot; &lt;&lt; dat_data(row, 1) &lt;&lt; &quot; follows time &quot;
+<span class="lineNum">     154 </span>            :                 &lt;&lt; time_last_updated &lt;&lt; &quot; while reading &quot; &lt;&lt; spectre_name
+<span class="lineNum">     155 </span>            :                 &lt;&lt; &quot;\n&quot;);
+<span class="lineNum">     156 </span>            :         }
+<span class="lineNum">     157 </span>            :       }
+<span class="lineNum">     158 </span>            :     }
+<span class="lineNum">     159 </span>            : 
+<span class="lineNum">     160 </span>            :     // Mutate ::domain::Tags::FunctionsOfTime, adding the imported
+<span class="lineNum">     161 </span>            :     // FunctionsOfTime to it
+<span class="lineNum">     162 </span>            :     db::mutate&lt;::domain::Tags::FunctionsOfTime&gt;(
+<span class="lineNum">     163 </span>            :         make_not_null(&amp;box),
+<span class="lineNum">     164 </span>            :         [&amp;dataset_name_map, &amp;spec_functions_of_time,
+<span class="lineNum">     165 </span>            :          &amp;file](const gsl::not_null&lt;std::unordered_map&lt;
+<span class="lineNum">     166 </span>            :                     std::string,
+<span class="lineNum">     167 </span>            :                     std::unique_ptr&lt;domain::FunctionsOfTime::FunctionOfTime&gt;&gt;*&gt;
+<span class="lineNum">     168 </span>            :                     functions_of_time) {
+<span class="lineNum">     169 </span>            :           for (auto spec_and_spectre_names : dataset_name_map) {
+<span class="lineNum">     170 </span>            :             const std::string&amp; spectre_name =
+<span class="lineNum">     171 </span>            :                 std::get&lt;1&gt;(spec_and_spectre_names);
+<span class="lineNum">     172 </span>            : 
+<span class="lineNum">     173 </span>            :             // The FunctionsOfTime we are mutating must already have
+<span class="lineNum">     174 </span>            :             // an element with key==spectre_name; this action only
+<span class="lineNum">     175 </span>            :             // mutates the value associated with that key
+<span class="lineNum">     176 </span>            :             if ((*functions_of_time).count(spectre_name) == 0) {
+<span class="lineNum">     177 </span>            :               file.reset();
+<span class="lineNum">     178 </span>            :               ERROR(&quot;Trying to import data for key &quot;
+<span class="lineNum">     179 </span>            :                     &lt;&lt; spectre_name
+<span class="lineNum">     180 </span>            :                     &lt;&lt; &quot;in FunctionsOfTime, but FunctionsOfTime does not &quot;
+<span class="lineNum">     181 </span>            :                        &quot;contain that key.\n&quot;);
+<span class="lineNum">     182 </span>            :             }
+<span class="lineNum">     183 </span>            :             auto* piecewise_polynomial = dynamic_cast&lt;
+<span class="lineNum">     184 </span>            :                 domain::FunctionsOfTime::PiecewisePolynomial&lt;max_deriv&gt;*&gt;(
+<span class="lineNum">     185 </span>            :                 (*functions_of_time)[spectre_name].get());
+<span class="lineNum">     186 </span>            :             if (piecewise_polynomial == nullptr) {
+<span class="lineNum">     187 </span>            :               file.reset();
+<span class="lineNum">     188 </span>            :               ERROR(
+<span class="lineNum">     189 </span>            :                   &quot;The function of time with name spectre_name is not a &quot;
+<span class="lineNum">     190 </span>            :                   &quot;PiecewisePolynomial&lt;&quot;
+<span class="lineNum">     191 </span>            :                   &lt;&lt; max_deriv
+<span class="lineNum">     192 </span>            :                   &lt;&lt; &quot;&gt; and so cannot be set using &quot;
+<span class="lineNum">     193 </span>            :                      &quot;ReadSpecThirdOrderPiecewisePolynomial\n&quot;);
+<span class="lineNum">     194 </span>            :             }
+<span class="lineNum">     195 </span>            :             *piecewise_polynomial = spec_functions_of_time[spectre_name];
+<span class="lineNum">     196 </span>            :           }
+<span class="lineNum">     197 </span>            :         });
+<span class="lineNum">     198 </span>            :     return std::forward_as_tuple(std::move(box));
+<span class="lineNum">     199 </span>            :   }
+<span class="lineNum">     200 </span>            : };
+<span class="lineNum">     201 </span>            : }  // namespace Actions
+<span class="lineNum">     202 </span>            : }  // namespace importers
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

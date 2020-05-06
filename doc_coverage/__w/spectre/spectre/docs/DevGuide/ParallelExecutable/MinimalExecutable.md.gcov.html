@@ -1,0 +1,409 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - /__w/spectre/spectre/docs/DevGuide/ParallelExecutable/MinimalExecutable.md</title>
+  <link rel="stylesheet" type="text/css" href="../../../../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../../../../index.html">top level</a> - <a href="index.html">__w/spectre/spectre/docs/DevGuide/ParallelExecutable</a> - MinimalExecutable.md</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : \cond NEVER</span>
+<span class="lineNum">       2 </span>            : Distributed under the MIT License.
+<span class="lineNum">       3 </span>            : See LICENSE.txt for details.
+<span class="lineNum">       4 </span>            : \endcond
+<span class="lineNum">       5 </span>            : # The minimal SpECTRE executable {#tutorial_minimal_parallel_executable}
+<span class="lineNum">       6 </span>            : 
+<span class="lineNum">       7 </span>            : This tutorial will illustrate what is needed to compile the minimal
+<span class="lineNum">       8 </span>            : SpECTRE executable that will simply print some useful information
+<span class="lineNum">       9 </span>            : about the executable and then exit.
+<span class="lineNum">      10 </span>            : 
+<span class="lineNum">      11 </span>            : Specifically, this tutorial will introduce:
+<span class="lineNum">      12 </span>            : - `add_spectre_parallel_executable`, a CMake function that will add a
+<span class="lineNum">      13 </span>            :   build target for a SpECTRE executable
+<span class="lineNum">      14 </span>            : - A user-provided `Metavariables`, a C++ struct that is used to
+<span class="lineNum">      15 </span>            :   specify the metaprogram that is converted into a C++ executable.
+<span class="lineNum">      16 </span>            : - how to build a SpECTRE executable
+<span class="lineNum">      17 </span>            : - how to run a SpECTRE executable
+<span class="lineNum">      18 </span>            : - useful information that can be extracted from all SpECTRE executables
+<span class="lineNum">      19 </span>            : - `Main`, the main parallel component that acts as the main function
+<span class="lineNum">      20 </span>            :   of a C++ executable.
+<span class="lineNum">      21 </span>            : 
+<span class="lineNum">      22 </span>            : In this tutorial, `SPECTRE_ROOT` refers to the directory in which
+<span class="lineNum">      23 </span>            : SpECTRE was cloned, and `SPECTRE_BUILD_DIR` refers to the directory in
+<span class="lineNum">      24 </span>            : which you built SpECTRE.
+<span class="lineNum">      25 </span>            : 
+<span class="lineNum">      26 </span>            : ### Creating a build target for a parallel executable
+<span class="lineNum">      27 </span>            : 
+<span class="lineNum">      28 </span>            : The first step is to select (or create) a directory (within
+<span class="lineNum">      29 </span>            : `SPECTRE_ROOT/src`) that will hold the files from which the executable
+<span class="lineNum">      30 </span>            : will be created.  For this tutorial we created the directory
+<span class="lineNum">      31 </span>            : `ParallelTutorial` in `src/Executables/Examples`.  If you create a new
+<span class="lineNum">      32 </span>            : directory for the executable, you will need to edit the
+<span class="lineNum">      33 </span>            : `CMakeLists.txt` file in its parent directory and add (replacing
+<span class="lineNum">      34 </span>            : `ParallelTutorial` with the appropriate directory name)
+<span class="lineNum">      35 </span>            : 
+<span class="lineNum">      36 </span>            : \snippet Examples/CMakeLists.txt add_subdirectory
+<span class="lineNum">      37 </span>            : 
+<span class="lineNum">      38 </span>            : The second step is to edit (or create) the `CMakeLists.txt` file in
+<span class="lineNum">      39 </span>            : the executable directory and add a call to
+<span class="lineNum">      40 </span>            : `add_spectre_parallel_executable` such as:
+<span class="lineNum">      41 </span>            : 
+<span class="lineNum">      42 </span>            : \snippet ParallelTutorial/CMakeLists.txt add_spectre_executable
+<span class="lineNum">      43 </span>            : 
+<span class="lineNum">      44 </span>            : The (SpECTRE defined) `CMake` function `add_spectre_executable` takes
+<span class="lineNum">      45 </span>            : five arguments:
+<span class="lineNum">      46 </span>            : 
+<span class="lineNum">      47 </span>            : - The name of the executable (in the given example `MinimalExample`)
+<span class="lineNum">      48 </span>            :   that will be created, which will also be the name of the
+<span class="lineNum">      49 </span>            :   corresponding build target.
+<span class="lineNum">      50 </span>            : - The base name (in the given example `MinimalExecutable`) of the two
+<span class="lineNum">      51 </span>            :   user-provided files that declare (`MinimalExecutableFwd.hpp`) and
+<span class="lineNum">      52 </span>            :   define (`MinimalExecutable.hpp`) a C++ struct (or struct template)
+<span class="lineNum">      53 </span>            :   that will describe the metaprogram that is converted into a C++
+<span class="lineNum">      54 </span>            :   executable.  We will refer to this struct (template) as the
+<span class="lineNum">      55 </span>            :   metavariables struct (template), and the files declaring and
+<span class="lineNum">      56 </span>            :   defining the metavariables struct (template) as the metavariables
+<span class="lineNum">      57 </span>            :   files.
+<span class="lineNum">      58 </span>            : - The path relative to `SPECTRE_ROOT/src` to the directory holding the
+<span class="lineNum">      59 </span>            :   metavariables files (in the given example
+<span class="lineNum">      60 </span>            :   `Executables/Examples/ParallelTutorial`)
+<span class="lineNum">      61 </span>            : - The specific metavariables struct (in the given example
+<span class="lineNum">      62 </span>            :   `Metavariables`) that will be used to create the executable.  This
+<span class="lineNum">      63 </span>            :   is either the name of the metavariables struct in the metavariables
+<span class="lineNum">      64 </span>            :   files, or a specific instantiation of the metavariables struct
+<span class="lineNum">      65 </span>            :   template in the metavariables files.
+<span class="lineNum">      66 </span>            : - A list of SpECTRE libraries that the executable will be linked
+<span class="lineNum">      67 </span>            :   against (in the given example the `CMake` list `LIBS_TO_LINK` where
+<span class="lineNum">      68 </span>            :   `%Informer` and `Utilities` are two SpECTRE libraries)
+<span class="lineNum">      69 </span>            : 
+<span class="lineNum">      70 </span>            : ### Writing the metavariables files
+<span class="lineNum">      71 </span>            : 
+<span class="lineNum">      72 </span>            : The header files from which an executable is generated must declare
+<span class="lineNum">      73 </span>            : and define a metavariables struct that can be thought of as a
+<span class="lineNum">      74 </span>            : compile-time input file that defines what the executable will do.
+<span class="lineNum">      75 </span>            : 
+<span class="lineNum">      76 </span>            : The first metavariables file (`MinimalExecutableFwd.hpp`) is simply a
+<span class="lineNum">      77 </span>            : forward declaration of the metavariables struct:
+<span class="lineNum">      78 </span>            : 
+<span class="lineNum">      79 </span>            : \snippet MinimalExecutableFwd.hpp metavariables_forward_declaration
+<span class="lineNum">      80 </span>            : 
+<span class="lineNum">      81 </span>            : (Note that `#%pragma once` tells the compiler to only include the file
+<span class="lineNum">      82 </span>            : once per compilation, and the `/// \%cond` and `/// \%endcond` around
+<span class="lineNum">      83 </span>            : the code tells doxygen not to generate documentation from the wrapped
+<span class="lineNum">      84 </span>            : region)
+<span class="lineNum">      85 </span>            : 
+<span class="lineNum">      86 </span>            : The second metavariables file (`MinimalExecutable.hpp`) holds the
+<span class="lineNum">      87 </span>            : definition of the metavariables struct.
+<span class="lineNum">      88 </span>            : 
+<span class="lineNum">      89 </span>            : \snippet MinimalExecutable.hpp metavariables_definition
+<span class="lineNum">      90 </span>            : 
+<span class="lineNum">      91 </span>            : The metavariables struct must define an enum class `Phase` with the
+<span class="lineNum">      92 </span>            : phases of the executable (which must include `Initialization` and
+<span class="lineNum">      93 </span>            : `Exit`), and a static function `determine_next_phase`.  In this
+<span class="lineNum">      94 </span>            : example, no additional phases are defined, and the executable will
+<span class="lineNum">      95 </span>            : execute the `Initialization` phase followed by the `Exit` phase.
+<span class="lineNum">      96 </span>            : (`Parallel::CProxy_ConstGlobalCache` is an unused proxy to the
+<span class="lineNum">      97 </span>            : `ConstGlobalCache` that is explained below)
+<span class="lineNum">      98 </span>            : 
+<span class="lineNum">      99 </span>            : The metavariables struct must define a type alias `component_list`
+<span class="lineNum">     100 </span>            : that is a `tmpl::list` (a typelist defined in `Utilities/TMPL.hpp`) of
+<span class="lineNum">     101 </span>            : the parallel components used by the executable.  In this example no
+<span class="lineNum">     102 </span>            : parallel components are used.
+<span class="lineNum">     103 </span>            : 
+<span class="lineNum">     104 </span>            : The metavariables struct must define `help`, a `static constexpr
+<span class="lineNum">     105 </span>            : OptionString` that will be printed as part of the help message of the
+<span class="lineNum">     106 </span>            : executable. (`OptionString` is defined in `Options/Options.hpp`.)
+<span class="lineNum">     107 </span>            : 
+<span class="lineNum">     108 </span>            : In addition to defining the metavaribles struct, the metavariables
+<span class="lineNum">     109 </span>            : file must define the two vectors of functions `charm_init_node_funcs`
+<span class="lineNum">     110 </span>            : and `charm_init_proc_funcs`
+<span class="lineNum">     111 </span>            : 
+<span class="lineNum">     112 </span>            : \snippet  MinimalExecutable.hpp executable_example_charm_init
+<span class="lineNum">     113 </span>            : 
+<span class="lineNum">     114 </span>            : that are executed at startup by Charm++ on each node and processing
+<span class="lineNum">     115 </span>            : element (PE) the executable runs on.  In this example, the vectors are
+<span class="lineNum">     116 </span>            : empty.
+<span class="lineNum">     117 </span>            : 
+<span class="lineNum">     118 </span>            : ### Building a SpECTRE executable
+<span class="lineNum">     119 </span>            : 
+<span class="lineNum">     120 </span>            : Let `$EXECUTABLE` be the name of the executable (the first argument
+<span class="lineNum">     121 </span>            : passed to the `add_spectre_executable` `CMake` function, so in this
+<span class="lineNum">     122 </span>            : example `MinimalExample`).  Then the executable can be built by
+<span class="lineNum">     123 </span>            : running the following command in `$SPECTRE_BUILD_DIR`:
+<span class="lineNum">     124 </span>            : 
+<span class="lineNum">     125 </span>            : ```
+<span class="lineNum">     126 </span>            : make $EXECUTABLE
+<span class="lineNum">     127 </span>            : ```
+<span class="lineNum">     128 </span>            : 
+<span class="lineNum">     129 </span>            : which will produce the executable of the same name in
+<span class="lineNum">     130 </span>            : `$SPECTRE_BUILD_DIR/bin`.
+<span class="lineNum">     131 </span>            : 
+<span class="lineNum">     132 </span>            : ### Running a SpECTRE executable
+<span class="lineNum">     133 </span>            : 
+<span class="lineNum">     134 </span>            : To run a SpECTRE executable, run the command:
+<span class="lineNum">     135 </span>            : 
+<span class="lineNum">     136 </span>            : ```
+<span class="lineNum">     137 </span>            : ./$SPECTRE_BUILD_DIR/bin/$EXECUTABLE  &lt;options&gt;
+<span class="lineNum">     138 </span>            : ```
+<span class="lineNum">     139 </span>            : 
+<span class="lineNum">     140 </span>            : where `&lt;options&gt;` must include any required command-line options.  In
+<span class="lineNum">     141 </span>            : the simple example for this tutorial, no command-line options are
+<span class="lineNum">     142 </span>            : required.
+<span class="lineNum">     143 </span>            : 
+<span class="lineNum">     144 </span>            : On a laptop, we get the following output:
+<span class="lineNum">     145 </span>            : 
+<span class="lineNum">     146 </span>            : ```
+<span class="lineNum">     147 </span>            : Charm++: standalone mode (not using charmrun)
+<span class="lineNum">     148 </span>            : Charm++&gt; Running in Multicore mode:  1 threads
+<span class="lineNum">     149 </span>            : Converse/Charm++ Commit ID: v6.8.0-0-ga36028edb
+<span class="lineNum">     150 </span>            : CharmLB&gt; Load balancer assumes all CPUs are same.
+<span class="lineNum">     151 </span>            : Charm++&gt; Running on 1 unique compute nodes (4-way SMP).
+<span class="lineNum">     152 </span>            : Charm++&gt; cpu topology info is gathered in 0.000 seconds.
+<span class="lineNum">     153 </span>            : 
+<span class="lineNum">     154 </span>            : Executing 'some_path/MinimalExample' using 1 processors.
+<span class="lineNum">     155 </span>            : Date and time at startup: Fri Oct 25 15:03:05 2019
+<span class="lineNum">     156 </span>            : 
+<span class="lineNum">     157 </span>            : SpECTRE Build Information:
+<span class="lineNum">     158 </span>            : Version:                      0.0.0
+<span class="lineNum">     159 </span>            : Compiled on host:             kosh-3.local
+<span class="lineNum">     160 </span>            : Compiled in directory:        some_path/build
+<span class="lineNum">     161 </span>            : Source directory is:          some_path/parallel_tutorial
+<span class="lineNum">     162 </span>            : Compiled on git branch:       feature/parallel_tutorial
+<span class="lineNum">     163 </span>            : Compiled with git hash:       1f4ab20cbda9ae8072a17df69de9731c43687468
+<span class="lineNum">     164 </span>            : Linked on:                    Fri Oct 25 13:26:06 2019
+<span class="lineNum">     165 </span>            : 
+<span class="lineNum">     166 </span>            : 
+<span class="lineNum">     167 </span>            : Done!
+<span class="lineNum">     168 </span>            : CkWallTimer in seconds 0.004185
+<span class="lineNum">     169 </span>            : Date and time at completion: Fri Oct 25 15:03:05 2019
+<span class="lineNum">     170 </span>            : 
+<span class="lineNum">     171 </span>            : [Partition 0][Node 0] End of program
+<span class="lineNum">     172 </span>            : ```
+<span class="lineNum">     173 </span>            : 
+<span class="lineNum">     174 </span>            : which includes information that will be printed by every SpECTRE
+<span class="lineNum">     175 </span>            : executable on startup and exit.  First, there is information provided
+<span class="lineNum">     176 </span>            : by `Charm++` that will depend upon how `Charm++` was built.  Next you
+<span class="lineNum">     177 </span>            : will see information provided by SpECTRE which includes:
+<span class="lineNum">     178 </span>            : 
+<span class="lineNum">     179 </span>            : - the name of the executable
+<span class="lineNum">     180 </span>            : - how many processes the executable was run on
+<span class="lineNum">     181 </span>            : - the date and time at startup
+<span class="lineNum">     182 </span>            : - the version of SpECTRE that was used to compile the executable
+<span class="lineNum">     183 </span>            : - where the executable was compiled
+<span class="lineNum">     184 </span>            : - which git branch and hash was used to compile the executable
+<span class="lineNum">     185 </span>            : - when the executable was linked
+<span class="lineNum">     186 </span>            : 
+<span class="lineNum">     187 </span>            : On exit, the executable will print that it is `Done!`, followed by how
+<span class="lineNum">     188 </span>            : the long the executable took to run as timed by the `Charm++`
+<span class="lineNum">     189 </span>            : wall-clock timer, and the date and time at completion, followed by any
+<span class="lineNum">     190 </span>            : information the `Charm++` provides upon exiting the program.
+<span class="lineNum">     191 </span>            : 
+<span class="lineNum">     192 </span>            : ### Extracting useful information from a SpECTRE executable
+<span class="lineNum">     193 </span>            : 
+<span class="lineNum">     194 </span>            : Every SpECTRE executable comes with a set of command-line options that
+<span class="lineNum">     195 </span>            : can be used to obtain useful information about the executable (and for
+<span class="lineNum">     196 </span>            : executables expecting an input file, whether or not the input file can
+<span class="lineNum">     197 </span>            : be parsed successfully).
+<span class="lineNum">     198 </span>            : 
+<span class="lineNum">     199 </span>            : #### Getting a list of available options
+<span class="lineNum">     200 </span>            : 
+<span class="lineNum">     201 </span>            : To get a list of available options for a SpECTRE executable, run
+<span class="lineNum">     202 </span>            : either of the following commands:
+<span class="lineNum">     203 </span>            : 
+<span class="lineNum">     204 </span>            : ```
+<span class="lineNum">     205 </span>            : ./$SPECTRE_BUILD_DIR/bin/$EXECUTABLE  --help
+<span class="lineNum">     206 </span>            : ./$SPECTRE_BUILD_DIR/bin/$EXECUTABLE  -h
+<span class="lineNum">     207 </span>            : ```
+<span class="lineNum">     208 </span>            : 
+<span class="lineNum">     209 </span>            : In the middle of the `Charm++` startup information will now appear a
+<span class="lineNum">     210 </span>            : long list of `Charm++` related command-line options which we will
+<span class="lineNum">     211 </span>            : ignore for this tutorial.  After the SpECTRE startup information,
+<span class="lineNum">     212 </span>            : there is now a list of available command-line options:
+<span class="lineNum">     213 </span>            : 
+<span class="lineNum">     214 </span>            : ```
+<span class="lineNum">     215 </span>            :   -h [ --help ]             Describe program options
+<span class="lineNum">     216 </span>            :   --check-options           Check input file options
+<span class="lineNum">     217 </span>            :   --dump-source-tree-as arg If specified, then a gzip archive of the source
+<span class="lineNum">     218 </span>            :                             tree is dumped with the specified name. The archive
+<span class="lineNum">     219 </span>            :                             can be expanded using 'tar -xzf ARCHIVE.tar.gz'
+<span class="lineNum">     220 </span>            :   --dump-paths              Dump the PATH, CPATH, LD_LIBRARY_PATH,
+<span class="lineNum">     221 </span>            :                             LIBRARY_PATH, and CMAKE_PREFIX_PATH at compile
+<span class="lineNum">     222 </span>            :                             time.
+<span class="lineNum">     223 </span>            :   --dump-environment        Dump the result of printenv at compile time.
+<span class="lineNum">     224 </span>            :   --dump-library-versions   Dump the contents of SpECTRE's LibraryVersions.txt
+<span class="lineNum">     225 </span>            :   --dump-only               Exit after dumping requested information.
+<span class="lineNum">     226 </span>            : ```
+<span class="lineNum">     227 </span>            : 
+<span class="lineNum">     228 </span>            : which we will describe in detail below. This is followed by a
+<span class="lineNum">     229 </span>            : description of the expected input-file options, which in this example
+<span class="lineNum">     230 </span>            : will simply print the `help` string from the metavariables struct, and
+<span class="lineNum">     231 </span>            : the statement that there are no options expected:
+<span class="lineNum">     232 </span>            : 
+<span class="lineNum">     233 </span>            : ```
+<span class="lineNum">     234 </span>            : ==== Description of expected options:
+<span class="lineNum">     235 </span>            : A minimal executable
+<span class="lineNum">     236 </span>            : 
+<span class="lineNum">     237 </span>            : &lt;No options&gt;
+<span class="lineNum">     238 </span>            : ```
+<span class="lineNum">     239 </span>            : 
+<span class="lineNum">     240 </span>            : We will cover input file options in a future tutorial.
+<span class="lineNum">     241 </span>            : 
+<span class="lineNum">     242 </span>            : #### Checking options
+<span class="lineNum">     243 </span>            : 
+<span class="lineNum">     244 </span>            : As the minimal executable in this tutorial expects no input-file
+<span class="lineNum">     245 </span>            : options, running the command:
+<span class="lineNum">     246 </span>            : 
+<span class="lineNum">     247 </span>            : ```
+<span class="lineNum">     248 </span>            : ./$SPECTRE_BUILD_DIR/bin/$EXECUTABLE  --check-options
+<span class="lineNum">     249 </span>            : ```
+<span class="lineNum">     250 </span>            : 
+<span class="lineNum">     251 </span>            : will print out `No options to check!` and exit the program.  See a
+<span class="lineNum">     252 </span>            : future tutorial for an example of checking input-file options.
+<span class="lineNum">     253 </span>            : 
+<span class="lineNum">     254 </span>            : #### Dumping the source tree
+<span class="lineNum">     255 </span>            : 
+<span class="lineNum">     256 </span>            : In order to aid in reproducibility, all SpECTRE executables contain a
+<span class="lineNum">     257 </span>            : copy of `$SPECTRE_ROOT`.  To obtain the source tree as an archive
+<span class="lineNum">     258 </span>            : file, run the command:
+<span class="lineNum">     259 </span>            : 
+<span class="lineNum">     260 </span>            : ```
+<span class="lineNum">     261 </span>            : ./$SPECTRE_BUILD_DIR/bin/$EXECUTABLE  --dump-source-tree-as SpECTRE
+<span class="lineNum">     262 </span>            : ```
+<span class="lineNum">     263 </span>            : 
+<span class="lineNum">     264 </span>            : which will produce the archive file `SpECTRE.tar.gz` which can be
+<span class="lineNum">     265 </span>            : expanded with the command:
+<span class="lineNum">     266 </span>            : 
+<span class="lineNum">     267 </span>            : ```
+<span class="lineNum">     268 </span>            : tar -xzf SpECTRE.tar.gz
+<span class="lineNum">     269 </span>            : ```
+<span class="lineNum">     270 </span>            : 
+<span class="lineNum">     271 </span>            : #### Dumping other information about a SpECTRE executable
+<span class="lineNum">     272 </span>            : 
+<span class="lineNum">     273 </span>            : In addition to dumping the entire source tree there are the following options:
+<span class="lineNum">     274 </span>            : 
+<span class="lineNum">     275 </span>            : - `--dump-paths` will print out various paths from when the
+<span class="lineNum">     276 </span>            :   executable was compiled
+<span class="lineNum">     277 </span>            : - `--dump-environment` will print the results of `printenv`
+<span class="lineNum">     278 </span>            :   (i.e. all of the environment variables) from when the executable was
+<span class="lineNum">     279 </span>            :   compiled
+<span class="lineNum">     280 </span>            : - `--dump-library-versions` will print the contents of SpECTRE's
+<span class="lineNum">     281 </span>            :   `LibraryVersions.txt` which will contain the versions of libraries
+<span class="lineNum">     282 </span>            :   that SpECTRE linked against, as well as various `CMake` variables
+<span class="lineNum">     283 </span>            : 
+<span class="lineNum">     284 </span>            : Also note that the option `--dump-only` can be used to have the
+<span class="lineNum">     285 </span>            : SpECTRE executable terminate immediately after dumping the
+<span class="lineNum">     286 </span>            : information.
+<span class="lineNum">     287 </span>            : 
+<span class="lineNum">     288 </span>            : ### Behind the scenes:  the main parallel component
+<span class="lineNum">     289 </span>            : 
+<span class="lineNum">     290 </span>            : Every Charm++ executable needs a mainchare.  All SpECTRE executables
+<span class="lineNum">     291 </span>            : use `Main` (found in `src/Parallel/Main.hpp`) as the mainchare.  When
+<span class="lineNum">     292 </span>            : a SpECTRE executable is run, the constructor of `Main` that is executed
+<span class="lineNum">     293 </span>            : takes the command line options as an argument (as type
+<span class="lineNum">     294 </span>            : `CkArgMsg*`).  This constructor performs the following operations:
+<span class="lineNum">     295 </span>            : 
+<span class="lineNum">     296 </span>            : - Prints useful startup information
+<span class="lineNum">     297 </span>            : - Parses the command line options, performing any requested operations
+<span class="lineNum">     298 </span>            : - Parses the input file options, populating a tagged tuple with their
+<span class="lineNum">     299 </span>            :   values.  (This is discussed in more detail in a future tutorial on
+<span class="lineNum">     300 </span>            :   input file options.)
+<span class="lineNum">     301 </span>            : - Creates the `ConstGlobalCache` (a nodegroup chare) that holds
+<span class="lineNum">     302 </span>            :   objects created from input file options that are constant and stored
+<span class="lineNum">     303 </span>            :   once per Charm++ node, as well as proxies to all other parallel
+<span class="lineNum">     304 </span>            :   components.
+<span class="lineNum">     305 </span>            : - Creates user-requested non-array parallel components, passing them
+<span class="lineNum">     306 </span>            :   the proxy to the `ConstGlobalCache` as well as any items they
+<span class="lineNum">     307 </span>            :   request that can be created from input file options.
+<span class="lineNum">     308 </span>            : - Creates empty array user-requested parallel components
+<span class="lineNum">     309 </span>            : - Sends the complete list of parallel components to the
+<span class="lineNum">     310 </span>            :   `ConstGlobalCache`.
+<span class="lineNum">     311 </span>            : 
+<span class="lineNum">     312 </span>            : Once the list of parallel components is sent to the `ConstGlobalCache`
+<span class="lineNum">     313 </span>            : on each node, the `Main` member function
+<span class="lineNum">     314 </span>            : `allocate_array_components_and_execute_initial_phase` will be
+<span class="lineNum">     315 </span>            : executed.  This will allocate the elements of the array parallel
+<span class="lineNum">     316 </span>            : components by calling the `allocate_array` member function of each
+<span class="lineNum">     317 </span>            : component.  Then the `start_phase` member function is called on each
+<span class="lineNum">     318 </span>            : component, which will execute the phase action list for the
+<span class="lineNum">     319 </span>            : `Initialization` phase for each component.  Charm++ will execute each
+<span class="lineNum">     320 </span>            : phase until it detects that nothing is happening (quiescence
+<span class="lineNum">     321 </span>            : detection).  As this represents a global synchronization point, the
+<span class="lineNum">     322 </span>            : number of phases should be minimized in order to exploit the power of
+<span class="lineNum">     323 </span>            : SpECTRE.  After each phase, the `execute_next_phase` member function
+<span class="lineNum">     324 </span>            : of `Main` will be called.  This member function first determines what
+<span class="lineNum">     325 </span>            : the next phase is.  If the next phase is `Exit`, then some useful
+<span class="lineNum">     326 </span>            : information is printed and the program exits gracefully.  Otherwise the
+<span class="lineNum">     327 </span>            : `execute_next_phase` member function of each parallel component is
+<span class="lineNum">     328 </span>            : called.
+<span class="lineNum">     329 </span>            : 
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

@@ -1,0 +1,174 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - NumericalAlgorithms/LinearSolver/Gmres.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">NumericalAlgorithms/LinearSolver</a> - Gmres.cpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntry">2</td>
+            <td class="headerCovTableEntryLo">50.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #include &quot;NumericalAlgorithms/LinearSolver/Gmres.hpp&quot;
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;blaze/math/Column.h&gt;
+<span class="lineNum">       7 </span>            : #include &lt;blaze/math/Submatrix.h&gt;
+<span class="lineNum">       8 </span>            : #include &lt;blaze/math/Subvector.h&gt;
+<span class="lineNum">       9 </span>            : #include &lt;blaze/math/lapack/trsv.h&gt;
+<span class="lineNum">      10 </span>            : 
+<span class="lineNum">      11 </span>            : #include &quot;DataStructures/DenseMatrix.hpp&quot;
+<span class="lineNum">      12 </span>            : #include &quot;DataStructures/DenseVector.hpp&quot;
+<span class="lineNum">      13 </span>            : #include &quot;Utilities/ConstantExpressions.hpp&quot;
+<span class="lineNum">      14 </span>            : #include &quot;Utilities/Gsl.hpp&quot;
+<span class="lineNum">      15 </span>            : 
+<span class="lineNum">      16 </span><span class="lineCov">          1 : namespace LinearSolver {</span>
+<span class="lineNum">      17 </span>            : namespace gmres_detail {
+<span class="lineNum">      18 </span>            : 
+<span class="lineNum">      19 </span>            : namespace {
+<span class="lineNum">      20 </span>            : 
+<span class="lineNum">      21 </span>            : void update_givens_rotation(const gsl::not_null&lt;double*&gt; givens_cosine,
+<span class="lineNum">      22 </span>            :                             const gsl::not_null&lt;double*&gt; givens_sine,
+<span class="lineNum">      23 </span>            :                             const double rho, const double sigma) noexcept {
+<span class="lineNum">      24 </span>            :   if (UNLIKELY(rho == 0.)) {
+<span class="lineNum">      25 </span>            :     *givens_cosine = 0.;
+<span class="lineNum">      26 </span>            :     *givens_sine = 1.;
+<span class="lineNum">      27 </span>            :   } else {
+<span class="lineNum">      28 </span>            :     const double tmp = sqrt(square(rho) + square(sigma));
+<span class="lineNum">      29 </span>            :     *givens_cosine = abs(rho) / tmp;
+<span class="lineNum">      30 </span>            :     *givens_sine = *givens_cosine * sigma / rho;
+<span class="lineNum">      31 </span>            :   }
+<span class="lineNum">      32 </span>            : }
+<span class="lineNum">      33 </span>            : 
+<span class="lineNum">      34 </span>            : template &lt;typename Arg&gt;
+<span class="lineNum">      35 </span>            : void apply_and_update_givens_rotation(
+<span class="lineNum">      36 </span>            :     Arg argument, const gsl::not_null&lt;DenseVector&lt;double&gt;*&gt; givens_sine_history,
+<span class="lineNum">      37 </span>            :     const gsl::not_null&lt;DenseVector&lt;double&gt;*&gt; givens_cosine_history,
+<span class="lineNum">      38 </span>            :     const size_t iteration) noexcept {
+<span class="lineNum">      39 </span>            :   const size_t k = iteration + 1;
+<span class="lineNum">      40 </span>            :   for (size_t i = 0; i &lt; k - 1; ++i) {
+<span class="lineNum">      41 </span>            :     const double tmp = (*givens_cosine_history)[i] * argument[i] +
+<span class="lineNum">      42 </span>            :                        (*givens_sine_history)[i] * argument[i + 1];
+<span class="lineNum">      43 </span>            :     argument[i + 1] = (*givens_cosine_history)[i] * argument[i + 1] -
+<span class="lineNum">      44 </span>            :                       (*givens_sine_history)[i] * argument[i];
+<span class="lineNum">      45 </span>            :     argument[i] = tmp;
+<span class="lineNum">      46 </span>            :   }
+<span class="lineNum">      47 </span>            :   update_givens_rotation(make_not_null(&amp;(*givens_cosine_history)[k - 1]),
+<span class="lineNum">      48 </span>            :                          make_not_null(&amp;(*givens_sine_history)[k - 1]),
+<span class="lineNum">      49 </span>            :                          argument[k - 1], argument[k]);
+<span class="lineNum">      50 </span>            :   argument[k - 1] = (*givens_cosine_history)[k - 1] * argument[k - 1] +
+<span class="lineNum">      51 </span>            :                     (*givens_sine_history)[k - 1] * argument[k];
+<span class="lineNum">      52 </span>            :   argument[k] = 0.;
+<span class="lineNum">      53 </span>            : }
+<span class="lineNum">      54 </span>            : 
+<span class="lineNum">      55 </span>            : }  // namespace
+<span class="lineNum">      56 </span>            : 
+<span class="lineNum">      57 </span>            : void solve_minimal_residual(
+<span class="lineNum">      58 </span>            :     const gsl::not_null&lt;DenseMatrix&lt;double&gt;*&gt; orthogonalization_history,
+<span class="lineNum">      59 </span>            :     const gsl::not_null&lt;DenseVector&lt;double&gt;*&gt; residual_history,
+<span class="lineNum">      60 </span>            :     const gsl::not_null&lt;DenseVector&lt;double&gt;*&gt; givens_sine_history,
+<span class="lineNum">      61 </span>            :     const gsl::not_null&lt;DenseVector&lt;double&gt;*&gt; givens_cosine_history,
+<span class="lineNum">      62 </span>            :     const size_t iteration) noexcept {
+<span class="lineNum">      63 </span>            :   residual_history-&gt;resize(iteration + 2);
+<span class="lineNum">      64 </span>            :   givens_sine_history-&gt;resize(iteration + 1);
+<span class="lineNum">      65 </span>            :   givens_cosine_history-&gt;resize(iteration + 1);
+<span class="lineNum">      66 </span>            :   // Givens-rotate the `orthogonalization_history` to eliminate its lower-right
+<span class="lineNum">      67 </span>            :   // entry, making it an upper triangular matrix.
+<span class="lineNum">      68 </span>            :   // Thus, we iteratively update the QR decomposition of the Hessenberg matrix
+<span class="lineNum">      69 </span>            :   // that is built through orthogonalization of the Krylov basis vectors.
+<span class="lineNum">      70 </span>            :   apply_and_update_givens_rotation(
+<span class="lineNum">      71 </span>            :       blaze::column(*orthogonalization_history, iteration), givens_sine_history,
+<span class="lineNum">      72 </span>            :       givens_cosine_history, iteration);
+<span class="lineNum">      73 </span>            :   // Also Givens-rotate the `residual_history`. The vector excluding its last
+<span class="lineNum">      74 </span>            :   // entry represents the accumulated Givens-rotation applied to the vector
+<span class="lineNum">      75 </span>            :   // `(initial_residual, 0, 0, ...)` and the last entry represents the
+<span class="lineNum">      76 </span>            :   // remaining residual.
+<span class="lineNum">      77 </span>            :   (*residual_history)[iteration + 1] =
+<span class="lineNum">      78 </span>            :       -(*givens_sine_history)[iteration] * (*residual_history)[iteration];
+<span class="lineNum">      79 </span>            :   (*residual_history)[iteration] =
+<span class="lineNum">      80 </span>            :       (*givens_cosine_history)[iteration] * (*residual_history)[iteration];
+<span class="lineNum">      81 </span>            : }
+<span class="lineNum">      82 </span>            : 
+<span class="lineNum">      83 </span>            : DenseVector&lt;double&gt; minimal_residual_vector(
+<span class="lineNum">      84 </span>            :     const DenseMatrix&lt;double&gt;&amp; orthogonalization_history,
+<span class="lineNum">      85 </span>            :     const DenseVector&lt;double&gt;&amp; residual_history) noexcept {
+<span class="lineNum">      86 </span>            :   const size_t length = orthogonalization_history.columns();
+<span class="lineNum">      87 </span>            :   DenseVector&lt;double&gt; minres = blaze::subvector(residual_history, 0, length);
+<span class="lineNum">      88 </span>            :   blaze::trsv(blaze::submatrix(orthogonalization_history, 0, 0, length, length),
+<span class="lineNum">      89 </span>            :               minres, 'U', 'N', 'N');
+<span class="lineNum">      90 </span>            :   return minres;
+<span class="lineNum">      91 </span>            : }
+<span class="lineNum">      92 </span>            : 
+<span class="lineNum">      93 </span>            : }  // namespace gmres_detail
+<span class="lineNum">      94 </span>            : }  // namespace LinearSolver
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

@@ -1,0 +1,204 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - PythonBindings/CharmCompatibility.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">PythonBindings</a> - CharmCompatibility.cpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #include &lt;cstdarg&gt;
+<span class="lineNum">       5 </span>            : #include &lt;cstdio&gt;
+<span class="lineNum">       6 </span>            : #include &lt;cstdlib&gt;
+<span class="lineNum">       7 </span>            : #include &lt;pup.h&gt;
+<span class="lineNum">       8 </span>            : #include &lt;stdexcept&gt;
+<span class="lineNum">       9 </span>            : #include &lt;string&gt;
+<span class="lineNum">      10 </span>            : #include &lt;vector&gt;
+<span class="lineNum">      11 </span>            : 
+<span class="lineNum">      12 </span>            : // In order to not get runtime errors that CmiPrintf, etc. are not defined we
+<span class="lineNum">      13 </span>            : // provide resonable replacements for them. Getting the correct Charm++ library
+<span class="lineNum">      14 </span>            : // linked is non-trivial since Charm++ generally wants you to use their `charmc`
+<span class="lineNum">      15 </span>            : // script, but we want to avoid that.
+<span class="lineNum">      16 </span>            : 
+<span class="lineNum">      17 </span>            : /// \cond
+<span class="lineNum">      18 </span>            : 
+<span class="lineNum">      19 </span>            : __attribute__ ((format (printf, 1, 2)))
+<span class="lineNum">      20 </span>            : // NOLINTNEXTLINE(cert-dcl50-cpp)
+<span class="lineNum">      21 </span>            : void CmiPrintf(const char* fmt, ...) {
+<span class="lineNum">      22 </span>            :   va_list args;
+<span class="lineNum">      23 </span>            :   // clang-tidy: cppcoreguidelines-pro-type-vararg,
+<span class="lineNum">      24 </span>            :   // cppcoreguidelines-pro-bounds-array-to-pointer-decay
+<span class="lineNum">      25 </span>            :   va_start(args, fmt);  // NOLINT
+<span class="lineNum">      26 </span>            :   // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-array-to-pointer-decay,hicpp-no-array-decay)
+<span class="lineNum">      27 </span>            :   vprintf(fmt, args);
+<span class="lineNum">      28 </span>            :   // clang-tidy: cppcoreguidelines-pro-type-vararg,
+<span class="lineNum">      29 </span>            :   // cppcoreguidelines-pro-bounds-array-to-pointer-decay
+<span class="lineNum">      30 </span>            :   va_end(args);  // NOLINT
+<span class="lineNum">      31 </span>            : }
+<span class="lineNum">      32 </span>            : 
+<span class="lineNum">      33 </span>            : __attribute__ ((format (printf, 1, 2)))
+<span class="lineNum">      34 </span>            : // NOLINTNEXTLINE(cert-dcl50-cpp)
+<span class="lineNum">      35 </span>            : void CmiError(const char* fmt, ...) {
+<span class="lineNum">      36 </span>            :   va_list args;
+<span class="lineNum">      37 </span>            :   // clang-tidy: cppcoreguidelines-pro-type-vararg,
+<span class="lineNum">      38 </span>            :   // cppcoreguidelines-pro-bounds-array-to-pointer-decay
+<span class="lineNum">      39 </span>            :   va_start(args, fmt);  // NOLINT
+<span class="lineNum">      40 </span>            :   // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-array-to-pointer-decay,hicpp-no-array-decay)
+<span class="lineNum">      41 </span>            :   vfprintf(stderr, fmt, args);
+<span class="lineNum">      42 </span>            :   // clang-tidy: cppcoreguidelines-pro-type-vararg,
+<span class="lineNum">      43 </span>            :   // cppcoreguidelines-pro-bounds-array-to-pointer-decay
+<span class="lineNum">      44 </span>            :   va_end(args);  // NOLINT
+<span class="lineNum">      45 </span>            : }
+<span class="lineNum">      46 </span>            : 
+<span class="lineNum">      47 </span>            : int CmiMyPe() { return 0; }
+<span class="lineNum">      48 </span>            : int _Cmi_mynode = 0;
+<span class="lineNum">      49 </span>            : std::string info_from_build() { return &quot;build_info&quot;; }
+<span class="lineNum">      50 </span>            : #pragma GCC diagnostic push
+<span class="lineNum">      51 </span>            : #pragma GCC diagnostic ignored &quot;-Wmissing-noreturn&quot;
+<span class="lineNum">      52 </span>            : void CmiAbort(const char* msg) {
+<span class="lineNum">      53 </span>            : #pragma GCC diagnostic pop
+<span class="lineNum">      54 </span>            :   // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg,hicpp-vararg)
+<span class="lineNum">      55 </span>            :   fprintf(stderr, &quot;%s&quot;, msg);
+<span class="lineNum">      56 </span>            :   abort();
+<span class="lineNum">      57 </span>            : }
+<span class="lineNum">      58 </span>            : namespace formaline {
+<span class="lineNum">      59 </span>            : std::vector&lt;char&gt; get_archive() noexcept {
+<span class="lineNum">      60 </span>            :   return {'N', 'o', 't', ' ', 's', 'u', 'p', 'p', 'o', 'r', 't', 'e', 'd'};
+<span class="lineNum">      61 </span>            : }
+<span class="lineNum">      62 </span>            : 
+<span class="lineNum">      63 </span>            : std::string get_environment_variables() noexcept {
+<span class="lineNum">      64 </span>            :   return &quot;Not supported on macOS&quot;;
+<span class="lineNum">      65 </span>            : }
+<span class="lineNum">      66 </span>            : 
+<span class="lineNum">      67 </span>            : std::string get_library_versions() noexcept {
+<span class="lineNum">      68 </span>            :   return &quot;Not supported in python&quot;;
+<span class="lineNum">      69 </span>            : }
+<span class="lineNum">      70 </span>            : 
+<span class="lineNum">      71 </span>            : std::string get_paths() noexcept { return &quot;Not supported in python.&quot;; }
+<span class="lineNum">      72 </span>            : }  // namespace formaline
+<span class="lineNum">      73 </span>            : 
+<span class="lineNum">      74 </span>            : /*
+<span class="lineNum">      75 </span>            :  * PUP::able support
+<span class="lineNum">      76 </span>            :  *
+<span class="lineNum">      77 </span>            :  * Here we provide dummy-implementations of functions in Charm++'s `pup.h` so
+<span class="lineNum">      78 </span>            :  * that we can write Python wrappers for classes that derive from `PUP::able`.
+<span class="lineNum">      79 </span>            :  * These functions are not intended to be called, so we throw exceptions that
+<span class="lineNum">      80 </span>            :  * propagate to Python and provide an error message when one of the functions
+<span class="lineNum">      81 </span>            :  * gets called accidentally.
+<span class="lineNum">      82 </span>            :  */
+<span class="lineNum">      83 </span>            : 
+<span class="lineNum">      84 </span>            : // Destructor will be called in Python, but doesn't need to do anything
+<span class="lineNum">      85 </span>            : PUP::able::~able() = default;
+<span class="lineNum">      86 </span>            : 
+<span class="lineNum">      87 </span>            : // gcc and clang suggest to mark these functions `noreturn`, but they are
+<span class="lineNum">      88 </span>            : // declared in pup.h
+<span class="lineNum">      89 </span>            : #pragma GCC diagnostic push
+<span class="lineNum">      90 </span>            : #if defined(__GNUC__) &amp;&amp; !defined(__clang__)
+<span class="lineNum">      91 </span>            : #pragma GCC diagnostic ignored &quot;-Wsuggest-attribute=noreturn&quot;
+<span class="lineNum">      92 </span>            : #endif  // defined(__GNUC__) &amp;&amp; !defined(__clang__)
+<span class="lineNum">      93 </span>            : #ifdef __clang__
+<span class="lineNum">      94 </span>            : #pragma GCC diagnostic ignored &quot;-Wmissing-noreturn&quot;
+<span class="lineNum">      95 </span>            : #endif  // __clang__
+<span class="lineNum">      96 </span>            : 
+<span class="lineNum">      97 </span>            : void PUP::able::pup(PUP::er&amp; /*p*/) {
+<span class="lineNum">      98 </span>            :   throw std::runtime_error{
+<span class="lineNum">      99 </span>            :       &quot;The function 'PUP::able::pup' is provided for compatibility with &quot;
+<span class="lineNum">     100 </span>            :       &quot;Charm++ and is not intended to be called.&quot;};
+<span class="lineNum">     101 </span>            : }
+<span class="lineNum">     102 </span>            : 
+<span class="lineNum">     103 </span>            : PUP::able::PUP_ID PUP::able::register_constructor(const char* /*className*/,
+<span class="lineNum">     104 </span>            :                                                   constructor_function /*fn*/) {
+<span class="lineNum">     105 </span>            :   throw std::runtime_error{
+<span class="lineNum">     106 </span>            :       &quot;The function 'PUP::able::register_constructor' is provided for &quot;
+<span class="lineNum">     107 </span>            :       &quot;compatibility with Charm++ and is not intended to be called.&quot;};
+<span class="lineNum">     108 </span>            : }
+<span class="lineNum">     109 </span>            : 
+<span class="lineNum">     110 </span>            : PUP::able* PUP::able::clone() const {
+<span class="lineNum">     111 </span>            :   throw std::runtime_error{
+<span class="lineNum">     112 </span>            :       &quot;The function 'PUP::able::clone' is provided for compatibility with &quot;
+<span class="lineNum">     113 </span>            :       &quot;Charm++ and is not intended to be called.&quot;};
+<span class="lineNum">     114 </span>            : }
+<span class="lineNum">     115 </span>            : 
+<span class="lineNum">     116 </span>            : void pup_bytes(pup_er /*p*/, void* /*ptr*/, size_t /*nBytes*/) {
+<span class="lineNum">     117 </span>            :   throw std::runtime_error{
+<span class="lineNum">     118 </span>            :       &quot;The function 'pup_bytes' is provided for compatibility with &quot;
+<span class="lineNum">     119 </span>            :       &quot;Charm++ and is not intended to be called.&quot;};
+<span class="lineNum">     120 </span>            : }
+<span class="lineNum">     121 </span>            : 
+<span class="lineNum">     122 </span>            : #pragma GCC diagnostic pop
+<span class="lineNum">     123 </span>            : 
+<span class="lineNum">     124 </span>            : /// \endcond
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

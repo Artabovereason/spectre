@@ -1,0 +1,157 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - Time/TimeSteppers/RungeKutta4.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">Time/TimeSteppers</a> - RungeKutta4.cpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #include &quot;Time/TimeSteppers/RungeKutta4.hpp&quot;
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;cmath&gt;
+<span class="lineNum">       7 </span>            : #include &lt;limits&gt;
+<span class="lineNum">       8 </span>            : 
+<span class="lineNum">       9 </span>            : #include &quot;ErrorHandling/Assert.hpp&quot;
+<span class="lineNum">      10 </span>            : #include &quot;Time/TimeStepId.hpp&quot;
+<span class="lineNum">      11 </span>            : 
+<span class="lineNum">      12 </span>            : namespace TimeSteppers {
+<span class="lineNum">      13 </span>            : 
+<span class="lineNum">      14 </span>            : uint64_t RungeKutta4::number_of_substeps() const noexcept { return 4; }
+<span class="lineNum">      15 </span>            : 
+<span class="lineNum">      16 </span>            : size_t RungeKutta4::number_of_past_steps() const noexcept { return 0; }
+<span class="lineNum">      17 </span>            : 
+<span class="lineNum">      18 </span>            : // The growth function for RK4 is (e.g. page 60 of
+<span class="lineNum">      19 </span>            : // http://www.staff.science.uu.nl/~frank011/Classes/numwisk/ch10.pdf
+<span class="lineNum">      20 </span>            : //
+<span class="lineNum">      21 </span>            : //   g = 1 + mu + mu^2 / 2 + mu^3 / 6 + mu^4 / 24,
+<span class="lineNum">      22 </span>            : //
+<span class="lineNum">      23 </span>            : // where mu = lambda * dt. The equation dy/dt = -lambda * y evolves
+<span class="lineNum">      24 </span>            : // stably if |g| &lt; 1. For lambda=-2, chosen so the stable_step() for
+<span class="lineNum">      25 </span>            : // RK1 (i.e. forward Euler) would be 1, RK4 has a stable step
+<span class="lineNum">      26 </span>            : // determined by inserting mu-&gt;-2 dt into the above equation. Finding the
+<span class="lineNum">      27 </span>            : // solutions with a numerical root find yields a stable step of about 1.39265.
+<span class="lineNum">      28 </span>            : double RungeKutta4::stable_step() const noexcept { return 1.3926467817026411; }
+<span class="lineNum">      29 </span>            : 
+<span class="lineNum">      30 </span>            : TimeStepId RungeKutta4::next_time_id(const TimeStepId&amp; current_id,
+<span class="lineNum">      31 </span>            :                                      const TimeDelta&amp; time_step) const
+<span class="lineNum">      32 </span>            :     noexcept {
+<span class="lineNum">      33 </span>            :   switch (current_id.substep()) {
+<span class="lineNum">      34 </span>            :     case 0:
+<span class="lineNum">      35 </span>            :       ASSERT(current_id.substep_time() == current_id.step_time(),
+<span class="lineNum">      36 </span>            :              &quot;In RK4 substep 0, the substep time (&quot;
+<span class="lineNum">      37 </span>            :                  &lt;&lt; current_id.substep_time() &lt;&lt; &quot;) should equal t0 (&quot;
+<span class="lineNum">      38 </span>            :                  &lt;&lt; current_id.step_time() &lt;&lt; &quot;)&quot;);
+<span class="lineNum">      39 </span>            :       return {current_id.time_runs_forward(), current_id.slab_number(),
+<span class="lineNum">      40 </span>            :               current_id.step_time(), 1,
+<span class="lineNum">      41 </span>            :               current_id.step_time() + time_step / 2.0};
+<span class="lineNum">      42 </span>            :     case 1:
+<span class="lineNum">      43 </span>            :       ASSERT(
+<span class="lineNum">      44 </span>            :           current_id.substep_time() == current_id.step_time() + time_step / 2.0,
+<span class="lineNum">      45 </span>            :           &quot;In RK4 substep 1, the substep time (&quot;
+<span class="lineNum">      46 </span>            :               &lt;&lt; current_id.substep_time() &lt;&lt; &quot;) should equal t0+0.5*dt (&quot;
+<span class="lineNum">      47 </span>            :               &lt;&lt; current_id.step_time() + time_step / 2.0 &lt;&lt; &quot;)&quot;);
+<span class="lineNum">      48 </span>            :       return {current_id.time_runs_forward(), current_id.slab_number(),
+<span class="lineNum">      49 </span>            :               current_id.step_time(), 2,
+<span class="lineNum">      50 </span>            :               current_id.step_time() + time_step / 2.0};
+<span class="lineNum">      51 </span>            :     case 2:
+<span class="lineNum">      52 </span>            :       ASSERT(
+<span class="lineNum">      53 </span>            :           current_id.substep_time() == current_id.step_time() + time_step / 2.0,
+<span class="lineNum">      54 </span>            :           &quot;In RK4 substep 2, the substep time (&quot;
+<span class="lineNum">      55 </span>            :               &lt;&lt; current_id.substep_time() &lt;&lt; &quot;) should equal t0+0.5*dt (&quot;
+<span class="lineNum">      56 </span>            :               &lt;&lt; current_id.step_time() + time_step / 2.0 &lt;&lt; &quot;)&quot;);
+<span class="lineNum">      57 </span>            :       return {current_id.time_runs_forward(), current_id.slab_number(),
+<span class="lineNum">      58 </span>            :               current_id.step_time(), 3, current_id.step_time() + time_step};
+<span class="lineNum">      59 </span>            :     case 3:
+<span class="lineNum">      60 </span>            :       ASSERT(current_id.substep_time() == current_id.step_time() + time_step,
+<span class="lineNum">      61 </span>            :              &quot;In RK4 substep 3, the substep time (&quot;
+<span class="lineNum">      62 </span>            :                  &lt;&lt; current_id.substep_time() &lt;&lt; &quot;) should equal t0+dt (&quot;
+<span class="lineNum">      63 </span>            :                  &lt;&lt; current_id.step_time() + time_step &lt;&lt; &quot;)&quot;);
+<span class="lineNum">      64 </span>            :       return {current_id.time_runs_forward(), current_id.slab_number(),
+<span class="lineNum">      65 </span>            :               current_id.step_time() + time_step};
+<span class="lineNum">      66 </span>            :     default:
+<span class="lineNum">      67 </span>            :       ERROR(&quot;In RK4 substep should be one of 0,1,2,3, not &quot;
+<span class="lineNum">      68 </span>            :             &lt;&lt; current_id.substep());
+<span class="lineNum">      69 </span>            :   }
+<span class="lineNum">      70 </span>            : }
+<span class="lineNum">      71 </span>            : 
+<span class="lineNum">      72 </span>            : }  // namespace TimeSteppers
+<span class="lineNum">      73 </span>            : 
+<span class="lineNum">      74 </span>            : /// \cond
+<span class="lineNum">      75 </span>            : PUP::able::PUP_ID TimeSteppers::RungeKutta4::my_PUP_ID =  // NOLINT
+<span class="lineNum">      76 </span>            :     0;
+<span class="lineNum">      77 </span>            : /// \endcond
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

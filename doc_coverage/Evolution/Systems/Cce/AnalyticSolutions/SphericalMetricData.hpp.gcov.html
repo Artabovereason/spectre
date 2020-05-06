@@ -1,0 +1,223 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - Evolution/Systems/Cce/AnalyticSolutions/SphericalMetricData.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../../index.html">top level</a> - <a href="index.html">Evolution/Systems/Cce/AnalyticSolutions</a> - SphericalMetricData.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">9</td>
+            <td class="headerCovTableEntry">10</td>
+            <td class="headerCovTableEntryHi">90.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #pragma once
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;cstddef&gt;
+<span class="lineNum">       7 </span>            : 
+<span class="lineNum">       8 </span>            : #include &quot;DataStructures/Tensor/Tensor.hpp&quot;
+<span class="lineNum">       9 </span>            : #include &quot;Evolution/Systems/Cce/AnalyticSolutions/WorldtubeData.hpp&quot;
+<span class="lineNum">      10 </span>            : #include &quot;Evolution/Systems/Cce/BoundaryDataTags.hpp&quot;
+<span class="lineNum">      11 </span>            : #include &quot;Evolution/Systems/Cce/Tags.hpp&quot;
+<span class="lineNum">      12 </span>            : #include &quot;Evolution/Systems/GeneralizedHarmonic/Tags.hpp&quot;
+<span class="lineNum">      13 </span>            : #include &quot;PointwiseFunctions/AnalyticSolutions/AnalyticSolution.hpp&quot;
+<span class="lineNum">      14 </span>            : #include &quot;PointwiseFunctions/GeneralRelativity/Tags.hpp&quot;
+<span class="lineNum">      15 </span>            : #include &quot;Utilities/Gsl.hpp&quot;
+<span class="lineNum">      16 </span>            : #include &quot;Utilities/TMPL.hpp&quot;
+<span class="lineNum">      17 </span>            : 
+<span class="lineNum">      18 </span>            : /// \cond
+<span class="lineNum">      19 </span>            : class DataVector;
+<span class="lineNum">      20 </span>            : /// \endcond
+<span class="lineNum">      21 </span>            : 
+<span class="lineNum">      22 </span>            : namespace Cce {
+<span class="lineNum">      23 </span>            : namespace Solutions {
+<span class="lineNum">      24 </span>            : 
+<span class="lineNum">      25 </span>            : /*!
+<span class="lineNum">      26 </span>            :  * \brief Abstract base class for analytic worldtube data most easily derived in
+<span class="lineNum">      27 </span>            :  * spherical coordinate form.
+<span class="lineNum">      28 </span>            :  *
+<span class="lineNum">      29 </span>            :  * \details This class provides the functions required by the `WorldtubeData`
+<span class="lineNum">      30 </span>            :  * interface that convert from a spherical coordinate spacetime metric to
+<span class="lineNum">      31 </span>            :  * Cartesian coordinates. Derived classes of `SphericalMetricData` need not
+<span class="lineNum">      32 </span>            :  * implement the `variables_impl`s for the Cartesian quantities. Instead, the
+<span class="lineNum">      33 </span>            :  * derived classes must override the protected functions:
+<span class="lineNum">      34 </span>            :  * - `SphericalMetricData::spherical_metric()`
+<span class="lineNum">      35 </span>            :  * - `SphericalMetricData::dr_spherical_metric()`
+<span class="lineNum">      36 </span>            :  * - `SphericalMetricData::dt_spherical_metric()`
+<span class="lineNum">      37 </span>            :  * Derived classes are still responsible for overriding
+<span class="lineNum">      38 </span>            :  * `WorldtubeData::get_clone()`, `WorldtubeData::variables_impl()` for tag
+<span class="lineNum">      39 </span>            :  * `Cce::Tags::News`, and `WorldtubeData::prepare_solution()`.
+<span class="lineNum">      40 </span>            :  */
+<span class="lineNum">      41 </span><span class="lineCov">          1 : struct SphericalMetricData : public WorldtubeData {</span>
+<span class="lineNum">      42 </span>            :   /*!
+<span class="lineNum">      43 </span>            :    * Computes and returns by pointer the Jacobian
+<span class="lineNum">      44 </span>            :    * \f$\partial x_{\mathrm{spherical}}^j / \partial
+<span class="lineNum">      45 </span>            :    * x_{\mathrm{Cartesian}}^i\f$
+<span class="lineNum">      46 </span>            :    */
+<span class="lineNum">      47 </span><span class="lineCov">          1 :   void inverse_jacobian(gsl::not_null&lt;CartesianiSphericalJ*&gt; inverse_jacobian,</span>
+<span class="lineNum">      48 </span>            :                         size_t l_max) const noexcept;
+<span class="lineNum">      49 </span>            : 
+<span class="lineNum">      50 </span>            :   /*!
+<span class="lineNum">      51 </span>            :    * Computes and returns by pointer the first radial derivative of the
+<span class="lineNum">      52 </span>            :    * Jacobian: \f$\partial_r (\partial x_{\mathrm{spherical}}^j / \partial
+<span class="lineNum">      53 </span>            :    * x_{\mathrm{Cartesian}}^i)\f$
+<span class="lineNum">      54 </span>            :    */
+<span class="lineNum">      55 </span><span class="lineCov">          1 :   void dr_inverse_jacobian(</span>
+<span class="lineNum">      56 </span>            :       gsl::not_null&lt;CartesianiSphericalJ*&gt; dr_inverse_jacobian,
+<span class="lineNum">      57 </span>            :       size_t l_max) const noexcept;
+<span class="lineNum">      58 </span>            : 
+<span class="lineNum">      59 </span>            :  protected:
+<span class="lineNum">      60 </span>            :   using WorldtubeData::variables_impl;
+<span class="lineNum">      61 </span>            : 
+<span class="lineNum">      62 </span>            :   /*!
+<span class="lineNum">      63 </span>            :    * \brief Computes the Cartesian spacetime metric from the spherical solution
+<span class="lineNum">      64 </span>            :    * provided by the derived classes.
+<span class="lineNum">      65 </span>            :    *
+<span class="lineNum">      66 </span>            :    * \details The derived classes provide spherical metric data via the virtual
+<span class="lineNum">      67 </span>            :    * function `SphericalMetricData::spherical_metric()` at a resolution
+<span class="lineNum">      68 </span>            :    * determined by member variable `l_max_`. This function performs the
+<span class="lineNum">      69 </span>            :    * coordinate transformation using the Jacobian computed from
+<span class="lineNum">      70 </span>            :    * `SphericalMetricData::inverse_jacobian()`.
+<span class="lineNum">      71 </span>            :    */
+<span class="lineNum">      72 </span><span class="lineCov">          1 :   void variables_impl(gsl::not_null&lt;tnsr::aa&lt;DataVector, 3&gt;*&gt; spacetime_metric,</span>
+<span class="lineNum">      73 </span>            :                       size_t l_max, double time,
+<span class="lineNum">      74 </span>            :                       tmpl::type_&lt;gr::Tags::SpacetimeMetric&lt;
+<span class="lineNum">      75 </span>            :                           3, ::Frame::Inertial, DataVector&gt;&gt; /*meta*/) const
+<span class="lineNum">      76 </span>            :       noexcept override;
+<span class="lineNum">      77 </span>            : 
+<span class="lineNum">      78 </span>            :   /*!
+<span class="lineNum">      79 </span>            :    * \brief Computes the time derivative of the Cartesian spacetime metric from
+<span class="lineNum">      80 </span>            :    * the spherical solution provided by the derived classes.
+<span class="lineNum">      81 </span>            :    *
+<span class="lineNum">      82 </span>            :    * \details The derived classes provide the time derivative of the spherical
+<span class="lineNum">      83 </span>            :    * metric data via the virtual function
+<span class="lineNum">      84 </span>            :    * `SphericalMetricData::dt_spherical_metric()` at a resolution determined by
+<span class="lineNum">      85 </span>            :    * member variable `l_max_`. This function performs the coordinate
+<span class="lineNum">      86 </span>            :    * transformation using the Jacobian computed from
+<span class="lineNum">      87 </span>            :    * `SphericalMetricData::inverse_jacobian()`.
+<span class="lineNum">      88 </span>            :    */
+<span class="lineNum">      89 </span><span class="lineCov">          1 :   void variables_impl(</span>
+<span class="lineNum">      90 </span>            :       gsl::not_null&lt;tnsr::aa&lt;DataVector, 3&gt;*&gt; dt_spacetime_metric, size_t l_max,
+<span class="lineNum">      91 </span>            :       double time,
+<span class="lineNum">      92 </span>            :       tmpl::type_&lt;::Tags::dt&lt;gr::Tags::SpacetimeMetric&lt;
+<span class="lineNum">      93 </span>            :           3, ::Frame::Inertial, DataVector&gt;&gt;&gt; /*meta*/) const noexcept override;
+<span class="lineNum">      94 </span>            : 
+<span class="lineNum">      95 </span>            :   /*!
+<span class="lineNum">      96 </span>            :    * \brief Computes the spatial derivatives of the Cartesian spacetime metric
+<span class="lineNum">      97 </span>            :    * from the spherical solution provided by the derived classes.
+<span class="lineNum">      98 </span>            :    *
+<span class="lineNum">      99 </span>            :    * \details The derived classes provide the radial derivative of the spherical
+<span class="lineNum">     100 </span>            :    * metric data via the virtual function
+<span class="lineNum">     101 </span>            :    * `SphericalMetricData::dr_spherical_metric()` at a resolution determined by
+<span class="lineNum">     102 </span>            :    * member variable `l_max_`. This function performs the additional angular
+<span class="lineNum">     103 </span>            :    * derivatives necessary to assemble the full spatial derivative and performs
+<span class="lineNum">     104 </span>            :    * the coordinate transformation to Cartesian coordinates via the Jacobians
+<span class="lineNum">     105 </span>            :    * computed in `SphericalMetricData::inverse_jacobian()` and
+<span class="lineNum">     106 </span>            :    * `SphericalMetricData::inverse_jacobian()`.
+<span class="lineNum">     107 </span>            :    */
+<span class="lineNum">     108 </span><span class="lineCov">          1 :   void variables_impl(</span>
+<span class="lineNum">     109 </span>            :       gsl::not_null&lt;tnsr::iaa&lt;DataVector, 3&gt;*&gt; d_spacetime_metric, size_t l_max,
+<span class="lineNum">     110 </span>            :       double time,
+<span class="lineNum">     111 </span>            :       tmpl::type_&lt;
+<span class="lineNum">     112 </span>            :           GeneralizedHarmonic::Tags::Phi&lt;3, ::Frame::Inertial&gt;&gt; /*meta*/) const
+<span class="lineNum">     113 </span>            :       noexcept override;
+<span class="lineNum">     114 </span>            : 
+<span class="lineNum">     115 </span>            :   /// Must be overriden in the derived class; should compute the spacetime
+<span class="lineNum">     116 </span>            :   /// metric of the analytic solution in spherical coordinates.
+<span class="lineNum">     117 </span><span class="lineCov">          1 :   virtual void spherical_metric(</span>
+<span class="lineNum">     118 </span>            :       gsl::not_null&lt;
+<span class="lineNum">     119 </span>            :           tnsr::aa&lt;DataVector, 3, ::Frame::Spherical&lt;::Frame::Inertial&gt;&gt;*&gt;
+<span class="lineNum">     120 </span>            :           spherical_metric,
+<span class="lineNum">     121 </span>            :       double time) const noexcept = 0;
+<span class="lineNum">     122 </span>            : 
+<span class="lineNum">     123 </span>            :   /// Must be overriden in the derived class; should compute the first radial
+<span class="lineNum">     124 </span>            :   /// derivative of the spacetime metric of the analytic solution in spherical
+<span class="lineNum">     125 </span>            :   /// coordinates.
+<span class="lineNum">     126 </span><span class="lineCov">          1 :   virtual void dr_spherical_metric(</span>
+<span class="lineNum">     127 </span>            :       gsl::not_null&lt;
+<span class="lineNum">     128 </span>            :           tnsr::aa&lt;DataVector, 3, ::Frame::Spherical&lt;::Frame::Inertial&gt;&gt;*&gt;
+<span class="lineNum">     129 </span>            :           dr_spherical_metric,
+<span class="lineNum">     130 </span>            :       double time) const noexcept = 0;
+<span class="lineNum">     131 </span>            : 
+<span class="lineNum">     132 </span>            :   /// Must be overriden in the derived class; should compute the first time
+<span class="lineNum">     133 </span>            :   /// derivative of the spacetime metric of the analytic solution in spherical
+<span class="lineNum">     134 </span>            :   /// coordinates.
+<span class="lineNum">     135 </span><span class="lineCov">          1 :   virtual void dt_spherical_metric(</span>
+<span class="lineNum">     136 </span>            :       gsl::not_null&lt;
+<span class="lineNum">     137 </span>            :           tnsr::aa&lt;DataVector, 3, ::Frame::Spherical&lt;::Frame::Inertial&gt;&gt;*&gt;
+<span class="lineNum">     138 </span>            :           dt_spherical_metric,
+<span class="lineNum">     139 </span>            :       double time) const noexcept = 0;
+<span class="lineNum">     140 </span>            : };
+<span class="lineNum">     141 </span>            : 
+<span class="lineNum">     142 </span>            : }  // namespace Solutions
+<span class="lineNum">     143 </span>            : }  // namespace Cce
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

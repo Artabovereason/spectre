@@ -1,0 +1,209 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - Domain/OrientationMapHelpers.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">Domain</a> - OrientationMapHelpers.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">3</td>
+            <td class="headerCovTableEntry">4</td>
+            <td class="headerCovTableEntryMed">75.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #pragma once
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;cstddef&gt;
+<span class="lineNum">       7 </span>            : #include &lt;vector&gt;
+<span class="lineNum">       8 </span>            : 
+<span class="lineNum">       9 </span>            : #include &quot;ErrorHandling/Assert.hpp&quot;
+<span class="lineNum">      10 </span>            : #include &quot;Utilities/Gsl.hpp&quot;
+<span class="lineNum">      11 </span>            : #include &quot;Utilities/TMPL.hpp&quot;
+<span class="lineNum">      12 </span>            : 
+<span class="lineNum">      13 </span>            : /// \cond
+<span class="lineNum">      14 </span>            : template &lt;size_t VolumeDim&gt;
+<span class="lineNum">      15 </span>            : class OrientationMap;
+<span class="lineNum">      16 </span>            : template &lt;size_t&gt;
+<span class="lineNum">      17 </span>            : class Index;
+<span class="lineNum">      18 </span>            : template &lt;typename TagsList&gt;
+<span class="lineNum">      19 </span>            : class Variables;
+<span class="lineNum">      20 </span>            : /// \endcond
+<span class="lineNum">      21 </span>            : 
+<span class="lineNum">      22 </span>            : namespace OrientationMapHelpers_detail {
+<span class="lineNum">      23 </span>            : template &lt;typename T&gt;
+<span class="lineNum">      24 </span>            : void orient_each_component(gsl::not_null&lt;gsl::span&lt;T&gt;*&gt; oriented_variables,
+<span class="lineNum">      25 </span>            :                            const gsl::span&lt;const T&gt;&amp; variables,
+<span class="lineNum">      26 </span>            :                            size_t num_pts,
+<span class="lineNum">      27 </span>            :                            const std::vector&lt;size_t&gt;&amp; oriented_offset) noexcept;
+<span class="lineNum">      28 </span>            : 
+<span class="lineNum">      29 </span>            : template &lt;size_t VolumeDim&gt;
+<span class="lineNum">      30 </span>            : std::vector&lt;size_t&gt; oriented_offset(
+<span class="lineNum">      31 </span>            :     const Index&lt;VolumeDim&gt;&amp; extents,
+<span class="lineNum">      32 </span>            :     const OrientationMap&lt;VolumeDim&gt;&amp; orientation_of_neighbor) noexcept;
+<span class="lineNum">      33 </span>            : 
+<span class="lineNum">      34 </span>            : inline std::vector&lt;size_t&gt; oriented_offset_on_slice(
+<span class="lineNum">      35 </span>            :     const Index&lt;0&gt;&amp; /*slice_extents*/, const size_t /*sliced_dim*/,
+<span class="lineNum">      36 </span>            :     const OrientationMap&lt;1&gt;&amp; /*orientation_of_neighbor*/) noexcept {
+<span class="lineNum">      37 </span>            :   // There is only one point on a slice of a 1D mesh
+<span class="lineNum">      38 </span>            :   return {0};
+<span class="lineNum">      39 </span>            : }
+<span class="lineNum">      40 </span>            : 
+<span class="lineNum">      41 </span>            : std::vector&lt;size_t&gt; oriented_offset_on_slice(
+<span class="lineNum">      42 </span>            :     const Index&lt;1&gt;&amp; slice_extents, size_t sliced_dim,
+<span class="lineNum">      43 </span>            :     const OrientationMap&lt;2&gt;&amp; orientation_of_neighbor) noexcept;
+<span class="lineNum">      44 </span>            : 
+<span class="lineNum">      45 </span>            : std::vector&lt;size_t&gt; oriented_offset_on_slice(
+<span class="lineNum">      46 </span>            :     const Index&lt;2&gt;&amp; slice_extents, size_t sliced_dim,
+<span class="lineNum">      47 </span>            :     const OrientationMap&lt;3&gt;&amp; orientation_of_neighbor) noexcept;
+<span class="lineNum">      48 </span>            : 
+<span class="lineNum">      49 </span>            : }  // namespace OrientationMapHelpers_detail
+<span class="lineNum">      50 </span>            : 
+<span class="lineNum">      51 </span>            : // @{
+<span class="lineNum">      52 </span>            : /// \ingroup ComputationalDomainGroup
+<span class="lineNum">      53 </span>            : /// Orient variables to the data-storage order of a neighbor element with
+<span class="lineNum">      54 </span>            : /// the given orientation.
+<span class="lineNum">      55 </span>            : template &lt;size_t VolumeDim, typename TagsList&gt;
+<span class="lineNum">      56 </span><span class="lineCov">          1 : Variables&lt;TagsList&gt; orient_variables(</span>
+<span class="lineNum">      57 </span>            :     const Variables&lt;TagsList&gt;&amp; variables, const Index&lt;VolumeDim&gt;&amp; extents,
+<span class="lineNum">      58 </span>            :     const OrientationMap&lt;VolumeDim&gt;&amp; orientation_of_neighbor) noexcept {
+<span class="lineNum">      59 </span>            :   // Skip work (aside from a copy) if neighbor is aligned
+<span class="lineNum">      60 </span>            :   if (orientation_of_neighbor.is_aligned()) {
+<span class="lineNum">      61 </span>            :     return variables;
+<span class="lineNum">      62 </span>            :   }
+<span class="lineNum">      63 </span>            : 
+<span class="lineNum">      64 </span>            :   const size_t number_of_grid_points = extents.product();
+<span class="lineNum">      65 </span>            :   ASSERT(variables.number_of_grid_points() == number_of_grid_points,
+<span class="lineNum">      66 </span>            :          &quot;Inconsistent `variables` and `extents`:\n&quot;
+<span class="lineNum">      67 </span>            :          &quot;  variables.number_of_grid_points() = &quot;
+<span class="lineNum">      68 </span>            :              &lt;&lt; variables.number_of_grid_points()
+<span class="lineNum">      69 </span>            :              &lt;&lt; &quot;\n&quot;
+<span class="lineNum">      70 </span>            :                 &quot;  extents.product() = &quot;
+<span class="lineNum">      71 </span>            :              &lt;&lt; extents.product());
+<span class="lineNum">      72 </span>            :   Variables&lt;TagsList&gt; oriented_variables(number_of_grid_points);
+<span class="lineNum">      73 </span>            :   const auto oriented_offset = OrientationMapHelpers_detail::oriented_offset(
+<span class="lineNum">      74 </span>            :       extents, orientation_of_neighbor);
+<span class="lineNum">      75 </span>            :   auto oriented_vars_view = gsl::make_span(oriented_variables);
+<span class="lineNum">      76 </span>            :   OrientationMapHelpers_detail::orient_each_component(
+<span class="lineNum">      77 </span>            :       make_not_null(&amp;oriented_vars_view), gsl::make_span(variables),
+<span class="lineNum">      78 </span>            :       number_of_grid_points, oriented_offset);
+<span class="lineNum">      79 </span>            : 
+<span class="lineNum">      80 </span>            :   return oriented_variables;
+<span class="lineNum">      81 </span>            : }
+<span class="lineNum">      82 </span>            : 
+<span class="lineNum">      83 </span>            : template &lt;size_t VolumeDim, typename TagsList&gt;
+<span class="lineNum">      84 </span><span class="lineCov">          1 : Variables&lt;TagsList&gt; orient_variables_on_slice(</span>
+<span class="lineNum">      85 </span>            :     const Variables&lt;TagsList&gt;&amp; variables_on_slice,
+<span class="lineNum">      86 </span>            :     const Index&lt;VolumeDim - 1&gt;&amp; slice_extents, const size_t sliced_dim,
+<span class="lineNum">      87 </span>            :     const OrientationMap&lt;VolumeDim&gt;&amp; orientation_of_neighbor) noexcept {
+<span class="lineNum">      88 </span>            :   // Skip work (aside from a copy) if neighbor slice is aligned
+<span class="lineNum">      89 </span>            :   if (orientation_of_neighbor.is_aligned()) {
+<span class="lineNum">      90 </span>            :     return variables_on_slice;
+<span class="lineNum">      91 </span>            :   }
+<span class="lineNum">      92 </span>            : 
+<span class="lineNum">      93 </span>            :   const size_t number_of_grid_points = slice_extents.product();
+<span class="lineNum">      94 </span>            :   ASSERT(variables_on_slice.number_of_grid_points() == number_of_grid_points,
+<span class="lineNum">      95 </span>            :          &quot;Inconsistent `variables_on_slice` and `slice_extents`:\n&quot;
+<span class="lineNum">      96 </span>            :          &quot;  variables_on_slice.number_of_grid_points() = &quot;
+<span class="lineNum">      97 </span>            :              &lt;&lt; variables_on_slice.number_of_grid_points()
+<span class="lineNum">      98 </span>            :              &lt;&lt; &quot;\n&quot;
+<span class="lineNum">      99 </span>            :                 &quot;  slice_extents.product() = &quot;
+<span class="lineNum">     100 </span>            :              &lt;&lt; slice_extents.product());
+<span class="lineNum">     101 </span>            :   Variables&lt;TagsList&gt; oriented_variables(number_of_grid_points);
+<span class="lineNum">     102 </span>            :   const auto oriented_offset =
+<span class="lineNum">     103 </span>            :       OrientationMapHelpers_detail::oriented_offset_on_slice(
+<span class="lineNum">     104 </span>            :           slice_extents, sliced_dim, orientation_of_neighbor);
+<span class="lineNum">     105 </span>            : 
+<span class="lineNum">     106 </span>            :   auto oriented_vars_view = gsl::make_span(oriented_variables);
+<span class="lineNum">     107 </span>            :   OrientationMapHelpers_detail::orient_each_component(
+<span class="lineNum">     108 </span>            :       make_not_null(&amp;oriented_vars_view), gsl::make_span(variables_on_slice),
+<span class="lineNum">     109 </span>            :       number_of_grid_points, oriented_offset);
+<span class="lineNum">     110 </span>            : 
+<span class="lineNum">     111 </span>            :   return oriented_variables;
+<span class="lineNum">     112 </span>            : }
+<span class="lineNum">     113 </span>            : // }@
+<span class="lineNum">     114 </span>            : 
+<span class="lineNum">     115 </span>            : /// \ingroup ComputationalDomainGroup
+<span class="lineNum">     116 </span>            : /// Orient data in a `std::vector&lt;double&gt;` representing one or more tensor
+<span class="lineNum">     117 </span>            : /// components.
+<span class="lineNum">     118 </span>            : ///
+<span class="lineNum">     119 </span>            : /// In most cases the `Variables` version of `orient_variables` should be
+<span class="lineNum">     120 </span>            : /// called. However, in some cases the tags and thus the type of the data being
+<span class="lineNum">     121 </span>            : /// sent is determined at runtime. In these cases the `std::vector` version of
+<span class="lineNum">     122 </span>            : /// `orient_variables` is useful. A concrete example of this is when hybridizing
+<span class="lineNum">     123 </span>            : /// DG with finite difference methods, where sometimes the data sent is both the
+<span class="lineNum">     124 </span>            : /// variables for reconstruction and the fluxes for either the DG or finite
+<span class="lineNum">     125 </span>            : /// difference scheme, while at other points only one of these three is sent.
+<span class="lineNum">     126 </span>            : template &lt;size_t VolumeDim&gt;
+<span class="lineNum">     127 </span><span class="lineCov">          1 : std::vector&lt;double&gt; orient_variables(</span>
+<span class="lineNum">     128 </span>            :     const std::vector&lt;double&gt;&amp; variables, const Index&lt;VolumeDim&gt;&amp; extents,
+<span class="lineNum">     129 </span>            :     const OrientationMap&lt;VolumeDim&gt;&amp; orientation_of_neighbor) noexcept;
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

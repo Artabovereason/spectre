@@ -1,0 +1,216 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - Evolution/Systems/Cce/Actions/InsertInterpolationScriData.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../../index.html">top level</a> - <a href="index.html">Evolution/Systems/Cce/Actions</a> - InsertInterpolationScriData.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntry">4</td>
+            <td class="headerCovTableEntryLo">25.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #pragma once
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;tuple&gt;
+<span class="lineNum">       7 </span>            : 
+<span class="lineNum">       8 </span>            : #include &quot;DataStructures/DataBox/DataBox.hpp&quot;
+<span class="lineNum">       9 </span>            : #include &quot;Evolution/Systems/Cce/OptionTags.hpp&quot;
+<span class="lineNum">      10 </span>            : #include &quot;Evolution/Systems/Cce/Tags.hpp&quot;
+<span class="lineNum">      11 </span>            : #include &quot;Parallel/ConstGlobalCache.hpp&quot;
+<span class="lineNum">      12 </span>            : #include &quot;Time/Tags.hpp&quot;
+<span class="lineNum">      13 </span>            : 
+<span class="lineNum">      14 </span>            : namespace Cce {
+<span class="lineNum">      15 </span>            : namespace Actions {
+<span class="lineNum">      16 </span>            : 
+<span class="lineNum">      17 </span>            : namespace detail {
+<span class="lineNum">      18 </span>            : template &lt;typename Tag&gt;
+<span class="lineNum">      19 </span>            : struct get_interpolator_argument_tag {
+<span class="lineNum">      20 </span>            :   using type = Tag;
+<span class="lineNum">      21 </span>            : };
+<span class="lineNum">      22 </span>            : 
+<span class="lineNum">      23 </span>            : template &lt;typename Tag&gt;
+<span class="lineNum">      24 </span>            : struct get_interpolator_argument_tag&lt;Tags::Du&lt;Tag&gt;&gt; {
+<span class="lineNum">      25 </span>            :   using type = Tag;
+<span class="lineNum">      26 </span>            : };
+<span class="lineNum">      27 </span>            : 
+<span class="lineNum">      28 </span>            : template &lt;typename Tag&gt;
+<span class="lineNum">      29 </span>            : struct InsertIntoInterpolationManagerImpl {
+<span class="lineNum">      30 </span>            :   using return_tags =
+<span class="lineNum">      31 </span>            :       tmpl::list&lt;Tags::InterpolationManager&lt;ComplexDataVector, Tag&gt;&gt;;
+<span class="lineNum">      32 </span>            :   using argument_tags =
+<span class="lineNum">      33 </span>            :       tmpl::list&lt;typename get_interpolator_argument_tag&lt;Tag&gt;::type,
+<span class="lineNum">      34 </span>            :                  Tags::InertialRetardedTime&gt;;
+<span class="lineNum">      35 </span>            :   static void apply(
+<span class="lineNum">      36 </span>            :       const gsl::not_null&lt;ScriPlusInterpolationManager&lt;ComplexDataVector, Tag&gt;*&gt;
+<span class="lineNum">      37 </span>            :           interpolation_manager,
+<span class="lineNum">      38 </span>            :       const db::item_type&lt;Tag&gt;&amp; scri_data,
+<span class="lineNum">      39 </span>            :       const Scalar&lt;DataVector&gt;&amp; inertial_retarded_time) noexcept {
+<span class="lineNum">      40 </span>            :     interpolation_manager-&gt;insert_data(get(inertial_retarded_time),
+<span class="lineNum">      41 </span>            :                                        get(scri_data).data());
+<span class="lineNum">      42 </span>            :   }
+<span class="lineNum">      43 </span>            : };
+<span class="lineNum">      44 </span>            : 
+<span class="lineNum">      45 </span>            : template &lt;typename LhsTag, typename RhsTag&gt;
+<span class="lineNum">      46 </span>            : struct InsertIntoInterpolationManagerImpl&lt;::Tags::Multiplies&lt;LhsTag, RhsTag&gt;&gt; {
+<span class="lineNum">      47 </span>            :   using return_tags = tmpl::list&lt;Tags::InterpolationManager&lt;
+<span class="lineNum">      48 </span>            :       ComplexDataVector, ::Tags::Multiplies&lt;LhsTag, RhsTag&gt;&gt;&gt;;
+<span class="lineNum">      49 </span>            :   using argument_tags =
+<span class="lineNum">      50 </span>            :       tmpl::list&lt;typename get_interpolator_argument_tag&lt;LhsTag&gt;::type, RhsTag,
+<span class="lineNum">      51 </span>            :                  Tags::InertialRetardedTime&gt;;
+<span class="lineNum">      52 </span>            :   static void apply(const gsl::not_null&lt;ScriPlusInterpolationManager&lt;
+<span class="lineNum">      53 </span>            :                         ComplexDataVector, ::Tags::Multiplies&lt;LhsTag, RhsTag&gt;&gt;*&gt;
+<span class="lineNum">      54 </span>            :                         interpolation_manager,
+<span class="lineNum">      55 </span>            :                     const db::item_type&lt;LhsTag&gt;&amp; lhs_data,
+<span class="lineNum">      56 </span>            :                     const db::item_type&lt;RhsTag&gt;&amp; rhs_data,
+<span class="lineNum">      57 </span>            :                     const Scalar&lt;DataVector&gt;&amp; inertial_retarded_time) noexcept {
+<span class="lineNum">      58 </span>            :     interpolation_manager-&gt;insert_data(get(inertial_retarded_time),
+<span class="lineNum">      59 </span>            :                                        get(lhs_data).data(),
+<span class="lineNum">      60 </span>            :                                        get(rhs_data).data());
+<span class="lineNum">      61 </span>            :   }
+<span class="lineNum">      62 </span>            : };
+<span class="lineNum">      63 </span>            : }  // namespace detail
+<span class="lineNum">      64 </span>            : 
+<span class="lineNum">      65 </span>            : /*!
+<span class="lineNum">      66 </span>            :  * \ingroup ActionGroup
+<span class="lineNum">      67 </span>            :  * \brief Places the data from the current hypersurface necessary to compute
+<span class="lineNum">      68 </span>            :  * `Tag` in the `ScriPlusInterpolationManager` associated with the `Tag`.
+<span class="lineNum">      69 </span>            :  *
+<span class="lineNum">      70 </span>            :  * \details Adds both the appropriate scri+ value(s) and a number of target
+<span class="lineNum">      71 </span>            :  * inertial times to interpolate of quantity equal to the
+<span class="lineNum">      72 </span>            :  * `InitializationTags::ScriOutputDensity` determined from options, equally
+<span class="lineNum">      73 </span>            :  * spaced between the current time and the next time in the algorithm.
+<span class="lineNum">      74 </span>            :  *
+<span class="lineNum">      75 </span>            :  * Uses:
+<span class="lineNum">      76 </span>            :  * - `::Tags::TimeStepId`
+<span class="lineNum">      77 </span>            :  * - `::Tags::Next&lt;::Tags::TimeStepId&gt;`
+<span class="lineNum">      78 </span>            :  * - `Cce::InitializationTags::ScriOutputDensity`
+<span class="lineNum">      79 </span>            :  * - if `Tag` is `::Tags::Multiplies&lt;Lhs, Rhs&gt;`:
+<span class="lineNum">      80 </span>            :  *   - `Lhs` and `Rhs`
+<span class="lineNum">      81 </span>            :  * - if `Tag` has `Cce::Tags::Du&lt;Argument&gt;`:
+<span class="lineNum">      82 </span>            :  *   - `Argument`
+<span class="lineNum">      83 </span>            :  * - otherwise uses `Tag`
+<span class="lineNum">      84 </span>            :  *
+<span class="lineNum">      85 </span>            :  * \ref DataBoxGroup changes:
+<span class="lineNum">      86 </span>            :  * - Modifies:
+<span class="lineNum">      87 </span>            :  *   - `Tags::InterpolationManager&lt;ComplexDataVector, Tag&gt;`
+<span class="lineNum">      88 </span>            :  * - Adds: nothing
+<span class="lineNum">      89 </span>            :  * - Removes: nothing
+<span class="lineNum">      90 </span>            :  */
+<span class="lineNum">      91 </span>            : template &lt;typename Tag&gt;
+<span class="lineNum">      92 </span><span class="lineCov">          1 : struct InsertInterpolationScriData {</span>
+<span class="lineNum">      93 </span><span class="lineNoCov">          0 :   using const_global_cache_tags =</span>
+<span class="lineNum">      94 </span>            :       tmpl::list&lt;InitializationTags::ScriOutputDensity&gt;;
+<span class="lineNum">      95 </span>            :   template &lt;typename DbTags, typename... InboxTags, typename Metavariables,
+<span class="lineNum">      96 </span>            :             typename ArrayIndex, typename ActionList,
+<span class="lineNum">      97 </span>            :             typename ParallelComponent&gt;
+<span class="lineNum">      98 </span><span class="lineNoCov">          0 :   static auto apply(db::DataBox&lt;DbTags&gt;&amp; box,</span>
+<span class="lineNum">      99 </span>            :                     const tuples::TaggedTuple&lt;InboxTags...&gt;&amp; /*inboxes*/,
+<span class="lineNum">     100 </span>            :                     const Parallel::ConstGlobalCache&lt;Metavariables&gt;&amp; /*cache*/,
+<span class="lineNum">     101 </span>            :                     const ArrayIndex&amp; /*array_index*/,
+<span class="lineNum">     102 </span>            :                     const ActionList /*meta*/,
+<span class="lineNum">     103 </span>            :                     const ParallelComponent* const /*meta*/) noexcept {
+<span class="lineNum">     104 </span>            :     if (db::get&lt;::Tags::TimeStepId&gt;(box).substep() == 0) {
+<span class="lineNum">     105 </span>            :       // insert the data points into the interpolator.
+<span class="lineNum">     106 </span>            :       db::mutate_apply&lt;detail::InsertIntoInterpolationManagerImpl&lt;Tag&gt;&gt;(
+<span class="lineNum">     107 </span>            :           make_not_null(&amp;box));
+<span class="lineNum">     108 </span>            : 
+<span class="lineNum">     109 </span>            :       // insert the target times into the interpolator.
+<span class="lineNum">     110 </span>            :       db::mutate&lt;Tags::InterpolationManager&lt;ComplexDataVector, Tag&gt;&gt;(
+<span class="lineNum">     111 </span>            :           make_not_null(&amp;box),
+<span class="lineNum">     112 </span>            :           [](const gsl::not_null&lt;
+<span class="lineNum">     113 </span>            :                  ScriPlusInterpolationManager&lt;ComplexDataVector, Tag&gt;*&gt;
+<span class="lineNum">     114 </span>            :                  interpolation_manager,
+<span class="lineNum">     115 </span>            :              const TimeStepId&amp; time_id, const TimeStepId&amp; next_time_id,
+<span class="lineNum">     116 </span>            :              const size_t number_of_interpolated_times) noexcept {
+<span class="lineNum">     117 </span>            :             const double time_of_current_step = time_id.substep_time().value();
+<span class="lineNum">     118 </span>            :             const double time_of_next_step =
+<span class="lineNum">     119 </span>            :                 next_time_id.substep_time().value();
+<span class="lineNum">     120 </span>            :             for (size_t i = 0; i &lt; number_of_interpolated_times; ++i) {
+<span class="lineNum">     121 </span>            :               interpolation_manager-&gt;insert_target_time(
+<span class="lineNum">     122 </span>            :                   time_of_current_step +
+<span class="lineNum">     123 </span>            :                   (time_of_next_step - time_of_current_step) *
+<span class="lineNum">     124 </span>            :                       static_cast&lt;double&gt;(i) /
+<span class="lineNum">     125 </span>            :                       static_cast&lt;double&gt;(number_of_interpolated_times));
+<span class="lineNum">     126 </span>            :             }
+<span class="lineNum">     127 </span>            :           },
+<span class="lineNum">     128 </span>            :           db::get&lt;::Tags::TimeStepId&gt;(box),
+<span class="lineNum">     129 </span>            :           db::get&lt;::Tags::Next&lt;::Tags::TimeStepId&gt;&gt;(box),
+<span class="lineNum">     130 </span>            :           db::get&lt;InitializationTags::ScriOutputDensity&gt;(box));
+<span class="lineNum">     131 </span>            :     }
+<span class="lineNum">     132 </span>            :     return std::forward_as_tuple(std::move(box));
+<span class="lineNum">     133 </span>            :   }
+<span class="lineNum">     134 </span>            : };
+<span class="lineNum">     135 </span>            : }  // namespace Actions
+<span class="lineNum">     136 </span>            : }  // namespace Cce
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

@@ -1,0 +1,375 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - NumericalAlgorithms/Integration/GslQuadAdaptive.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">NumericalAlgorithms/Integration</a> - GslQuadAdaptive.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">8</td>
+            <td class="headerCovTableEntry">15</td>
+            <td class="headerCovTableEntryLo">53.3 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #pragma once
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;gsl/gsl_integration.h&gt;
+<span class="lineNum">       7 </span>            : #include &lt;memory&gt;
+<span class="lineNum">       8 </span>            : #include &lt;vector&gt;
+<span class="lineNum">       9 </span>            : 
+<span class="lineNum">      10 </span>            : /// \cond
+<span class="lineNum">      11 </span>            : namespace PUP {
+<span class="lineNum">      12 </span>            : class er;
+<span class="lineNum">      13 </span>            : }  // namespace PUP
+<span class="lineNum">      14 </span>            : /// \endcond
+<span class="lineNum">      15 </span>            : 
+<span class="lineNum">      16 </span>            : /// \ingroup NumericalAlgorithmsGroup
+<span class="lineNum">      17 </span>            : /// Numerical integration algorithms
+<span class="lineNum">      18 </span>            : namespace integration {
+<span class="lineNum">      19 </span>            : 
+<span class="lineNum">      20 </span>            : namespace detail {
+<span class="lineNum">      21 </span>            : 
+<span class="lineNum">      22 </span>            : // The GSL functions require the integrand to have this particular function
+<span class="lineNum">      23 </span>            : // signature. In particular, any extra parameters to the functions must be
+<span class="lineNum">      24 </span>            : // passed as a void* and re-interpreted appropriately.
+<span class="lineNum">      25 </span>            : template &lt;typename IntegrandType&gt;
+<span class="lineNum">      26 </span>            : double integrand(const double x, void* const params) {
+<span class="lineNum">      27 </span>            :   // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+<span class="lineNum">      28 </span>            :   const auto function = reinterpret_cast&lt;IntegrandType*&gt;(params);
+<span class="lineNum">      29 </span>            :   return (*function)(x);
+<span class="lineNum">      30 </span>            : }
+<span class="lineNum">      31 </span>            : 
+<span class="lineNum">      32 </span>            : class GslQuadAdaptiveImpl {
+<span class="lineNum">      33 </span>            :  public:
+<span class="lineNum">      34 </span>            :   explicit GslQuadAdaptiveImpl(size_t max_intervals) noexcept;
+<span class="lineNum">      35 </span>            : 
+<span class="lineNum">      36 </span>            :   GslQuadAdaptiveImpl() = default;
+<span class="lineNum">      37 </span>            :   GslQuadAdaptiveImpl(const GslQuadAdaptiveImpl&amp;) = delete;
+<span class="lineNum">      38 </span>            :   GslQuadAdaptiveImpl&amp; operator=(const GslQuadAdaptiveImpl&amp;) = delete;
+<span class="lineNum">      39 </span>            :   GslQuadAdaptiveImpl(GslQuadAdaptiveImpl&amp;&amp;) noexcept = default;
+<span class="lineNum">      40 </span>            :   GslQuadAdaptiveImpl&amp; operator=(GslQuadAdaptiveImpl&amp;&amp; rhs) noexcept = default;
+<span class="lineNum">      41 </span>            :   ~GslQuadAdaptiveImpl() noexcept = default;
+<span class="lineNum">      42 </span>            : 
+<span class="lineNum">      43 </span>            :   void pup(PUP::er&amp; p) noexcept;  // NOLINT(google-runtime-references)
+<span class="lineNum">      44 </span>            : 
+<span class="lineNum">      45 </span>            :  protected:
+<span class="lineNum">      46 </span>            :   template &lt;typename IntegrandType&gt;
+<span class="lineNum">      47 </span>            :   gsl_function* gsl_integrand(IntegrandType&amp;&amp; integrand) const noexcept {
+<span class="lineNum">      48 </span>            :     gsl_integrand_.function = &amp;detail::integrand&lt;IntegrandType&gt;;
+<span class="lineNum">      49 </span>            :     gsl_integrand_.params = &amp;integrand;
+<span class="lineNum">      50 </span>            :     return &amp;gsl_integrand_;
+<span class="lineNum">      51 </span>            :   }
+<span class="lineNum">      52 </span>            : 
+<span class="lineNum">      53 </span>            :   struct GslIntegrationWorkspaceDeleter {
+<span class="lineNum">      54 </span>            :     void operator()(gsl_integration_workspace* workspace) const noexcept;
+<span class="lineNum">      55 </span>            :   };
+<span class="lineNum">      56 </span>            : 
+<span class="lineNum">      57 </span>            :   size_t max_intervals_ = 0;
+<span class="lineNum">      58 </span>            :   std::unique_ptr&lt;gsl_integration_workspace, GslIntegrationWorkspaceDeleter&gt;
+<span class="lineNum">      59 </span>            :       workspace_{};
+<span class="lineNum">      60 </span>            : 
+<span class="lineNum">      61 </span>            :  private:
+<span class="lineNum">      62 </span>            :   void initialize() noexcept;
+<span class="lineNum">      63 </span>            : 
+<span class="lineNum">      64 </span>            :   mutable gsl_function gsl_integrand_{};
+<span class="lineNum">      65 </span>            : };
+<span class="lineNum">      66 </span>            : 
+<span class="lineNum">      67 </span>            : void check_status_code(int status_code);
+<span class="lineNum">      68 </span>            : 
+<span class="lineNum">      69 </span>            : void disable_gsl_error_handling() noexcept;
+<span class="lineNum">      70 </span>            : 
+<span class="lineNum">      71 </span>            : }  // namespace detail
+<span class="lineNum">      72 </span>            : 
+<span class="lineNum">      73 </span>            : /// Each type specifies which algorithm from GSL should be used. It should be
+<span class="lineNum">      74 </span>            : /// chosen according to the problem.
+<span class="lineNum">      75 </span><span class="lineCov">          1 : enum class GslIntegralType {</span>
+<span class="lineNum">      76 </span>            :   /// gsl_integration_qag()
+<span class="lineNum">      77 </span>            :   StandardGaussKronrod,
+<span class="lineNum">      78 </span>            :   /// gsl_integration_qags()
+<span class="lineNum">      79 </span>            :   IntegrableSingularitiesPresent,
+<span class="lineNum">      80 </span>            :   /// gsl_integration_qagp()
+<span class="lineNum">      81 </span>            :   IntegrableSingularitiesKnown,
+<span class="lineNum">      82 </span>            :   /// gsl_integration_qagi()
+<span class="lineNum">      83 </span>            :   InfiniteInterval,
+<span class="lineNum">      84 </span>            :   /// gsl_integration_qagiu()
+<span class="lineNum">      85 </span>            :   UpperBoundaryInfinite,
+<span class="lineNum">      86 </span>            :   /// gsl_integration_qagil()
+<span class="lineNum">      87 </span>            :   LowerBoundaryInfinite
+<span class="lineNum">      88 </span>            : };
+<span class="lineNum">      89 </span>            : 
+<span class="lineNum">      90 </span>            : /*!
+<span class="lineNum">      91 </span>            :  * \brief A wrapper around the GSL adaptive integration procedures
+<span class="lineNum">      92 </span>            :  *
+<span class="lineNum">      93 </span>            :  * All templates take upper bounds to the absolute and relative error;
+<span class="lineNum">      94 </span>            :  * `tolerance_abs` and `tolerance_rel(default = 0.0)`, respectively. To compute
+<span class="lineNum">      95 </span>            :  * to a specified absolute error, set `tolerance_rel` to zero. To compute to a
+<span class="lineNum">      96 </span>            :  * specified relative error, set `tolerance_abs` to zero. For details on the
+<span class="lineNum">      97 </span>            :  * algorithm see the GSL documentation on `gsl_integration`.
+<span class="lineNum">      98 </span>            :  *
+<span class="lineNum">      99 </span>            :  * Here is an example how to use this class. For the function:
+<span class="lineNum">     100 </span>            :  *
+<span class="lineNum">     101 </span>            :  * \snippet Test_GslQuadAdaptive.cpp integrated_function
+<span class="lineNum">     102 </span>            :  *
+<span class="lineNum">     103 </span>            :  * the integration should look like:
+<span class="lineNum">     104 </span>            :  *
+<span class="lineNum">     105 </span>            :  * \snippet Test_GslQuadAdaptive.cpp integration_example
+<span class="lineNum">     106 </span>            :  */
+<span class="lineNum">     107 </span>            : template &lt;GslIntegralType TheIntegralType&gt;
+<span class="lineNum">     108 </span><span class="lineCov">          1 : class GslQuadAdaptive;</span>
+<span class="lineNum">     109 </span>            : 
+<span class="lineNum">     110 </span>            : /*!
+<span class="lineNum">     111 </span>            :  * \brief Use Gauss-Kronrod rule to integrate a 1D-function
+<span class="lineNum">     112 </span>            :  *
+<span class="lineNum">     113 </span>            :  * The algorithm for &quot;StandardGaussKronrod&quot; uses the QAG algorithm to employ an
+<span class="lineNum">     114 </span>            :  * adaptive Gauss-Kronrod n-points integration rule. Its function takes a
+<span class="lineNum">     115 </span>            :  * `lower_boundary` and `upper_boundary` to the integration region, an upper
+<span class="lineNum">     116 </span>            :  * bound for the absolute error `tolerance_abs` and a `key`. The latter is an
+<span class="lineNum">     117 </span>            :  * index to the array [15, 21, 31, 41, 51, 61], where each element denotes how
+<span class="lineNum">     118 </span>            :  * many function evaluations take place in each subinterval. A higher-order rule
+<span class="lineNum">     119 </span>            :  * serves better for smooth functions, whereas a lower-order rule saves time for
+<span class="lineNum">     120 </span>            :  * functions with local difficulties, such as discontinuities.
+<span class="lineNum">     121 </span>            :  */
+<span class="lineNum">     122 </span>            : template &lt;&gt;
+<span class="lineNum">     123 </span>            : class GslQuadAdaptive&lt;GslIntegralType::StandardGaussKronrod&gt;
+<span class="lineNum">     124 </span><span class="lineCov">          1 :     : public detail::GslQuadAdaptiveImpl {</span>
+<span class="lineNum">     125 </span>            :  public:
+<span class="lineNum">     126 </span>            :   using detail::GslQuadAdaptiveImpl::GslQuadAdaptiveImpl;
+<span class="lineNum">     127 </span>            :   template &lt;typename IntegrandType&gt;
+<span class="lineNum">     128 </span><span class="lineNoCov">          0 :   double operator()(IntegrandType&amp;&amp; integrand, const double lower_boundary,</span>
+<span class="lineNum">     129 </span>            :                     const double upper_boundary, const double tolerance_abs,
+<span class="lineNum">     130 </span>            :                     const int key, const double tolerance_rel = 0.) const {
+<span class="lineNum">     131 </span>            :     double result;
+<span class="lineNum">     132 </span>            :     double error;
+<span class="lineNum">     133 </span>            :     detail::disable_gsl_error_handling();
+<span class="lineNum">     134 </span>            :     const int status_code = gsl_integration_qag(
+<span class="lineNum">     135 </span>            :         gsl_integrand(std::forward&lt;IntegrandType&gt;(integrand)), lower_boundary,
+<span class="lineNum">     136 </span>            :         upper_boundary, tolerance_abs, tolerance_rel, this-&gt;max_intervals_, key,
+<span class="lineNum">     137 </span>            :         this-&gt;workspace_.get(), &amp;result, &amp;error);
+<span class="lineNum">     138 </span>            :     detail::check_status_code(status_code);
+<span class="lineNum">     139 </span>            :     return result;
+<span class="lineNum">     140 </span>            :   }
+<span class="lineNum">     141 </span>            : };
+<span class="lineNum">     142 </span>            : 
+<span class="lineNum">     143 </span>            : /*!
+<span class="lineNum">     144 </span>            :  * \brief Integrates a 1D-function with singularities
+<span class="lineNum">     145 </span>            :  *
+<span class="lineNum">     146 </span>            :  * The algorithm for &quot;IntegrableSingularitiesPresent&quot; concentrates new,
+<span class="lineNum">     147 </span>            :  * increasingly smaller subintervals around an unknown singularity and makes
+<span class="lineNum">     148 </span>            :  * successive approximations to the integral which should converge towards a
+<span class="lineNum">     149 </span>            :  * limit. The integration region is defined by `lower_boundary` and
+<span class="lineNum">     150 </span>            :  * `upper_boundary`.
+<span class="lineNum">     151 </span>            :  */
+<span class="lineNum">     152 </span>            : template &lt;&gt;
+<span class="lineNum">     153 </span>            : class GslQuadAdaptive&lt;GslIntegralType::IntegrableSingularitiesPresent&gt;
+<span class="lineNum">     154 </span><span class="lineCov">          1 :     : public detail::GslQuadAdaptiveImpl {</span>
+<span class="lineNum">     155 </span>            :  public:
+<span class="lineNum">     156 </span>            :   using detail::GslQuadAdaptiveImpl::GslQuadAdaptiveImpl;
+<span class="lineNum">     157 </span>            :   template &lt;typename IntegrandType&gt;
+<span class="lineNum">     158 </span><span class="lineNoCov">          0 :   double operator()(IntegrandType&amp;&amp; integrand, const double lower_boundary,</span>
+<span class="lineNum">     159 </span>            :                     const double upper_boundary, const double tolerance_abs,
+<span class="lineNum">     160 </span>            :                     const double tolerance_rel = 0.) const {
+<span class="lineNum">     161 </span>            :     double result;
+<span class="lineNum">     162 </span>            :     double error;
+<span class="lineNum">     163 </span>            :     detail::disable_gsl_error_handling();
+<span class="lineNum">     164 </span>            :     const int status_code = gsl_integration_qags(
+<span class="lineNum">     165 </span>            :         gsl_integrand(std::forward&lt;IntegrandType&gt;(integrand)), lower_boundary,
+<span class="lineNum">     166 </span>            :         upper_boundary, tolerance_abs, tolerance_rel, this-&gt;max_intervals_,
+<span class="lineNum">     167 </span>            :         this-&gt;workspace_.get(), &amp;result, &amp;error);
+<span class="lineNum">     168 </span>            :     detail::check_status_code(status_code);
+<span class="lineNum">     169 </span>            :     return result;
+<span class="lineNum">     170 </span>            :   }
+<span class="lineNum">     171 </span>            : };
+<span class="lineNum">     172 </span>            : 
+<span class="lineNum">     173 </span>            : /*!
+<span class="lineNum">     174 </span>            :  * \brief Integrates a 1D-function where singularities are known
+<span class="lineNum">     175 </span>            :  *
+<span class="lineNum">     176 </span>            :  * The algorithm for &quot;IntegrableSingularitiesKnown&quot; uses user-defined
+<span class="lineNum">     177 </span>            :  * subintervals given by a vector of doubles `points`, where each element
+<span class="lineNum">     178 </span>            :  * denotes an interval boundary.
+<span class="lineNum">     179 </span>            :  */
+<span class="lineNum">     180 </span>            : template &lt;&gt;
+<span class="lineNum">     181 </span>            : class GslQuadAdaptive&lt;GslIntegralType::IntegrableSingularitiesKnown&gt;
+<span class="lineNum">     182 </span><span class="lineCov">          1 :     : public detail::GslQuadAdaptiveImpl {</span>
+<span class="lineNum">     183 </span>            :  public:
+<span class="lineNum">     184 </span>            :   using detail::GslQuadAdaptiveImpl::GslQuadAdaptiveImpl;
+<span class="lineNum">     185 </span>            :   template &lt;typename IntegrandType&gt;
+<span class="lineNum">     186 </span><span class="lineNoCov">          0 :   double operator()(IntegrandType&amp;&amp; integrand,</span>
+<span class="lineNum">     187 </span>            :                     const std::vector&lt;double&gt;&amp; points,
+<span class="lineNum">     188 </span>            :                     const double tolerance_abs,
+<span class="lineNum">     189 </span>            :                     const double tolerance_rel = 0.) const {
+<span class="lineNum">     190 </span>            :     double result;
+<span class="lineNum">     191 </span>            :     double error;
+<span class="lineNum">     192 </span>            :     detail::disable_gsl_error_handling();
+<span class="lineNum">     193 </span>            :     // The const_cast is necessary because GSL has a weird interface where
+<span class="lineNum">     194 </span>            :     // the number of singularities does not change, but it doesn't take
+<span class="lineNum">     195 </span>            :     // the argument as a `const double*`. However, the first thing
+<span class="lineNum">     196 </span>            :     // `gsl_integration_qagp` does internally is forward to another function
+<span class="lineNum">     197 </span>            :     // that does take `points` by `const double*`. If `gsl_integration_qagp`
+<span class="lineNum">     198 </span>            :     // were to change the size of `points` this code would be severely broken
+<span class="lineNum">     199 </span>            :     // because `std::vector` allocates with `new`, while GSL would likely use
+<span class="lineNum">     200 </span>            :     // `malloc` (or some other C allocator). Mixing (de)allocators in such a way
+<span class="lineNum">     201 </span>            :     // is undefined behavior.
+<span class="lineNum">     202 </span>            :     const int status_code = gsl_integration_qagp(
+<span class="lineNum">     203 </span>            :         gsl_integrand(std::forward&lt;IntegrandType&gt;(integrand)),
+<span class="lineNum">     204 </span>            :         const_cast&lt;double*&gt;(points.data()),  // NOLINT
+<span class="lineNum">     205 </span>            :         points.size(), tolerance_abs, tolerance_rel, this-&gt;max_intervals_,
+<span class="lineNum">     206 </span>            :         this-&gt;workspace_.get(), &amp;result, &amp;error);
+<span class="lineNum">     207 </span>            :     detail::check_status_code(status_code);
+<span class="lineNum">     208 </span>            :     return result;
+<span class="lineNum">     209 </span>            :   }
+<span class="lineNum">     210 </span>            : };
+<span class="lineNum">     211 </span>            : 
+<span class="lineNum">     212 </span>            : /*!
+<span class="lineNum">     213 </span>            :  * \brief Integrates a 1D-function over the interval \f$ (-\infty, +\infty) \f$
+<span class="lineNum">     214 </span>            :  *
+<span class="lineNum">     215 </span>            :  * The algorithm for &quot;InfiniteInterval&quot; uses the semi-open interval
+<span class="lineNum">     216 </span>            :  * \f$ (0, 1] \f$ to map to an infinite interval \f$ (-\infty, +\infty) \f$. Its
+<span class="lineNum">     217 </span>            :  * function takes no parameters other than limits `tolerance_abs` and optional
+<span class="lineNum">     218 </span>            :  * `tolerance_rel` for the absolute error and the relative error.
+<span class="lineNum">     219 </span>            :  */
+<span class="lineNum">     220 </span>            : template &lt;&gt;
+<span class="lineNum">     221 </span>            : class GslQuadAdaptive&lt;GslIntegralType::InfiniteInterval&gt;
+<span class="lineNum">     222 </span><span class="lineCov">          1 :     : public detail::GslQuadAdaptiveImpl {</span>
+<span class="lineNum">     223 </span>            :  public:
+<span class="lineNum">     224 </span>            :   using detail::GslQuadAdaptiveImpl::GslQuadAdaptiveImpl;
+<span class="lineNum">     225 </span>            :   template &lt;typename IntegrandType&gt;
+<span class="lineNum">     226 </span><span class="lineNoCov">          0 :   double operator()(IntegrandType&amp;&amp; integrand, const double tolerance_abs,</span>
+<span class="lineNum">     227 </span>            :                     const double tolerance_rel = 0.) const {
+<span class="lineNum">     228 </span>            :     double result;
+<span class="lineNum">     229 </span>            :     double error;
+<span class="lineNum">     230 </span>            :     detail::disable_gsl_error_handling();
+<span class="lineNum">     231 </span>            :     const int status_code = gsl_integration_qagi(
+<span class="lineNum">     232 </span>            :         gsl_integrand(std::forward&lt;IntegrandType&gt;(integrand)), tolerance_abs,
+<span class="lineNum">     233 </span>            :         tolerance_rel, this-&gt;max_intervals_, this-&gt;workspace_.get(), &amp;result,
+<span class="lineNum">     234 </span>            :         &amp;error);
+<span class="lineNum">     235 </span>            :     detail::check_status_code(status_code);
+<span class="lineNum">     236 </span>            :     return result;
+<span class="lineNum">     237 </span>            :   }
+<span class="lineNum">     238 </span>            : };
+<span class="lineNum">     239 </span>            : 
+<span class="lineNum">     240 </span>            : /*!
+<span class="lineNum">     241 </span>            :  * \brief Integrates a 1D-function over the interval \f$ [a, +\infty) \f$
+<span class="lineNum">     242 </span>            :  *
+<span class="lineNum">     243 </span>            :  * The algorithm for &quot;UpperBoundaryInfinite&quot; maps the semi-open interval
+<span class="lineNum">     244 </span>            :  * \f$ (0, 1] \f$ to a semi-infinite interval \f$ [a, +\infty) \f$, where
+<span class="lineNum">     245 </span>            :  * \f$ a \f$ is given by `lower_boundary`.
+<span class="lineNum">     246 </span>            :  */
+<span class="lineNum">     247 </span>            : template &lt;&gt;
+<span class="lineNum">     248 </span>            : class GslQuadAdaptive&lt;GslIntegralType::UpperBoundaryInfinite&gt;
+<span class="lineNum">     249 </span><span class="lineCov">          1 :     : public detail::GslQuadAdaptiveImpl {</span>
+<span class="lineNum">     250 </span>            :  public:
+<span class="lineNum">     251 </span>            :   using detail::GslQuadAdaptiveImpl::GslQuadAdaptiveImpl;
+<span class="lineNum">     252 </span>            :   template &lt;typename IntegrandType&gt;
+<span class="lineNum">     253 </span><span class="lineNoCov">          0 :   double operator()(IntegrandType&amp;&amp; integrand, const double lower_boundary,</span>
+<span class="lineNum">     254 </span>            :                     const double tolerance_abs,
+<span class="lineNum">     255 </span>            :                     const double tolerance_rel = 0.) const {
+<span class="lineNum">     256 </span>            :     double result;
+<span class="lineNum">     257 </span>            :     double error;
+<span class="lineNum">     258 </span>            :     detail::disable_gsl_error_handling();
+<span class="lineNum">     259 </span>            :     const int status_code = gsl_integration_qagiu(
+<span class="lineNum">     260 </span>            :         gsl_integrand(std::forward&lt;IntegrandType&gt;(integrand)), lower_boundary,
+<span class="lineNum">     261 </span>            :         tolerance_abs, tolerance_rel, this-&gt;max_intervals_,
+<span class="lineNum">     262 </span>            :         this-&gt;workspace_.get(), &amp;result, &amp;error);
+<span class="lineNum">     263 </span>            :     detail::check_status_code(status_code);
+<span class="lineNum">     264 </span>            :     return result;
+<span class="lineNum">     265 </span>            :   }
+<span class="lineNum">     266 </span>            : };
+<span class="lineNum">     267 </span>            : 
+<span class="lineNum">     268 </span>            : /*!
+<span class="lineNum">     269 </span>            :  * \brief Integrates a 1D-function over the interval \f$ (-\infty, b] \f$
+<span class="lineNum">     270 </span>            :  *
+<span class="lineNum">     271 </span>            :  * The algorithm for &quot;LowerBoundaryInfinite&quot; maps the semi-open interval
+<span class="lineNum">     272 </span>            :  * \f$ (0, 1] \f$ to a semi-infinite interval \f$ (-\infty, b] \f$, where
+<span class="lineNum">     273 </span>            :  * \f$ b \f$ is given by `upper_boundary`.
+<span class="lineNum">     274 </span>            :  */
+<span class="lineNum">     275 </span>            : template &lt;&gt;
+<span class="lineNum">     276 </span>            : class GslQuadAdaptive&lt;GslIntegralType::LowerBoundaryInfinite&gt;
+<span class="lineNum">     277 </span><span class="lineCov">          1 :     : public detail::GslQuadAdaptiveImpl {</span>
+<span class="lineNum">     278 </span>            :  public:
+<span class="lineNum">     279 </span>            :   using detail::GslQuadAdaptiveImpl::GslQuadAdaptiveImpl;
+<span class="lineNum">     280 </span>            :   template &lt;typename IntegrandType&gt;
+<span class="lineNum">     281 </span><span class="lineNoCov">          0 :   double operator()(IntegrandType&amp;&amp; integrand, const double upper_boundary,</span>
+<span class="lineNum">     282 </span>            :                     const double tolerance_abs,
+<span class="lineNum">     283 </span>            :                     const double tolerance_rel = 0.) const {
+<span class="lineNum">     284 </span>            :     double result;
+<span class="lineNum">     285 </span>            :     double error;
+<span class="lineNum">     286 </span>            :     detail::disable_gsl_error_handling();
+<span class="lineNum">     287 </span>            :     const int status_code = gsl_integration_qagil(
+<span class="lineNum">     288 </span>            :         gsl_integrand(std::forward&lt;IntegrandType&gt;(integrand)), upper_boundary,
+<span class="lineNum">     289 </span>            :         tolerance_abs, tolerance_rel, this-&gt;max_intervals_,
+<span class="lineNum">     290 </span>            :         this-&gt;workspace_.get(), &amp;result, &amp;error);
+<span class="lineNum">     291 </span>            :     detail::check_status_code(status_code);
+<span class="lineNum">     292 </span>            :     return result;
+<span class="lineNum">     293 </span>            :   }
+<span class="lineNum">     294 </span>            : };
+<span class="lineNum">     295 </span>            : }  // namespace integration
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

@@ -1,0 +1,454 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - Evolution/Systems/Cce/Initialize/InitializeJ.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../../index.html">top level</a> - <a href="index.html">Evolution/Systems/Cce/Initialize</a> - InitializeJ.cpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntry">2</td>
+            <td class="headerCovTableEntryLo">50.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #include &quot;Evolution/Systems/Cce/Initialize/InitializeJ.hpp&quot;
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;complex&gt;
+<span class="lineNum">       7 </span>            : #include &lt;cstddef&gt;
+<span class="lineNum">       8 </span>            : #include &lt;memory&gt;
+<span class="lineNum">       9 </span>            : #include &lt;type_traits&gt;
+<span class="lineNum">      10 </span>            : 
+<span class="lineNum">      11 </span>            : #include &quot;DataStructures/ComplexDataVector.hpp&quot;
+<span class="lineNum">      12 </span>            : #include &quot;DataStructures/DataVector.hpp&quot;
+<span class="lineNum">      13 </span>            : #include &quot;DataStructures/SpinWeighted.hpp&quot;
+<span class="lineNum">      14 </span>            : #include &quot;DataStructures/Tags.hpp&quot;
+<span class="lineNum">      15 </span>            : #include &quot;DataStructures/Tensor/Tensor.hpp&quot;
+<span class="lineNum">      16 </span>            : #include &quot;DataStructures/Tensor/TypeAliases.hpp&quot;
+<span class="lineNum">      17 </span>            : #include &quot;DataStructures/Variables.hpp&quot;
+<span class="lineNum">      18 </span>            : #include &quot;Evolution/Systems/Cce/GaugeTransformBoundaryData.hpp&quot;
+<span class="lineNum">      19 </span>            : #include &quot;NumericalAlgorithms/Spectral/Spectral.hpp&quot;
+<span class="lineNum">      20 </span>            : #include &quot;NumericalAlgorithms/Spectral/SwshCollocation.hpp&quot;
+<span class="lineNum">      21 </span>            : #include &quot;NumericalAlgorithms/Spectral/SwshDerivatives.hpp&quot;
+<span class="lineNum">      22 </span>            : #include &quot;NumericalAlgorithms/Spectral/SwshInterpolation.hpp&quot;
+<span class="lineNum">      23 </span>            : #include &quot;NumericalAlgorithms/Spectral/SwshTags.hpp&quot;
+<span class="lineNum">      24 </span>            : #include &quot;Utilities/ConstantExpressions.hpp&quot;
+<span class="lineNum">      25 </span>            : #include &quot;Utilities/Gsl.hpp&quot;
+<span class="lineNum">      26 </span>            : #include &quot;Utilities/TMPL.hpp&quot;
+<span class="lineNum">      27 </span>            : 
+<span class="lineNum">      28 </span>            : namespace Cce {
+<span class="lineNum">      29 </span><span class="lineCov">          1 : namespace InitializeJ {</span>
+<span class="lineNum">      30 </span>            : namespace detail {
+<span class="lineNum">      31 </span>            : // perform an iterative solve for the set of angular coordinates necessary to
+<span class="lineNum">      32 </span>            : // set the gauge transformed version of `surface_j` to zero. This reliably
+<span class="lineNum">      33 </span>            : // converges eventually provided `surface_j` is initially reasonably small. As a
+<span class="lineNum">      34 </span>            : // comparatively primitive method, the convergence often takes several
+<span class="lineNum">      35 </span>            : // iterations (10-100) to reach roundoff; However, the iterations are fast, and
+<span class="lineNum">      36 </span>            : // the computation is for initial data that needs to be computed only once
+<span class="lineNum">      37 </span>            : // during a simulation, so it is not currently an optimization priority. If this
+<span class="lineNum">      38 </span>            : // function becomes a bottleneck, the numerical procedure of the iterative
+<span class="lineNum">      39 </span>            : // method should be revisited.
+<span class="lineNum">      40 </span>            : double adjust_angular_coordinates_for_j(
+<span class="lineNum">      41 </span>            :     const gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;*&gt; volume_j,
+<span class="lineNum">      42 </span>            :     const gsl::not_null&lt;tnsr::i&lt;DataVector, 3&gt;*&gt; cartesian_cauchy_coordinates,
+<span class="lineNum">      43 </span>            :     const gsl::not_null&lt;
+<span class="lineNum">      44 </span>            :         tnsr::i&lt;DataVector, 2, ::Frame::Spherical&lt;::Frame::Inertial&gt;&gt;*&gt;
+<span class="lineNum">      45 </span>            :         angular_cauchy_coordinates,
+<span class="lineNum">      46 </span>            :     const SpinWeighted&lt;ComplexDataVector, 2&gt;&amp; surface_j, const size_t l_max,
+<span class="lineNum">      47 </span>            :     const double tolerance, const size_t max_steps,
+<span class="lineNum">      48 </span>            :     const bool adjust_volume_gauge) noexcept {
+<span class="lineNum">      49 </span>            :   const size_t number_of_angular_points =
+<span class="lineNum">      50 </span>            :       Spectral::Swsh::number_of_swsh_collocation_points(l_max);
+<span class="lineNum">      51 </span>            : 
+<span class="lineNum">      52 </span>            :   const auto&amp; collocation = Spectral::Swsh::cached_collocation_metadata&lt;
+<span class="lineNum">      53 </span>            :       Spectral::Swsh::ComplexRepresentation::Interleaved&gt;(l_max);
+<span class="lineNum">      54 </span>            :   for (const auto&amp; collocation_point : collocation) {
+<span class="lineNum">      55 </span>            :     get&lt;0&gt;(*angular_cauchy_coordinates)[collocation_point.offset] =
+<span class="lineNum">      56 </span>            :         collocation_point.theta;
+<span class="lineNum">      57 </span>            :     get&lt;1&gt;(*angular_cauchy_coordinates)[collocation_point.offset] =
+<span class="lineNum">      58 </span>            :         collocation_point.phi;
+<span class="lineNum">      59 </span>            :   }
+<span class="lineNum">      60 </span>            :   get&lt;0&gt;(*cartesian_cauchy_coordinates) =
+<span class="lineNum">      61 </span>            :       sin(get&lt;0&gt;(*angular_cauchy_coordinates)) *
+<span class="lineNum">      62 </span>            :       cos(get&lt;1&gt;(*angular_cauchy_coordinates));
+<span class="lineNum">      63 </span>            :   get&lt;1&gt;(*cartesian_cauchy_coordinates) =
+<span class="lineNum">      64 </span>            :       sin(get&lt;0&gt;(*angular_cauchy_coordinates)) *
+<span class="lineNum">      65 </span>            :       sin(get&lt;1&gt;(*angular_cauchy_coordinates));
+<span class="lineNum">      66 </span>            :   get&lt;2&gt;(*cartesian_cauchy_coordinates) =
+<span class="lineNum">      67 </span>            :       cos(get&lt;0&gt;(*angular_cauchy_coordinates));
+<span class="lineNum">      68 </span>            : 
+<span class="lineNum">      69 </span>            :   Variables&lt;tmpl::list&lt;
+<span class="lineNum">      70 </span>            :       // cartesian coordinates
+<span class="lineNum">      71 </span>            :       ::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;0, ComplexDataVector&gt;,
+<span class="lineNum">      72 </span>            :                            std::integral_constant&lt;int, 0&gt;&gt;,
+<span class="lineNum">      73 </span>            :       ::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;1, ComplexDataVector&gt;,
+<span class="lineNum">      74 </span>            :                            std::integral_constant&lt;int, 0&gt;&gt;,
+<span class="lineNum">      75 </span>            :       ::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;2, ComplexDataVector&gt;,
+<span class="lineNum">      76 </span>            :                            std::integral_constant&lt;int, 0&gt;&gt;,
+<span class="lineNum">      77 </span>            :       // eth of cartesian coordinates
+<span class="lineNum">      78 </span>            :       ::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;3, ComplexDataVector&gt;,
+<span class="lineNum">      79 </span>            :                            std::integral_constant&lt;int, 1&gt;&gt;,
+<span class="lineNum">      80 </span>            :       ::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;4, ComplexDataVector&gt;,
+<span class="lineNum">      81 </span>            :                            std::integral_constant&lt;int, 1&gt;&gt;,
+<span class="lineNum">      82 </span>            :       ::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;5, ComplexDataVector&gt;,
+<span class="lineNum">      83 </span>            :                            std::integral_constant&lt;int, 1&gt;&gt;,
+<span class="lineNum">      84 </span>            :       // eth of gauge-transformed cartesian coordinates
+<span class="lineNum">      85 </span>            :       ::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;6, ComplexDataVector&gt;,
+<span class="lineNum">      86 </span>            :                            std::integral_constant&lt;int, 1&gt;&gt;,
+<span class="lineNum">      87 </span>            :       ::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;7, ComplexDataVector&gt;,
+<span class="lineNum">      88 </span>            :                            std::integral_constant&lt;int, 1&gt;&gt;,
+<span class="lineNum">      89 </span>            :       ::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;8, ComplexDataVector&gt;,
+<span class="lineNum">      90 </span>            :                            std::integral_constant&lt;int, 1&gt;&gt;,
+<span class="lineNum">      91 </span>            :       // iterated J
+<span class="lineNum">      92 </span>            :       ::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;9, ComplexDataVector&gt;,
+<span class="lineNum">      93 </span>            :                            std::integral_constant&lt;int, 2&gt;&gt;,
+<span class="lineNum">      94 </span>            :       // intermediate J buffer
+<span class="lineNum">      95 </span>            :       ::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;10, ComplexDataVector&gt;,
+<span class="lineNum">      96 </span>            :                            std::integral_constant&lt;int, 2&gt;&gt;,
+<span class="lineNum">      97 </span>            :       // K buffer
+<span class="lineNum">      98 </span>            :       ::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;11, ComplexDataVector&gt;,
+<span class="lineNum">      99 </span>            :                            std::integral_constant&lt;int, 0&gt;&gt;,
+<span class="lineNum">     100 </span>            :       // gauge Jacobians
+<span class="lineNum">     101 </span>            :       ::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;12, ComplexDataVector&gt;,
+<span class="lineNum">     102 </span>            :                            std::integral_constant&lt;int, 2&gt;&gt;,
+<span class="lineNum">     103 </span>            :       ::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;13, ComplexDataVector&gt;,
+<span class="lineNum">     104 </span>            :                            std::integral_constant&lt;int, 0&gt;&gt;,
+<span class="lineNum">     105 </span>            :       // gauge Jacobians on next iteration
+<span class="lineNum">     106 </span>            :       ::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;14, ComplexDataVector&gt;,
+<span class="lineNum">     107 </span>            :                            std::integral_constant&lt;int, 2&gt;&gt;,
+<span class="lineNum">     108 </span>            :       ::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;15, ComplexDataVector&gt;,
+<span class="lineNum">     109 </span>            :                            std::integral_constant&lt;int, 0&gt;&gt;,
+<span class="lineNum">     110 </span>            :       // gauge conformal factor
+<span class="lineNum">     111 </span>            :       ::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;16, ComplexDataVector&gt;,
+<span class="lineNum">     112 </span>            :                            std::integral_constant&lt;int, 0&gt;&gt;,
+<span class="lineNum">     113 </span>            :       // cartesian coordinates steps
+<span class="lineNum">     114 </span>            :       ::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;17, ComplexDataVector&gt;,
+<span class="lineNum">     115 </span>            :                            std::integral_constant&lt;int, 0&gt;&gt;,
+<span class="lineNum">     116 </span>            :       ::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;18, ComplexDataVector&gt;,
+<span class="lineNum">     117 </span>            :                            std::integral_constant&lt;int, 0&gt;&gt;,
+<span class="lineNum">     118 </span>            :       ::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;19, ComplexDataVector&gt;,
+<span class="lineNum">     119 </span>            :                            std::integral_constant&lt;int, 0&gt;&gt;&gt;&gt;
+<span class="lineNum">     120 </span>            :       computation_buffers{number_of_angular_points};
+<span class="lineNum">     121 </span>            : 
+<span class="lineNum">     122 </span>            :   auto&amp; x =
+<span class="lineNum">     123 </span>            :       get(get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;0, ComplexDataVector&gt;,
+<span class="lineNum">     124 </span>            :                                    std::integral_constant&lt;int, 0&gt;&gt;&gt;(
+<span class="lineNum">     125 </span>            :           computation_buffers));
+<span class="lineNum">     126 </span>            :   auto&amp; y =
+<span class="lineNum">     127 </span>            :       get(get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;1, ComplexDataVector&gt;,
+<span class="lineNum">     128 </span>            :                                    std::integral_constant&lt;int, 0&gt;&gt;&gt;(
+<span class="lineNum">     129 </span>            :           computation_buffers));
+<span class="lineNum">     130 </span>            :   auto&amp; z =
+<span class="lineNum">     131 </span>            :       get(get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;2, ComplexDataVector&gt;,
+<span class="lineNum">     132 </span>            :                                    std::integral_constant&lt;int, 0&gt;&gt;&gt;(
+<span class="lineNum">     133 </span>            :           computation_buffers));
+<span class="lineNum">     134 </span>            : 
+<span class="lineNum">     135 </span>            :   x.data() =
+<span class="lineNum">     136 </span>            :       std::complex&lt;double&gt;(1.0, 0.0) * get&lt;0&gt;(*cartesian_cauchy_coordinates);
+<span class="lineNum">     137 </span>            :   y.data() =
+<span class="lineNum">     138 </span>            :       std::complex&lt;double&gt;(1.0, 0.0) * get&lt;1&gt;(*cartesian_cauchy_coordinates);
+<span class="lineNum">     139 </span>            :   z.data() =
+<span class="lineNum">     140 </span>            :       std::complex&lt;double&gt;(1.0, 0.0) * get&lt;2&gt;(*cartesian_cauchy_coordinates);
+<span class="lineNum">     141 </span>            : 
+<span class="lineNum">     142 </span>            :   auto&amp; eth_x =
+<span class="lineNum">     143 </span>            :       get(get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;3, ComplexDataVector&gt;,
+<span class="lineNum">     144 </span>            :                                    std::integral_constant&lt;int, 1&gt;&gt;&gt;(
+<span class="lineNum">     145 </span>            :           computation_buffers));
+<span class="lineNum">     146 </span>            :   auto&amp; eth_y =
+<span class="lineNum">     147 </span>            :       get(get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;4, ComplexDataVector&gt;,
+<span class="lineNum">     148 </span>            :                                    std::integral_constant&lt;int, 1&gt;&gt;&gt;(
+<span class="lineNum">     149 </span>            :           computation_buffers));
+<span class="lineNum">     150 </span>            :   auto&amp; eth_z =
+<span class="lineNum">     151 </span>            :       get(get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;5, ComplexDataVector&gt;,
+<span class="lineNum">     152 </span>            :                                    std::integral_constant&lt;int, 1&gt;&gt;&gt;(
+<span class="lineNum">     153 </span>            :           computation_buffers));
+<span class="lineNum">     154 </span>            : 
+<span class="lineNum">     155 </span>            :   Spectral::Swsh::angular_derivatives&lt;
+<span class="lineNum">     156 </span>            :       tmpl::list&lt;Spectral::Swsh::Tags::Eth, Spectral::Swsh::Tags::Eth,
+<span class="lineNum">     157 </span>            :                  Spectral::Swsh::Tags::Eth&gt;&gt;(l_max, 1, make_not_null(&amp;eth_x),
+<span class="lineNum">     158 </span>            :                                              make_not_null(&amp;eth_y),
+<span class="lineNum">     159 </span>            :                                              make_not_null(&amp;eth_z), x, y, z);
+<span class="lineNum">     160 </span>            : 
+<span class="lineNum">     161 </span>            :   auto&amp; evolution_gauge_eth_x =
+<span class="lineNum">     162 </span>            :       get(get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;6, ComplexDataVector&gt;,
+<span class="lineNum">     163 </span>            :                                    std::integral_constant&lt;int, 1&gt;&gt;&gt;(
+<span class="lineNum">     164 </span>            :           computation_buffers));
+<span class="lineNum">     165 </span>            :   auto&amp; evolution_gauge_eth_y =
+<span class="lineNum">     166 </span>            :       get(get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;7, ComplexDataVector&gt;,
+<span class="lineNum">     167 </span>            :                                    std::integral_constant&lt;int, 1&gt;&gt;&gt;(
+<span class="lineNum">     168 </span>            :           computation_buffers));
+<span class="lineNum">     169 </span>            :   auto&amp; evolution_gauge_eth_z =
+<span class="lineNum">     170 </span>            :       get(get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;8, ComplexDataVector&gt;,
+<span class="lineNum">     171 </span>            :                                    std::integral_constant&lt;int, 1&gt;&gt;&gt;(
+<span class="lineNum">     172 </span>            :           computation_buffers));
+<span class="lineNum">     173 </span>            : 
+<span class="lineNum">     174 </span>            :   auto&amp; evolution_gauge_surface_j =
+<span class="lineNum">     175 </span>            :       get(get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;9, ComplexDataVector&gt;,
+<span class="lineNum">     176 </span>            :                                    std::integral_constant&lt;int, 2&gt;&gt;&gt;(
+<span class="lineNum">     177 </span>            :           computation_buffers));
+<span class="lineNum">     178 </span>            : 
+<span class="lineNum">     179 </span>            :   auto&amp; interpolated_j =
+<span class="lineNum">     180 </span>            :       get(get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;10, ComplexDataVector&gt;,
+<span class="lineNum">     181 </span>            :                                    std::integral_constant&lt;int, 2&gt;&gt;&gt;(
+<span class="lineNum">     182 </span>            :           computation_buffers));
+<span class="lineNum">     183 </span>            :   auto&amp; interpolated_k =
+<span class="lineNum">     184 </span>            :       get(get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;11, ComplexDataVector&gt;,
+<span class="lineNum">     185 </span>            :                                    std::integral_constant&lt;int, 0&gt;&gt;&gt;(
+<span class="lineNum">     186 </span>            :           computation_buffers));
+<span class="lineNum">     187 </span>            : 
+<span class="lineNum">     188 </span>            :   auto&amp; gauge_c =
+<span class="lineNum">     189 </span>            :       get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;12, ComplexDataVector&gt;,
+<span class="lineNum">     190 </span>            :                                std::integral_constant&lt;int, 2&gt;&gt;&gt;(
+<span class="lineNum">     191 </span>            :           computation_buffers);
+<span class="lineNum">     192 </span>            :   auto&amp; gauge_d =
+<span class="lineNum">     193 </span>            :       get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;13, ComplexDataVector&gt;,
+<span class="lineNum">     194 </span>            :                                std::integral_constant&lt;int, 0&gt;&gt;&gt;(
+<span class="lineNum">     195 </span>            :           computation_buffers);
+<span class="lineNum">     196 </span>            : 
+<span class="lineNum">     197 </span>            :   auto&amp; next_gauge_c =
+<span class="lineNum">     198 </span>            :       get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;14, ComplexDataVector&gt;,
+<span class="lineNum">     199 </span>            :                                std::integral_constant&lt;int, 2&gt;&gt;&gt;(
+<span class="lineNum">     200 </span>            :           computation_buffers);
+<span class="lineNum">     201 </span>            :   auto&amp; next_gauge_d =
+<span class="lineNum">     202 </span>            :       get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;15, ComplexDataVector&gt;,
+<span class="lineNum">     203 </span>            :                                std::integral_constant&lt;int, 0&gt;&gt;&gt;(
+<span class="lineNum">     204 </span>            :           computation_buffers);
+<span class="lineNum">     205 </span>            : 
+<span class="lineNum">     206 </span>            :   auto&amp; gauge_omega =
+<span class="lineNum">     207 </span>            :       get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;16, ComplexDataVector&gt;,
+<span class="lineNum">     208 </span>            :                                std::integral_constant&lt;int, 0&gt;&gt;&gt;(
+<span class="lineNum">     209 </span>            :           computation_buffers);
+<span class="lineNum">     210 </span>            : 
+<span class="lineNum">     211 </span>            :   auto&amp; x_step =
+<span class="lineNum">     212 </span>            :       get(get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;17, ComplexDataVector&gt;,
+<span class="lineNum">     213 </span>            :                                    std::integral_constant&lt;int, 0&gt;&gt;&gt;(
+<span class="lineNum">     214 </span>            :           computation_buffers));
+<span class="lineNum">     215 </span>            :   auto&amp; y_step =
+<span class="lineNum">     216 </span>            :       get(get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;18, ComplexDataVector&gt;,
+<span class="lineNum">     217 </span>            :                                    std::integral_constant&lt;int, 0&gt;&gt;&gt;(
+<span class="lineNum">     218 </span>            :           computation_buffers));
+<span class="lineNum">     219 </span>            :   auto&amp; z_step =
+<span class="lineNum">     220 </span>            :       get(get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;19, ComplexDataVector&gt;,
+<span class="lineNum">     221 </span>            :                                    std::integral_constant&lt;int, 0&gt;&gt;&gt;(
+<span class="lineNum">     222 </span>            :           computation_buffers));
+<span class="lineNum">     223 </span>            : 
+<span class="lineNum">     224 </span>            :   double max_error = 1.0;
+<span class="lineNum">     225 </span>            :   size_t number_of_steps = 0;
+<span class="lineNum">     226 </span>            :   while (true) {
+<span class="lineNum">     227 </span>            :     GaugeUpdateAngularFromCartesian&lt;
+<span class="lineNum">     228 </span>            :         Tags::CauchyAngularCoords,
+<span class="lineNum">     229 </span>            :         Tags::CauchyCartesianCoords&gt;::apply(angular_cauchy_coordinates,
+<span class="lineNum">     230 </span>            :                                             cartesian_cauchy_coordinates);
+<span class="lineNum">     231 </span>            : 
+<span class="lineNum">     232 </span>            :     Spectral::Swsh::SwshInterpolator iteration_interpolator{
+<span class="lineNum">     233 </span>            :       get&lt;0&gt;(*angular_cauchy_coordinates),
+<span class="lineNum">     234 </span>            :       get&lt;1&gt;(*angular_cauchy_coordinates), l_max};
+<span class="lineNum">     235 </span>            : 
+<span class="lineNum">     236 </span>            :     GaugeUpdateJacobianFromCoordinates&lt;
+<span class="lineNum">     237 </span>            :         Tags::GaugeC, Tags::GaugeD, Tags::CauchyAngularCoords,
+<span class="lineNum">     238 </span>            :         Tags::CauchyCartesianCoords&gt;::apply(make_not_null(&amp;gauge_c),
+<span class="lineNum">     239 </span>            :                                             make_not_null(&amp;gauge_d),
+<span class="lineNum">     240 </span>            :                                             angular_cauchy_coordinates,
+<span class="lineNum">     241 </span>            :                                             *cartesian_cauchy_coordinates,
+<span class="lineNum">     242 </span>            :                                             l_max);
+<span class="lineNum">     243 </span>            : 
+<span class="lineNum">     244 </span>            :     iteration_interpolator.interpolate(make_not_null(&amp;interpolated_j),
+<span class="lineNum">     245 </span>            :                                        surface_j);
+<span class="lineNum">     246 </span>            :     interpolated_k.data() =
+<span class="lineNum">     247 </span>            :         sqrt(1.0 + interpolated_j.data() * conj(interpolated_j.data()));
+<span class="lineNum">     248 </span>            : 
+<span class="lineNum">     249 </span>            :     get(gauge_omega).data() =
+<span class="lineNum">     250 </span>            :         0.5 * sqrt(get(gauge_d).data() * conj(get(gauge_d).data()) -
+<span class="lineNum">     251 </span>            :                    get(gauge_c).data() * conj(get(gauge_c).data()));
+<span class="lineNum">     252 </span>            :     // the fully computed j in the coordinate system determined so far
+<span class="lineNum">     253 </span>            :     // (`previous_angular_cauchy_coordinates`)
+<span class="lineNum">     254 </span>            :     evolution_gauge_surface_j.data() =
+<span class="lineNum">     255 </span>            :         0.25 *
+<span class="lineNum">     256 </span>            :         (square(conj(get(gauge_d).data())) * interpolated_j.data() +
+<span class="lineNum">     257 </span>            :          square(get(gauge_c).data()) * conj(interpolated_j.data()) +
+<span class="lineNum">     258 </span>            :          2.0 * get(gauge_c).data() * conj(get(gauge_d).data()) *
+<span class="lineNum">     259 </span>            :              interpolated_k.data()) /
+<span class="lineNum">     260 </span>            :         square(get(gauge_omega).data());
+<span class="lineNum">     261 </span>            : 
+<span class="lineNum">     262 </span>            :     // check completion conditions
+<span class="lineNum">     263 </span>            :     max_error = max(abs(evolution_gauge_surface_j.data()));
+<span class="lineNum">     264 </span>            :     ++number_of_steps;
+<span class="lineNum">     265 </span>            :     if (max_error &gt; 5.0e-3) {
+<span class="lineNum">     266 </span>            :       ERROR(
+<span class="lineNum">     267 </span>            :           &quot;Iterative solve for surface coordinates of initial data failed. The &quot;
+<span class="lineNum">     268 </span>            :           &quot;strain is too large to be fully eliminated by a well-behaved &quot;
+<span class="lineNum">     269 </span>            :           &quot;alteration of the spherical mesh. For this data, please use an &quot;
+<span class="lineNum">     270 </span>            :           &quot;alternative initial data generator such as &quot;
+<span class="lineNum">     271 </span>            :           &quot;`InitializeJInverseCubic`.&quot;);
+<span class="lineNum">     272 </span>            :     }
+<span class="lineNum">     273 </span>            :     if (max_error &lt; tolerance or number_of_steps &gt; max_steps) {
+<span class="lineNum">     274 </span>            :       break;
+<span class="lineNum">     275 </span>            :     }
+<span class="lineNum">     276 </span>            :     // The alteration in each of the spin-weighted Jacobian factors determined
+<span class="lineNum">     277 </span>            :     // by linearizing the system in small J
+<span class="lineNum">     278 </span>            :     get(next_gauge_c).data() = -0.5 * evolution_gauge_surface_j.data() *
+<span class="lineNum">     279 </span>            :                                square(get(gauge_omega).data()) /
+<span class="lineNum">     280 </span>            :                                (get(gauge_d).data() * interpolated_k.data());
+<span class="lineNum">     281 </span>            :     get(next_gauge_d).data() = get(next_gauge_c).data() *
+<span class="lineNum">     282 </span>            :                                conj(get(gauge_c).data()) /
+<span class="lineNum">     283 </span>            :                                conj(get(gauge_d).data());
+<span class="lineNum">     284 </span>            : 
+<span class="lineNum">     285 </span>            :     iteration_interpolator.interpolate(make_not_null(&amp;evolution_gauge_eth_x),
+<span class="lineNum">     286 </span>            :                                        eth_x);
+<span class="lineNum">     287 </span>            :     iteration_interpolator.interpolate(make_not_null(&amp;evolution_gauge_eth_y),
+<span class="lineNum">     288 </span>            :                                        eth_y);
+<span class="lineNum">     289 </span>            :     iteration_interpolator.interpolate(make_not_null(&amp;evolution_gauge_eth_z),
+<span class="lineNum">     290 </span>            :                                        eth_z);
+<span class="lineNum">     291 </span>            : 
+<span class="lineNum">     292 </span>            :     evolution_gauge_eth_x =
+<span class="lineNum">     293 </span>            :         0.5 * ((get(next_gauge_c)) * conj(evolution_gauge_eth_x) +
+<span class="lineNum">     294 </span>            :                conj((get(next_gauge_d))) * evolution_gauge_eth_x);
+<span class="lineNum">     295 </span>            :     evolution_gauge_eth_y =
+<span class="lineNum">     296 </span>            :         0.5 * ((get(next_gauge_c)) * conj(evolution_gauge_eth_y) +
+<span class="lineNum">     297 </span>            :                conj((get(next_gauge_d))) * evolution_gauge_eth_y);
+<span class="lineNum">     298 </span>            :     evolution_gauge_eth_z =
+<span class="lineNum">     299 </span>            :         0.5 * ((get(next_gauge_c)) * conj(evolution_gauge_eth_z) +
+<span class="lineNum">     300 </span>            :                conj((get(next_gauge_d))) * evolution_gauge_eth_z);
+<span class="lineNum">     301 </span>            : 
+<span class="lineNum">     302 </span>            :     // here we attempt to just update the current value according to the
+<span class="lineNum">     303 </span>            :     // alteration suggested. Ideally that's the `dominant` part of the needed
+<span class="lineNum">     304 </span>            :     // alteration
+<span class="lineNum">     305 </span>            :     Spectral::Swsh::angular_derivatives&lt;tmpl::list&lt;
+<span class="lineNum">     306 </span>            :         Spectral::Swsh::Tags::InverseEth, Spectral::Swsh::Tags::InverseEth,
+<span class="lineNum">     307 </span>            :         Spectral::Swsh::Tags::InverseEth&gt;&gt;(
+<span class="lineNum">     308 </span>            :         l_max, 1, make_not_null(&amp;x_step), make_not_null(&amp;y_step),
+<span class="lineNum">     309 </span>            :         make_not_null(&amp;z_step), evolution_gauge_eth_x, evolution_gauge_eth_y,
+<span class="lineNum">     310 </span>            :         evolution_gauge_eth_z);
+<span class="lineNum">     311 </span>            : 
+<span class="lineNum">     312 </span>            :     get&lt;0&gt;(*cartesian_cauchy_coordinates) += real(x_step.data());
+<span class="lineNum">     313 </span>            :     get&lt;1&gt;(*cartesian_cauchy_coordinates) += real(y_step.data());
+<span class="lineNum">     314 </span>            :     get&lt;2&gt;(*cartesian_cauchy_coordinates) += real(z_step.data());
+<span class="lineNum">     315 </span>            :   }
+<span class="lineNum">     316 </span>            : 
+<span class="lineNum">     317 </span>            :   GaugeUpdateAngularFromCartesian&lt;
+<span class="lineNum">     318 </span>            :       Tags::CauchyAngularCoords,
+<span class="lineNum">     319 </span>            :       Tags::CauchyCartesianCoords&gt;::apply(angular_cauchy_coordinates,
+<span class="lineNum">     320 </span>            :                                           cartesian_cauchy_coordinates);
+<span class="lineNum">     321 </span>            : 
+<span class="lineNum">     322 </span>            :   if (adjust_volume_gauge) {
+<span class="lineNum">     323 </span>            :     GaugeUpdateJacobianFromCoordinates&lt;
+<span class="lineNum">     324 </span>            :         Tags::GaugeC, Tags::GaugeD, Tags::CauchyAngularCoords,
+<span class="lineNum">     325 </span>            :         Tags::CauchyCartesianCoords&gt;::apply(make_not_null(&amp;gauge_c),
+<span class="lineNum">     326 </span>            :                                             make_not_null(&amp;gauge_d),
+<span class="lineNum">     327 </span>            :                                             angular_cauchy_coordinates,
+<span class="lineNum">     328 </span>            :                                             *cartesian_cauchy_coordinates,
+<span class="lineNum">     329 </span>            :                                             l_max);
+<span class="lineNum">     330 </span>            : 
+<span class="lineNum">     331 </span>            :     get(gauge_omega).data() =
+<span class="lineNum">     332 </span>            :         0.5 * sqrt(get(gauge_d).data() * conj(get(gauge_d).data()) -
+<span class="lineNum">     333 </span>            :                    get(gauge_c).data() * conj(get(gauge_c).data()));
+<span class="lineNum">     334 </span>            : 
+<span class="lineNum">     335 </span>            :     GaugeAdjustInitialJ::apply(volume_j, gauge_c, gauge_d, gauge_omega,
+<span class="lineNum">     336 </span>            :                                *angular_cauchy_coordinates, l_max);
+<span class="lineNum">     337 </span>            :   }
+<span class="lineNum">     338 </span>            :   return max_error;
+<span class="lineNum">     339 </span>            : }
+<span class="lineNum">     340 </span>            : }  // namespace detail
+<span class="lineNum">     341 </span>            : 
+<span class="lineNum">     342 </span>            : void GaugeAdjustInitialJ::apply(
+<span class="lineNum">     343 </span>            :     const gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;*&gt; volume_j,
+<span class="lineNum">     344 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;&amp; gauge_c,
+<span class="lineNum">     345 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; gauge_d,
+<span class="lineNum">     346 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; gauge_omega,
+<span class="lineNum">     347 </span>            :     const tnsr::i&lt;DataVector, 2, ::Frame::Spherical&lt;::Frame::Inertial&gt;&gt;&amp;
+<span class="lineNum">     348 </span>            :         cauchy_angular_coordinates,
+<span class="lineNum">     349 </span>            :     const size_t l_max) noexcept {
+<span class="lineNum">     350 </span>            :   const size_t number_of_angular_points =
+<span class="lineNum">     351 </span>            :       Spectral::Swsh::number_of_swsh_collocation_points(l_max);
+<span class="lineNum">     352 </span>            :   const size_t number_of_radial_points =
+<span class="lineNum">     353 </span>            :       get(*volume_j).size() /
+<span class="lineNum">     354 </span>            :       Spectral::Swsh::number_of_swsh_collocation_points(l_max);
+<span class="lineNum">     355 </span>            : 
+<span class="lineNum">     356 </span>            :   Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt; evolution_coords_j_buffer{
+<span class="lineNum">     357 </span>            :       number_of_angular_points};
+<span class="lineNum">     358 </span>            :   Spectral::Swsh::SwshInterpolator interpolator{
+<span class="lineNum">     359 </span>            :       get&lt;0&gt;(cauchy_angular_coordinates), get&lt;1&gt;(cauchy_angular_coordinates),
+<span class="lineNum">     360 </span>            :       l_max};
+<span class="lineNum">     361 </span>            :   for (size_t i = 0; i &lt; number_of_radial_points; ++i) {
+<span class="lineNum">     362 </span>            :     Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt; angular_view_j;
+<span class="lineNum">     363 </span>            :     get(angular_view_j)
+<span class="lineNum">     364 </span>            :         .set_data_ref(
+<span class="lineNum">     365 </span>            :             get(*volume_j).data().data() + i * number_of_angular_points,
+<span class="lineNum">     366 </span>            :             number_of_angular_points);
+<span class="lineNum">     367 </span>            :     get(evolution_coords_j_buffer) = get(angular_view_j);
+<span class="lineNum">     368 </span>            :     GaugeAdjustedBoundaryValue&lt;Tags::BondiJ&gt;::apply(
+<span class="lineNum">     369 </span>            :         make_not_null(&amp;angular_view_j), evolution_coords_j_buffer, gauge_c,
+<span class="lineNum">     370 </span>            :         gauge_d, gauge_omega, interpolator);
+<span class="lineNum">     371 </span>            :   }
+<span class="lineNum">     372 </span>            : }
+<span class="lineNum">     373 </span>            : }  // namespace InitializeJ
+<span class="lineNum">     374 </span>            : }  // namespace Cce
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

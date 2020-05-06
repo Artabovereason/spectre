@@ -1,0 +1,564 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - NumericalAlgorithms/Interpolation/InterpolationTargetDetail.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">NumericalAlgorithms/Interpolation</a> - InterpolationTargetDetail.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #pragma once
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;cstddef&gt;
+<span class="lineNum">       7 </span>            : #include &lt;memory&gt;
+<span class="lineNum">       8 </span>            : #include &lt;unordered_set&gt;
+<span class="lineNum">       9 </span>            : #include &lt;utility&gt;
+<span class="lineNum">      10 </span>            : #include &lt;vector&gt;
+<span class="lineNum">      11 </span>            : 
+<span class="lineNum">      12 </span>            : #include &quot;DataStructures/DataBox/DataBox.hpp&quot;
+<span class="lineNum">      13 </span>            : #include &quot;DataStructures/DataBox/DataBoxTag.hpp&quot;
+<span class="lineNum">      14 </span>            : #include &quot;DataStructures/IdPair.hpp&quot;
+<span class="lineNum">      15 </span>            : #include &quot;DataStructures/VariablesTag.hpp&quot;
+<span class="lineNum">      16 </span>            : #include &quot;Domain/BlockLogicalCoordinates.hpp&quot;
+<span class="lineNum">      17 </span>            : #include &quot;Domain/Tags.hpp&quot;
+<span class="lineNum">      18 </span>            : #include &quot;Parallel/ConstGlobalCache.hpp&quot;
+<span class="lineNum">      19 </span>            : #include &quot;Parallel/Invoke.hpp&quot;
+<span class="lineNum">      20 </span>            : #include &quot;Utilities/Gsl.hpp&quot;
+<span class="lineNum">      21 </span>            : #include &quot;Utilities/Literals.hpp&quot;
+<span class="lineNum">      22 </span>            : #include &quot;Utilities/Requires.hpp&quot;
+<span class="lineNum">      23 </span>            : #include &quot;Utilities/TMPL.hpp&quot;
+<span class="lineNum">      24 </span>            : #include &quot;Utilities/TaggedTuple.hpp&quot;
+<span class="lineNum">      25 </span>            : #include &quot;Utilities/TypeTraits.hpp&quot;
+<span class="lineNum">      26 </span>            : #include &quot;Utilities/TypeTraits/CreateHasStaticMemberVariable.hpp&quot;
+<span class="lineNum">      27 </span>            : 
+<span class="lineNum">      28 </span>            : /// \cond
+<span class="lineNum">      29 </span>            : // IWYU pragma: no_forward_declare db::DataBox
+<span class="lineNum">      30 </span>            : namespace intrp {
+<span class="lineNum">      31 </span>            : template &lt;class Metavariables&gt;
+<span class="lineNum">      32 </span>            : struct Interpolator;
+<span class="lineNum">      33 </span>            : template &lt;typename Metavariables, typename InterpolationTargetTag&gt;
+<span class="lineNum">      34 </span>            : class InterpolationTarget;
+<span class="lineNum">      35 </span>            : namespace Actions {
+<span class="lineNum">      36 </span>            : template &lt;typename InterpolationTargetTag&gt;
+<span class="lineNum">      37 </span>            : struct CleanUpInterpolator;
+<span class="lineNum">      38 </span>            : template &lt;typename InterpolationTargetTag&gt;
+<span class="lineNum">      39 </span>            : struct ReceivePoints;
+<span class="lineNum">      40 </span>            : }  // namespace Actions
+<span class="lineNum">      41 </span>            : namespace Tags {
+<span class="lineNum">      42 </span>            : template &lt;typename TemporalId&gt;
+<span class="lineNum">      43 </span>            : struct IndicesOfFilledInterpPoints;
+<span class="lineNum">      44 </span>            : template &lt;typename TemporalId&gt;
+<span class="lineNum">      45 </span>            : struct IndicesOfInvalidInterpPoints;
+<span class="lineNum">      46 </span>            : template &lt;typename InterpolationTargetTag, typename TemporalId&gt;
+<span class="lineNum">      47 </span>            : struct InterpolatedVars;
+<span class="lineNum">      48 </span>            : template &lt;typename TemporalId&gt;
+<span class="lineNum">      49 </span>            : struct CompletedTemporalIds;
+<span class="lineNum">      50 </span>            : template &lt;typename TemporalId&gt;
+<span class="lineNum">      51 </span>            : struct TemporalIds;
+<span class="lineNum">      52 </span>            : }  // namespace Tags
+<span class="lineNum">      53 </span>            : }  // namespace intrp
+<span class="lineNum">      54 </span>            : template &lt;typename TagsList&gt;
+<span class="lineNum">      55 </span>            : struct Variables;
+<span class="lineNum">      56 </span>            : /// \endcond
+<span class="lineNum">      57 </span>            : 
+<span class="lineNum">      58 </span>            : namespace intrp {
+<span class="lineNum">      59 </span>            : 
+<span class="lineNum">      60 </span>            : namespace InterpolationTarget_detail {
+<span class="lineNum">      61 </span>            : 
+<span class="lineNum">      62 </span>            : // apply_callback accomplishes the overload for the
+<span class="lineNum">      63 </span>            : // two signatures of callback functions.
+<span class="lineNum">      64 </span>            : // Uses SFINAE on return type.
+<span class="lineNum">      65 </span>            : template &lt;typename T, typename DbTags, typename Metavariables,
+<span class="lineNum">      66 </span>            :           typename TemporalId&gt;
+<span class="lineNum">      67 </span>            : auto apply_callback(
+<span class="lineNum">      68 </span>            :     const gsl::not_null&lt;db::DataBox&lt;DbTags&gt;*&gt; box,
+<span class="lineNum">      69 </span>            :     const gsl::not_null&lt;Parallel::ConstGlobalCache&lt;Metavariables&gt;*&gt; cache,
+<span class="lineNum">      70 </span>            :     const TemporalId&amp; temporal_id) noexcept
+<span class="lineNum">      71 </span>            :     -&gt; decltype(T::post_interpolation_callback::apply(box, cache, temporal_id),
+<span class="lineNum">      72 </span>            :                 bool()) {
+<span class="lineNum">      73 </span>            :   return T::post_interpolation_callback::apply(box, cache, temporal_id);
+<span class="lineNum">      74 </span>            : }
+<span class="lineNum">      75 </span>            : 
+<span class="lineNum">      76 </span>            : template &lt;typename T, typename DbTags, typename Metavariables,
+<span class="lineNum">      77 </span>            :           typename TemporalId&gt;
+<span class="lineNum">      78 </span>            : auto apply_callback(
+<span class="lineNum">      79 </span>            :     const gsl::not_null&lt;db::DataBox&lt;DbTags&gt;*&gt; box,
+<span class="lineNum">      80 </span>            :     const gsl::not_null&lt;Parallel::ConstGlobalCache&lt;Metavariables&gt;*&gt; cache,
+<span class="lineNum">      81 </span>            :     const TemporalId&amp; temporal_id) noexcept
+<span class="lineNum">      82 </span>            :     -&gt; decltype(T::post_interpolation_callback::apply(*box, *cache,
+<span class="lineNum">      83 </span>            :                                                       temporal_id),
+<span class="lineNum">      84 </span>            :                 bool()) {
+<span class="lineNum">      85 </span>            :   T::post_interpolation_callback::apply(*box, *cache, temporal_id);
+<span class="lineNum">      86 </span>            :   // For the simpler callback function, we will always clean up volume data, so
+<span class="lineNum">      87 </span>            :   // we return true here.
+<span class="lineNum">      88 </span>            :   return true;
+<span class="lineNum">      89 </span>            : }
+<span class="lineNum">      90 </span>            : 
+<span class="lineNum">      91 </span>            : CREATE_HAS_STATIC_MEMBER_VARIABLE(fill_invalid_points_with)
+<span class="lineNum">      92 </span>            : CREATE_HAS_STATIC_MEMBER_VARIABLE_V(fill_invalid_points_with)
+<span class="lineNum">      93 </span>            : 
+<span class="lineNum">      94 </span>            : // Fills invalid points with some constant value.
+<span class="lineNum">      95 </span>            : template &lt;typename InterpolationTargetTag, typename TemporalId, typename DbTags,
+<span class="lineNum">      96 </span>            :           Requires&lt;not has_fill_invalid_points_with_v&lt;
+<span class="lineNum">      97 </span>            :               typename InterpolationTargetTag::post_interpolation_callback&gt;&gt; =
+<span class="lineNum">      98 </span>            :               nullptr&gt;
+<span class="lineNum">      99 </span>            : void fill_invalid_points(const gsl::not_null&lt;db::DataBox&lt;DbTags&gt;*&gt; /*box*/,
+<span class="lineNum">     100 </span>            :                          const TemporalId&amp; /*temporal_id*/) noexcept {}
+<span class="lineNum">     101 </span>            : 
+<span class="lineNum">     102 </span>            : template &lt;typename InterpolationTargetTag, typename TemporalId, typename DbTags,
+<span class="lineNum">     103 </span>            :           Requires&lt;has_fill_invalid_points_with_v&lt;
+<span class="lineNum">     104 </span>            :               typename InterpolationTargetTag::post_interpolation_callback&gt;&gt; =
+<span class="lineNum">     105 </span>            :               nullptr&gt;
+<span class="lineNum">     106 </span>            : void fill_invalid_points(const gsl::not_null&lt;db::DataBox&lt;DbTags&gt;*&gt; box,
+<span class="lineNum">     107 </span>            :                          const TemporalId&amp; temporal_id) noexcept {
+<span class="lineNum">     108 </span>            :   const auto&amp; invalid_indices =
+<span class="lineNum">     109 </span>            :       db::get&lt;Tags::IndicesOfInvalidInterpPoints&lt;TemporalId&gt;&gt;(*box);
+<span class="lineNum">     110 </span>            :   if (invalid_indices.find(temporal_id) != invalid_indices.end() and
+<span class="lineNum">     111 </span>            :       not invalid_indices.at(temporal_id).empty()) {
+<span class="lineNum">     112 </span>            :     db::mutate&lt;Tags::IndicesOfInvalidInterpPoints&lt;TemporalId&gt;,
+<span class="lineNum">     113 </span>            :                Tags::InterpolatedVars&lt;InterpolationTargetTag, TemporalId&gt;&gt;(
+<span class="lineNum">     114 </span>            :         box, [&amp;temporal_id](
+<span class="lineNum">     115 </span>            :                  const gsl::not_null&lt;std::unordered_map&lt;
+<span class="lineNum">     116 </span>            :                      TemporalId, std::unordered_set&lt;size_t&gt;&gt;*&gt;
+<span class="lineNum">     117 </span>            :                      indices_of_invalid_points,
+<span class="lineNum">     118 </span>            :                  const gsl::not_null&lt;std::unordered_map&lt;
+<span class="lineNum">     119 </span>            :                      TemporalId, Variables&lt;typename InterpolationTargetTag::
+<span class="lineNum">     120 </span>            :                                                vars_to_interpolate_to_target&gt;&gt;*&gt;
+<span class="lineNum">     121 </span>            :                      vars_dest_all_times) noexcept {
+<span class="lineNum">     122 </span>            :           auto&amp; vars_dest = vars_dest_all_times-&gt;at(temporal_id);
+<span class="lineNum">     123 </span>            :           const size_t npts_dest = vars_dest.number_of_grid_points();
+<span class="lineNum">     124 </span>            :           const size_t nvars = vars_dest.number_of_independent_components;
+<span class="lineNum">     125 </span>            :           for (auto index : indices_of_invalid_points-&gt;at(temporal_id)) {
+<span class="lineNum">     126 </span>            :             for (size_t v = 0; v &lt; nvars; ++v) {
+<span class="lineNum">     127 </span>            :               // clang-tidy: no pointer arithmetic
+<span class="lineNum">     128 </span>            :               vars_dest.data()[index + v * npts_dest] =  // NOLINT
+<span class="lineNum">     129 </span>            :                   InterpolationTargetTag::post_interpolation_callback::
+<span class="lineNum">     130 </span>            :                       fill_invalid_points_with;
+<span class="lineNum">     131 </span>            :             }
+<span class="lineNum">     132 </span>            :           }
+<span class="lineNum">     133 </span>            :           // Further functions may test if there are invalid points.
+<span class="lineNum">     134 </span>            :           // Clear the invalid points now, since we have filled them.
+<span class="lineNum">     135 </span>            :           indices_of_invalid_points-&gt;erase(temporal_id);
+<span class="lineNum">     136 </span>            :         });
+<span class="lineNum">     137 </span>            :   }
+<span class="lineNum">     138 </span>            : }
+<span class="lineNum">     139 </span>            : 
+<span class="lineNum">     140 </span>            : /// Wraps calling the callback function on an InterpolationTarget.
+<span class="lineNum">     141 </span>            : ///
+<span class="lineNum">     142 </span>            : /// First prepares for the callback, then calls the callback,
+<span class="lineNum">     143 </span>            : /// and returns true if the callback is done and
+<span class="lineNum">     144 </span>            : /// false if the callback is not done (e.g. if the callback is an
+<span class="lineNum">     145 </span>            : /// apparent horizon search and it needs another iteration).
+<span class="lineNum">     146 </span>            : ///
+<span class="lineNum">     147 </span>            : /// call_callback is called by an Action of InterpolationTarget.
+<span class="lineNum">     148 </span>            : ///
+<span class="lineNum">     149 </span>            : /// Currently two Actions call call_callback:
+<span class="lineNum">     150 </span>            : /// - InterpolationTargetReceiveVars (called by Interpolator ParallelComponent)
+<span class="lineNum">     151 </span>            : /// - InterpolationTargetVarsFromElement (called by DgElementArray)
+<span class="lineNum">     152 </span>            : template &lt;typename InterpolationTargetTag, typename DbTags,
+<span class="lineNum">     153 </span>            :           typename Metavariables, typename TemporalId&gt;
+<span class="lineNum">     154 </span>            : bool call_callback(
+<span class="lineNum">     155 </span>            :     const gsl::not_null&lt;db::DataBox&lt;DbTags&gt;*&gt; box,
+<span class="lineNum">     156 </span>            :     const gsl::not_null&lt;Parallel::ConstGlobalCache&lt;Metavariables&gt;*&gt; cache,
+<span class="lineNum">     157 </span>            :     const TemporalId&amp; temporal_id) noexcept {
+<span class="lineNum">     158 </span>            :   // Before doing anything else, deal with the possibility that some
+<span class="lineNum">     159 </span>            :   // of the points might be outside of the Domain.
+<span class="lineNum">     160 </span>            :   fill_invalid_points&lt;InterpolationTargetTag&gt;(box, temporal_id);
+<span class="lineNum">     161 </span>            : 
+<span class="lineNum">     162 </span>            :   // Fill ::Tags::Variables&lt;typename
+<span class="lineNum">     163 </span>            :   //      InterpolationTargetTag::vars_to_interpolate_to_target&gt;
+<span class="lineNum">     164 </span>            :   // with variables from correct temporal_id.
+<span class="lineNum">     165 </span>            :   db::mutate_apply&lt;
+<span class="lineNum">     166 </span>            :       tmpl::list&lt;::Tags::Variables&lt;
+<span class="lineNum">     167 </span>            :           typename InterpolationTargetTag::vars_to_interpolate_to_target&gt;&gt;,
+<span class="lineNum">     168 </span>            :       tmpl::list&lt;Tags::InterpolatedVars&lt;InterpolationTargetTag, TemporalId&gt;&gt;&gt;(
+<span class="lineNum">     169 </span>            :       [&amp;temporal_id](
+<span class="lineNum">     170 </span>            :           const gsl::not_null&lt;Variables&lt;
+<span class="lineNum">     171 </span>            :               typename InterpolationTargetTag::vars_to_interpolate_to_target&gt;*&gt;
+<span class="lineNum">     172 </span>            :               vars,
+<span class="lineNum">     173 </span>            :           const std::unordered_map&lt;
+<span class="lineNum">     174 </span>            :               TemporalId, Variables&lt;typename InterpolationTargetTag::
+<span class="lineNum">     175 </span>            :                                         vars_to_interpolate_to_target&gt;&gt;&amp;
+<span class="lineNum">     176 </span>            :               vars_at_all_times) noexcept {
+<span class="lineNum">     177 </span>            :         *vars = vars_at_all_times.at(temporal_id);
+<span class="lineNum">     178 </span>            :       },
+<span class="lineNum">     179 </span>            :       box);
+<span class="lineNum">     180 </span>            : 
+<span class="lineNum">     181 </span>            :   // apply_callback should return true if we are done with this
+<span class="lineNum">     182 </span>            :   // temporal_id.  It should return false only if the callback
+<span class="lineNum">     183 </span>            :   // calls another `intrp::Action` that needs the volume data at this
+<span class="lineNum">     184 </span>            :   // same temporal_id.
+<span class="lineNum">     185 </span>            :   return apply_callback&lt;InterpolationTargetTag&gt;(box, cache, temporal_id);
+<span class="lineNum">     186 </span>            : }
+<span class="lineNum">     187 </span>            : 
+<span class="lineNum">     188 </span>            : /// Frees InterpolationTarget's memory associated with the supplied
+<span class="lineNum">     189 </span>            : /// temporal_id.
+<span class="lineNum">     190 </span>            : ///
+<span class="lineNum">     191 </span>            : /// clean_up_interpolation_target is called by an Action of InterpolationTarget.
+<span class="lineNum">     192 </span>            : ///
+<span class="lineNum">     193 </span>            : /// Currently two Actions call clean_up_interpolation_target:
+<span class="lineNum">     194 </span>            : /// - InterpolationTargetReceiveVars (called by Interpolator ParallelComponent)
+<span class="lineNum">     195 </span>            : /// - InterpolationTargetVarsFromElement (called by DgElementArray)
+<span class="lineNum">     196 </span>            : template &lt;typename InterpolationTargetTag, typename DbTags, typename TemporalId&gt;
+<span class="lineNum">     197 </span>            : void clean_up_interpolation_target(
+<span class="lineNum">     198 </span>            :     const gsl::not_null&lt;db::DataBox&lt;DbTags&gt;*&gt; box,
+<span class="lineNum">     199 </span>            :     const TemporalId&amp; temporal_id) noexcept {
+<span class="lineNum">     200 </span>            :   // We are now done with this temporal_id, so we can pop it and
+<span class="lineNum">     201 </span>            :   // clean up data associated with it.
+<span class="lineNum">     202 </span>            :   db::mutate&lt;Tags::TemporalIds&lt;TemporalId&gt;,
+<span class="lineNum">     203 </span>            :              Tags::CompletedTemporalIds&lt;TemporalId&gt;,
+<span class="lineNum">     204 </span>            :              Tags::IndicesOfFilledInterpPoints&lt;TemporalId&gt;,
+<span class="lineNum">     205 </span>            :              Tags::IndicesOfInvalidInterpPoints&lt;TemporalId&gt;,
+<span class="lineNum">     206 </span>            :              Tags::InterpolatedVars&lt;InterpolationTargetTag, TemporalId&gt;&gt;(
+<span class="lineNum">     207 </span>            :       box, [&amp;temporal_id](
+<span class="lineNum">     208 </span>            :                const gsl::not_null&lt;std::deque&lt;TemporalId&gt;*&gt; ids,
+<span class="lineNum">     209 </span>            :                const gsl::not_null&lt;std::deque&lt;TemporalId&gt;*&gt; completed_ids,
+<span class="lineNum">     210 </span>            :                const gsl::not_null&lt;
+<span class="lineNum">     211 </span>            :                    std::unordered_map&lt;TemporalId, std::unordered_set&lt;size_t&gt;&gt;*&gt;
+<span class="lineNum">     212 </span>            :                    indices_of_filled,
+<span class="lineNum">     213 </span>            :                const gsl::not_null&lt;
+<span class="lineNum">     214 </span>            :                    std::unordered_map&lt;TemporalId, std::unordered_set&lt;size_t&gt;&gt;*&gt;
+<span class="lineNum">     215 </span>            :                    indices_of_invalid,
+<span class="lineNum">     216 </span>            :                const gsl::not_null&lt;std::unordered_map&lt;
+<span class="lineNum">     217 </span>            :                    TemporalId, Variables&lt;typename InterpolationTargetTag::
+<span class="lineNum">     218 </span>            :                                              vars_to_interpolate_to_target&gt;&gt;*&gt;
+<span class="lineNum">     219 </span>            :                    interpolated_vars) noexcept {
+<span class="lineNum">     220 </span>            :         completed_ids-&gt;push_back(temporal_id);
+<span class="lineNum">     221 </span>            :         ASSERT(std::find(ids-&gt;begin(), ids-&gt;end(), temporal_id) != ids-&gt;end(),
+<span class="lineNum">     222 </span>            :                &quot;Temporal id &quot; &lt;&lt; temporal_id &lt;&lt; &quot; does not exist in ids&quot;);
+<span class="lineNum">     223 </span>            :         ids-&gt;erase(std::remove(ids-&gt;begin(), ids-&gt;end(), temporal_id),
+<span class="lineNum">     224 </span>            :                    ids-&gt;end());
+<span class="lineNum">     225 </span>            :         // We want to keep track of all completed temporal_ids to deal with
+<span class="lineNum">     226 </span>            :         // the possibility of late calls to
+<span class="lineNum">     227 </span>            :         // AddTemporalIdsToInterpolationTarget.  We could keep all
+<span class="lineNum">     228 </span>            :         // completed_ids forever, but we probably don't want it to get too
+<span class="lineNum">     229 </span>            :         // large, so we limit its size.  We assume that
+<span class="lineNum">     230 </span>            :         // asynchronous calls to AddTemporalIdsToInterpolationTarget do not span
+<span class="lineNum">     231 </span>            :         // more than 1000 temporal_ids.
+<span class="lineNum">     232 </span>            :         if (completed_ids-&gt;size() &gt; 1000) {
+<span class="lineNum">     233 </span>            :           completed_ids-&gt;pop_front();
+<span class="lineNum">     234 </span>            :         }
+<span class="lineNum">     235 </span>            :         indices_of_filled-&gt;erase(temporal_id);
+<span class="lineNum">     236 </span>            :         indices_of_invalid-&gt;erase(temporal_id);
+<span class="lineNum">     237 </span>            :         interpolated_vars-&gt;erase(temporal_id);
+<span class="lineNum">     238 </span>            :       });
+<span class="lineNum">     239 </span>            : }
+<span class="lineNum">     240 </span>            : 
+<span class="lineNum">     241 </span>            : /// Returns true if this InterpolationTarget has received data
+<span class="lineNum">     242 </span>            : /// at all its points.
+<span class="lineNum">     243 </span>            : ///
+<span class="lineNum">     244 </span>            : /// have_data_at_all_points is called by an Action of InterpolationTarget.
+<span class="lineNum">     245 </span>            : ///
+<span class="lineNum">     246 </span>            : /// Currently two Actions call have_data_at_all_points:
+<span class="lineNum">     247 </span>            : /// - InterpolationTargetReceiveVars (called by Interpolator ParallelComponent)
+<span class="lineNum">     248 </span>            : /// - InterpolationTargetVarsFromElement (called by DgElementArray)
+<span class="lineNum">     249 </span>            : template &lt;typename InterpolationTargetTag, typename DbTags, typename TemporalId&gt;
+<span class="lineNum">     250 </span>            : bool have_data_at_all_points(const db::DataBox&lt;DbTags&gt;&amp; box,
+<span class="lineNum">     251 </span>            :                              const TemporalId&amp; temporal_id) noexcept {
+<span class="lineNum">     252 </span>            :   const size_t filled_size =
+<span class="lineNum">     253 </span>            :       db::get&lt;Tags::IndicesOfFilledInterpPoints&lt;TemporalId&gt;&gt;(box)
+<span class="lineNum">     254 </span>            :           .at(temporal_id)
+<span class="lineNum">     255 </span>            :           .size();
+<span class="lineNum">     256 </span>            :   const size_t invalid_size = [&amp;box, &amp;temporal_id ]() noexcept {
+<span class="lineNum">     257 </span>            :     const auto&amp; invalid_indices =
+<span class="lineNum">     258 </span>            :         db::get&lt;Tags::IndicesOfInvalidInterpPoints&lt;TemporalId&gt;&gt;(box);
+<span class="lineNum">     259 </span>            :     if (invalid_indices.count(temporal_id) &gt; 0) {
+<span class="lineNum">     260 </span>            :       return invalid_indices.at(temporal_id).size();
+<span class="lineNum">     261 </span>            :     }
+<span class="lineNum">     262 </span>            :     return 0_st;
+<span class="lineNum">     263 </span>            :   }
+<span class="lineNum">     264 </span>            :   ();
+<span class="lineNum">     265 </span>            :   const size_t interp_size =
+<span class="lineNum">     266 </span>            :       db::get&lt;Tags::InterpolatedVars&lt;InterpolationTargetTag, TemporalId&gt;&gt;(box)
+<span class="lineNum">     267 </span>            :           .at(temporal_id)
+<span class="lineNum">     268 </span>            :           .number_of_grid_points();
+<span class="lineNum">     269 </span>            :   return (invalid_size + filled_size == interp_size);
+<span class="lineNum">     270 </span>            : }
+<span class="lineNum">     271 </span>            : 
+<span class="lineNum">     272 </span>            : /// Tells an InterpolationTarget that it should interpolate at
+<span class="lineNum">     273 </span>            : /// the supplied temporal_ids.  Changes the InterpolationTarget's DataBox
+<span class="lineNum">     274 </span>            : /// accordingly.
+<span class="lineNum">     275 </span>            : ///
+<span class="lineNum">     276 </span>            : /// Returns the temporal_ids that have actually been newly flagged
+<span class="lineNum">     277 </span>            : /// (since some of them may have been flagged already).
+<span class="lineNum">     278 </span>            : ///
+<span class="lineNum">     279 </span>            : /// flag_temporal_ids_for_interpolation is called by an Action
+<span class="lineNum">     280 </span>            : /// of InterpolationTarget
+<span class="lineNum">     281 </span>            : ///
+<span class="lineNum">     282 </span>            : /// Currently two Actions call flag_temporal_ids_for_interpolation:
+<span class="lineNum">     283 </span>            : /// - AddTemporalIdsToInterpolationTarget (called by Events::Interpolate)
+<span class="lineNum">     284 </span>            : /// - InterpolationTargetVarsFromElement (called by DgElementArray)
+<span class="lineNum">     285 </span>            : template &lt;typename InterpolationTargetTag, typename DbTags, typename TemporalId&gt;
+<span class="lineNum">     286 </span>            : std::vector&lt;TemporalId&gt; flag_temporal_ids_for_interpolation(
+<span class="lineNum">     287 </span>            :     const gsl::not_null&lt;db::DataBox&lt;DbTags&gt;*&gt; box,
+<span class="lineNum">     288 </span>            :     const std::vector&lt;TemporalId&gt;&amp; temporal_ids) noexcept {
+<span class="lineNum">     289 </span>            :   // We allow this function to be called multiple times with the same
+<span class="lineNum">     290 </span>            :   // temporal_ids (e.g. from each element, or from each node of a
+<span class="lineNum">     291 </span>            :   // NodeGroup ParallelComponent such as Interpolator). If multiple
+<span class="lineNum">     292 </span>            :   // calls occur, we care only about the first one, and ignore the
+<span class="lineNum">     293 </span>            :   // others.  The first call will often begin interpolation.  So if
+<span class="lineNum">     294 </span>            :   // multiple calls occur, it is possible that some of them may arrive
+<span class="lineNum">     295 </span>            :   // late, even after interpolation has been completed on one or more
+<span class="lineNum">     296 </span>            :   // of the temporal_ids (and after that id has already been removed
+<span class="lineNum">     297 </span>            :   // from `ids`).  If this happens, we don't want to add the
+<span class="lineNum">     298 </span>            :   // temporal_ids again. For that reason we keep track of the
+<span class="lineNum">     299 </span>            :   // temporal_ids that we have already completed interpolation on.  So
+<span class="lineNum">     300 </span>            :   // here we do not add any temporal_ids that are already present in
+<span class="lineNum">     301 </span>            :   // `ids` or `completed_ids`.
+<span class="lineNum">     302 </span>            :   std::vector&lt;TemporalId&gt; new_temporal_ids{};
+<span class="lineNum">     303 </span>            : 
+<span class="lineNum">     304 </span>            :   db::mutate_apply&lt;tmpl::list&lt;Tags::TemporalIds&lt;TemporalId&gt;&gt;,
+<span class="lineNum">     305 </span>            :                    tmpl::list&lt;Tags::CompletedTemporalIds&lt;TemporalId&gt;&gt;&gt;(
+<span class="lineNum">     306 </span>            :       [&amp;temporal_ids, &amp;new_temporal_ids ](
+<span class="lineNum">     307 </span>            :           const gsl::not_null&lt;std::deque&lt;TemporalId&gt;*&gt; ids,
+<span class="lineNum">     308 </span>            :           const std::deque&lt;TemporalId&gt;&amp; completed_ids) noexcept {
+<span class="lineNum">     309 </span>            :         for (auto&amp; id : temporal_ids) {
+<span class="lineNum">     310 </span>            :           if (std::find(completed_ids.begin(), completed_ids.end(), id) ==
+<span class="lineNum">     311 </span>            :                   completed_ids.end() and
+<span class="lineNum">     312 </span>            :               std::find(ids-&gt;begin(), ids-&gt;end(), id) == ids-&gt;end()) {
+<span class="lineNum">     313 </span>            :             ids-&gt;push_back(id);
+<span class="lineNum">     314 </span>            :             new_temporal_ids.push_back(id);
+<span class="lineNum">     315 </span>            :           }
+<span class="lineNum">     316 </span>            :         }
+<span class="lineNum">     317 </span>            :       },
+<span class="lineNum">     318 </span>            :       box);
+<span class="lineNum">     319 </span>            : 
+<span class="lineNum">     320 </span>            :   return new_temporal_ids;
+<span class="lineNum">     321 </span>            : }
+<span class="lineNum">     322 </span>            : 
+<span class="lineNum">     323 </span>            : /// Adds the supplied interpolated variables and offsets to the
+<span class="lineNum">     324 </span>            : /// InterpolationTarget's internal DataBox.
+<span class="lineNum">     325 </span>            : ///
+<span class="lineNum">     326 </span>            : /// Note that the template argument to Variables in vars_src is called
+<span class="lineNum">     327 </span>            : /// InterpolationTargetTag::vars_to_interpolate_to_target.  This is a list
+<span class="lineNum">     328 </span>            : /// of tags, and is used for both the interpolated variables (in
+<span class="lineNum">     329 </span>            : /// this function add_received_variables) and for the source variables
+<span class="lineNum">     330 </span>            : /// (in other functions). The source and interpolated quantities are
+<span class="lineNum">     331 </span>            : /// the same set of variables (but at different points).
+<span class="lineNum">     332 </span>            : ///
+<span class="lineNum">     333 </span>            : /// add_received_variables is called by an Action of InterpolationTarget.
+<span class="lineNum">     334 </span>            : ///
+<span class="lineNum">     335 </span>            : /// Currently two Actions call add_received_variables:
+<span class="lineNum">     336 </span>            : /// - InterpolationTargetReceiveVars (called by Interpolator ParallelComponent)
+<span class="lineNum">     337 </span>            : /// - InterpolationTargetVarsFromElement (called by DgElementArray)
+<span class="lineNum">     338 </span>            : template &lt;typename InterpolationTargetTag, typename DbTags, typename TemporalId&gt;
+<span class="lineNum">     339 </span>            : void add_received_variables(
+<span class="lineNum">     340 </span>            :     const gsl::not_null&lt;db::DataBox&lt;DbTags&gt;*&gt; box,
+<span class="lineNum">     341 </span>            :     const std::vector&lt;Variables&lt;
+<span class="lineNum">     342 </span>            :         typename InterpolationTargetTag::vars_to_interpolate_to_target&gt;&gt;&amp;
+<span class="lineNum">     343 </span>            :         vars_src,
+<span class="lineNum">     344 </span>            :     const std::vector&lt;std::vector&lt;size_t&gt;&gt;&amp; global_offsets,
+<span class="lineNum">     345 </span>            :     const TemporalId&amp; temporal_id) noexcept {
+<span class="lineNum">     346 </span>            :   db::mutate&lt;Tags::IndicesOfFilledInterpPoints&lt;TemporalId&gt;,
+<span class="lineNum">     347 </span>            :              Tags::InterpolatedVars&lt;InterpolationTargetTag, TemporalId&gt;&gt;(
+<span class="lineNum">     348 </span>            :       box, [&amp;temporal_id, &amp;vars_src, &amp;global_offsets ](
+<span class="lineNum">     349 </span>            :                const gsl::not_null&lt;
+<span class="lineNum">     350 </span>            :                    std::unordered_map&lt;TemporalId, std::unordered_set&lt;size_t&gt;&gt;*&gt;
+<span class="lineNum">     351 </span>            :                    indices_of_filled,
+<span class="lineNum">     352 </span>            :                const gsl::not_null&lt;std::unordered_map&lt;
+<span class="lineNum">     353 </span>            :                    TemporalId, Variables&lt;typename InterpolationTargetTag::
+<span class="lineNum">     354 </span>            :                                              vars_to_interpolate_to_target&gt;&gt;*&gt;
+<span class="lineNum">     355 </span>            :                    vars_dest_all_times) noexcept {
+<span class="lineNum">     356 </span>            :         auto&amp; vars_dest = vars_dest_all_times-&gt;at(temporal_id);
+<span class="lineNum">     357 </span>            :         // Here we assume that vars_dest has been allocated to the correct
+<span class="lineNum">     358 </span>            :         // size (but could contain garbage, since below we are filling it).
+<span class="lineNum">     359 </span>            :         const size_t npts_dest = vars_dest.number_of_grid_points();
+<span class="lineNum">     360 </span>            :         const size_t nvars = vars_dest.number_of_independent_components;
+<span class="lineNum">     361 </span>            :         for (size_t j = 0; j &lt; global_offsets.size(); ++j) {
+<span class="lineNum">     362 </span>            :           const size_t npts_src = global_offsets[j].size();
+<span class="lineNum">     363 </span>            :           for (size_t i = 0; i &lt; npts_src; ++i) {
+<span class="lineNum">     364 </span>            :             // If a point is on the boundary of two (or more)
+<span class="lineNum">     365 </span>            :             // elements, it is possible that we have received data
+<span class="lineNum">     366 </span>            :             // for this point from more than one Interpolator.
+<span class="lineNum">     367 </span>            :             // This will rarely occur, but it does occur, e.g. when
+<span class="lineNum">     368 </span>            :             // a point is exactly on some symmetry
+<span class="lineNum">     369 </span>            :             // boundary (such as the x-y plane) and this symmetry
+<span class="lineNum">     370 </span>            :             // boundary is exactly the boundary between two
+<span class="lineNum">     371 </span>            :             // elements.  If this happens, we accept the first
+<span class="lineNum">     372 </span>            :             // duplicated point, and we ignore subsequent
+<span class="lineNum">     373 </span>            :             // duplicated points.  The points are easy to keep track
+<span class="lineNum">     374 </span>            :             // of because global_offsets uniquely identifies them.
+<span class="lineNum">     375 </span>            :             if ((*indices_of_filled)[temporal_id]
+<span class="lineNum">     376 </span>            :                     .insert(global_offsets[j][i])
+<span class="lineNum">     377 </span>            :                     .second) {
+<span class="lineNum">     378 </span>            :               for (size_t v = 0; v &lt; nvars; ++v) {
+<span class="lineNum">     379 </span>            :                 // clang-tidy: no pointer arithmetic
+<span class="lineNum">     380 </span>            :                 vars_dest.data()[global_offsets[j][i] +    // NOLINT
+<span class="lineNum">     381 </span>            :                                  v * npts_dest] =          // NOLINT
+<span class="lineNum">     382 </span>            :                     vars_src[j].data()[i + v * npts_src];  // NOLINT
+<span class="lineNum">     383 </span>            :               }
+<span class="lineNum">     384 </span>            :             }
+<span class="lineNum">     385 </span>            :           }
+<span class="lineNum">     386 </span>            :         }
+<span class="lineNum">     387 </span>            :       });
+<span class="lineNum">     388 </span>            : }
+<span class="lineNum">     389 </span>            : 
+<span class="lineNum">     390 </span>            : /// Computes the block logical coordinates of an InterpolationTarget.
+<span class="lineNum">     391 </span>            : ///
+<span class="lineNum">     392 </span>            : /// block_logical_coords is called by an Action of InterpolationTarget.
+<span class="lineNum">     393 </span>            : ///
+<span class="lineNum">     394 </span>            : /// Currently two Actions call block_logical_coords:
+<span class="lineNum">     395 </span>            : /// - SendPointsToInterpolator (called by AddTemporalIdsToInterpolationTarget
+<span class="lineNum">     396 </span>            : ///                             and by FindApparentHorizon)
+<span class="lineNum">     397 </span>            : /// - InterpolationTargetVarsFromElement (called by DgElementArray)
+<span class="lineNum">     398 </span>            : /// - InterpolationTargetSendTimeIndepPointsToElements
+<span class="lineNum">     399 </span>            : ///   (in InterpolationTarget ActionList)
+<span class="lineNum">     400 </span>            : template &lt;typename InterpolationTargetTag, typename DbTags,
+<span class="lineNum">     401 </span>            :           typename Metavariables, typename TemporalId&gt;
+<span class="lineNum">     402 </span>            : auto block_logical_coords(const db::DataBox&lt;DbTags&gt;&amp; box,
+<span class="lineNum">     403 </span>            :                           const tmpl::type_&lt;Metavariables&gt;&amp; meta,
+<span class="lineNum">     404 </span>            :                           const TemporalId&amp; temporal_id) noexcept {
+<span class="lineNum">     405 </span>            :   const auto&amp; domain =
+<span class="lineNum">     406 </span>            :       db::get&lt;domain::Tags::Domain&lt;Metavariables::volume_dim&gt;&gt;(box);
+<span class="lineNum">     407 </span>            :   return ::block_logical_coordinates(
+<span class="lineNum">     408 </span>            :       domain, InterpolationTargetTag::compute_target_points::points(
+<span class="lineNum">     409 </span>            :                   box, meta, temporal_id));
+<span class="lineNum">     410 </span>            : }
+<span class="lineNum">     411 </span>            : 
+<span class="lineNum">     412 </span>            : /// This is a version of block_logical_coords for when the coords
+<span class="lineNum">     413 </span>            : /// are time-independent.
+<span class="lineNum">     414 </span>            : template &lt;typename InterpolationTargetTag, typename DbTags,
+<span class="lineNum">     415 </span>            :           typename Metavariables&gt;
+<span class="lineNum">     416 </span>            : auto block_logical_coords(const db::DataBox&lt;DbTags&gt;&amp; box,
+<span class="lineNum">     417 </span>            :                           const tmpl::type_&lt;Metavariables&gt;&amp; meta) noexcept {
+<span class="lineNum">     418 </span>            :   const auto&amp; domain =
+<span class="lineNum">     419 </span>            :       db::get&lt;domain::Tags::Domain&lt;Metavariables::volume_dim&gt;&gt;(box);
+<span class="lineNum">     420 </span>            :   return ::block_logical_coordinates(
+<span class="lineNum">     421 </span>            :       domain, InterpolationTargetTag::compute_target_points::points(box, meta));
+<span class="lineNum">     422 </span>            : }
+<span class="lineNum">     423 </span>            : 
+<span class="lineNum">     424 </span>            : /// Initializes InterpolationTarget's variables storage and lists of indices
+<span class="lineNum">     425 </span>            : /// corresponding to the supplied block logical coordinates and `temporal_id`.
+<span class="lineNum">     426 </span>            : ///
+<span class="lineNum">     427 </span>            : /// set_up_interpolation is called by an Action of InterpolationTarget.
+<span class="lineNum">     428 </span>            : ///
+<span class="lineNum">     429 </span>            : /// Currently two Actions call set_up_interpolation:
+<span class="lineNum">     430 </span>            : /// - SendPointsToInterpolator (called by AddTemporalIdsToInterpolationTarget
+<span class="lineNum">     431 </span>            : ///                             and by FindApparentHorizon)
+<span class="lineNum">     432 </span>            : /// - InterpolationTargetVarsFromElement (called by DgElementArray)
+<span class="lineNum">     433 </span>            : template &lt;typename InterpolationTargetTag, typename DbTags, size_t VolumeDim,
+<span class="lineNum">     434 </span>            :           typename TemporalId&gt;
+<span class="lineNum">     435 </span>            : void set_up_interpolation(
+<span class="lineNum">     436 </span>            :     const gsl::not_null&lt;db::DataBox&lt;DbTags&gt;*&gt; box,
+<span class="lineNum">     437 </span>            :     const TemporalId&amp; temporal_id,
+<span class="lineNum">     438 </span>            :     const std::vector&lt;boost::optional&lt;
+<span class="lineNum">     439 </span>            :         IdPair&lt;domain::BlockId,
+<span class="lineNum">     440 </span>            :                tnsr::I&lt;double, VolumeDim, typename ::Frame::Logical&gt;&gt;&gt;&gt;&amp;
+<span class="lineNum">     441 </span>            :         block_logical_coords) noexcept {
+<span class="lineNum">     442 </span>            :   db::mutate&lt;Tags::IndicesOfFilledInterpPoints&lt;TemporalId&gt;,
+<span class="lineNum">     443 </span>            :              Tags::IndicesOfInvalidInterpPoints&lt;TemporalId&gt;,
+<span class="lineNum">     444 </span>            :              Tags::InterpolatedVars&lt;InterpolationTargetTag, TemporalId&gt;&gt;(
+<span class="lineNum">     445 </span>            :       box, [&amp;block_logical_coords, &amp;temporal_id ](
+<span class="lineNum">     446 </span>            :                const gsl::not_null&lt;
+<span class="lineNum">     447 </span>            :                    std::unordered_map&lt;TemporalId, std::unordered_set&lt;size_t&gt;&gt;*&gt;
+<span class="lineNum">     448 </span>            :                    indices_of_filled,
+<span class="lineNum">     449 </span>            :                const gsl::not_null&lt;
+<span class="lineNum">     450 </span>            :                    std::unordered_map&lt;TemporalId, std::unordered_set&lt;size_t&gt;&gt;*&gt;
+<span class="lineNum">     451 </span>            :                    indices_of_invalid_points,
+<span class="lineNum">     452 </span>            :                const gsl::not_null&lt;std::unordered_map&lt;
+<span class="lineNum">     453 </span>            :                    TemporalId, Variables&lt;typename InterpolationTargetTag::
+<span class="lineNum">     454 </span>            :                                              vars_to_interpolate_to_target&gt;&gt;*&gt;
+<span class="lineNum">     455 </span>            :                    vars_dest_all_times) noexcept {
+<span class="lineNum">     456 </span>            :         // Because we are sending new points to the interpolator,
+<span class="lineNum">     457 </span>            :         // we know that none of these points have been interpolated to,
+<span class="lineNum">     458 </span>            :         // so clear the list.
+<span class="lineNum">     459 </span>            :         indices_of_filled-&gt;erase(temporal_id);
+<span class="lineNum">     460 </span>            : 
+<span class="lineNum">     461 </span>            :         // Set the indices of invalid points.
+<span class="lineNum">     462 </span>            :         indices_of_invalid_points-&gt;erase(temporal_id);
+<span class="lineNum">     463 </span>            :         for (size_t i = 0; i &lt; block_logical_coords.size(); ++i) {
+<span class="lineNum">     464 </span>            :           if (not block_logical_coords[i]) {
+<span class="lineNum">     465 </span>            :             (*indices_of_invalid_points)[temporal_id].insert(i);
+<span class="lineNum">     466 </span>            :           }
+<span class="lineNum">     467 </span>            :         }
+<span class="lineNum">     468 </span>            : 
+<span class="lineNum">     469 </span>            :         // At this point we don't know if vars_dest exists in the map;
+<span class="lineNum">     470 </span>            :         // if it doesn't then we want to default construct it.
+<span class="lineNum">     471 </span>            :         auto&amp; vars_dest = (*vars_dest_all_times)[temporal_id];
+<span class="lineNum">     472 </span>            : 
+<span class="lineNum">     473 </span>            :         // We will be filling vars_dest with interpolated data.
+<span class="lineNum">     474 </span>            :         // Here we make sure it is allocated to the correct size.
+<span class="lineNum">     475 </span>            :         if (vars_dest.number_of_grid_points() != block_logical_coords.size()) {
+<span class="lineNum">     476 </span>            :           vars_dest = Variables&lt;
+<span class="lineNum">     477 </span>            :               typename InterpolationTargetTag::vars_to_interpolate_to_target&gt;(
+<span class="lineNum">     478 </span>            :               block_logical_coords.size());
+<span class="lineNum">     479 </span>            :         }
+<span class="lineNum">     480 </span>            :       });
+<span class="lineNum">     481 </span>            : }
+<span class="lineNum">     482 </span>            : 
+<span class="lineNum">     483 </span>            : }  // namespace InterpolationTarget_detail
+<span class="lineNum">     484 </span>            : }  // namespace intrp
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

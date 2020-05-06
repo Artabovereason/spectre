@@ -1,0 +1,244 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - Domain/Creators/TimeDependence/CubicScale.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../index.html">top level</a> - <a href="index.html">Domain/Creators/TimeDependence</a> - CubicScale.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">11</td>
+            <td class="headerCovTableEntry">45</td>
+            <td class="headerCovTableEntryLo">24.4 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #pragma once
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;array&gt;
+<span class="lineNum">       7 </span>            : #include &lt;cstddef&gt;
+<span class="lineNum">       8 </span>            : #include &lt;limits&gt;
+<span class="lineNum">       9 </span>            : #include &lt;memory&gt;
+<span class="lineNum">      10 </span>            : #include &lt;string&gt;
+<span class="lineNum">      11 </span>            : #include &lt;unordered_map&gt;
+<span class="lineNum">      12 </span>            : #include &lt;vector&gt;
+<span class="lineNum">      13 </span>            : 
+<span class="lineNum">      14 </span>            : #include &quot;Domain/CoordinateMaps/CoordinateMap.hpp&quot;
+<span class="lineNum">      15 </span>            : #include &quot;Domain/CoordinateMaps/TimeDependent/CubicScale.hpp&quot;
+<span class="lineNum">      16 </span>            : #include &quot;Domain/Creators/TimeDependence/TimeDependence.hpp&quot;
+<span class="lineNum">      17 </span>            : #include &quot;Options/Options.hpp&quot;
+<span class="lineNum">      18 </span>            : #include &quot;Utilities/TMPL.hpp&quot;
+<span class="lineNum">      19 </span>            : 
+<span class="lineNum">      20 </span>            : /// \cond
+<span class="lineNum">      21 </span>            : namespace domain {
+<span class="lineNum">      22 </span>            : namespace FunctionsOfTime {
+<span class="lineNum">      23 </span>            : class FunctionOfTime;
+<span class="lineNum">      24 </span>            : }  // namespace FunctionsOfTime
+<span class="lineNum">      25 </span>            : 
+<span class="lineNum">      26 </span>            : template &lt;typename SourceFrame, typename TargetFrame, typename... Maps&gt;
+<span class="lineNum">      27 </span>            : class CoordinateMap;
+<span class="lineNum">      28 </span>            : }  // namespace domain
+<span class="lineNum">      29 </span>            : 
+<span class="lineNum">      30 </span>            : namespace Frame {
+<span class="lineNum">      31 </span>            : struct Grid;
+<span class="lineNum">      32 </span>            : struct Inertial;
+<span class="lineNum">      33 </span>            : }  // namespace Frame
+<span class="lineNum">      34 </span>            : /// \endcond
+<span class="lineNum">      35 </span>            : 
+<span class="lineNum">      36 </span>            : namespace domain {
+<span class="lineNum">      37 </span>            : namespace creators {
+<span class="lineNum">      38 </span>            : namespace time_dependence {
+<span class="lineNum">      39 </span>            : /// \brief A linear or cubic radial scaling time dependence.
+<span class="lineNum">      40 </span>            : ///
+<span class="lineNum">      41 </span>            : /// Adds the `domain::CoordinateMaps::TimeDependent::CubicScale` map. A linear
+<span class="lineNum">      42 </span>            : /// radial scaling can be used by specifying the two functions of time to have
+<span class="lineNum">      43 </span>            : /// the same name.
+<span class="lineNum">      44 </span>            : template &lt;size_t MeshDim&gt;
+<span class="lineNum">      45 </span><span class="lineCov">          1 : class CubicScale final : public TimeDependence&lt;MeshDim&gt; {</span>
+<span class="lineNum">      46 </span>            :  private:
+<span class="lineNum">      47 </span><span class="lineNoCov">          0 :   using CubicScaleMap =</span>
+<span class="lineNum">      48 </span>            :       domain::CoordinateMaps::TimeDependent::CubicScale&lt;MeshDim&gt;;
+<span class="lineNum">      49 </span>            : 
+<span class="lineNum">      50 </span>            :  public:
+<span class="lineNum">      51 </span><span class="lineNoCov">          0 :   using maps_list =</span>
+<span class="lineNum">      52 </span>            :       tmpl::list&lt;CoordinateMap&lt;Frame::Grid, Frame::Inertial, CubicScaleMap&gt;&gt;;
+<span class="lineNum">      53 </span>            : 
+<span class="lineNum">      54 </span><span class="lineNoCov">          0 :   static constexpr size_t mesh_dim = MeshDim;</span>
+<span class="lineNum">      55 </span>            : 
+<span class="lineNum">      56 </span>            :   /// \brief The initial time of the functions of time.
+<span class="lineNum">      57 </span><span class="lineCov">          1 :   struct InitialTime {</span>
+<span class="lineNum">      58 </span><span class="lineNoCov">          0 :     using type = double;</span>
+<span class="lineNum">      59 </span><span class="lineNoCov">          0 :     static constexpr OptionString help = {</span>
+<span class="lineNum">      60 </span>            :         &quot;The initial time of the functions of time&quot;};
+<span class="lineNum">      61 </span>            :   };
+<span class="lineNum">      62 </span>            :   /// \brief The outer boundary or pivot point of the
+<span class="lineNum">      63 </span>            :   /// `domain::CoordinateMaps::TimeDependent::CubicScale` map
+<span class="lineNum">      64 </span><span class="lineCov">          1 :   struct OuterBoundary {</span>
+<span class="lineNum">      65 </span><span class="lineNoCov">          0 :     using type = double;</span>
+<span class="lineNum">      66 </span><span class="lineNoCov">          0 :     static constexpr OptionString help = {</span>
+<span class="lineNum">      67 </span>            :         &quot;Outer boundary or pivot point of the map&quot;};
+<span class="lineNum">      68 </span>            :   };
+<span class="lineNum">      69 </span>            :   /// \brief The initial values of the expansion factors.
+<span class="lineNum">      70 </span><span class="lineCov">          1 :   struct InitialExpansion {</span>
+<span class="lineNum">      71 </span><span class="lineNoCov">          0 :     using type = std::array&lt;double, 2&gt;;</span>
+<span class="lineNum">      72 </span><span class="lineNoCov">          0 :     static constexpr OptionString help = {&quot;Expansion values at initial time.&quot;};</span>
+<span class="lineNum">      73 </span>            :   };
+<span class="lineNum">      74 </span>            :   /// \brief The velocity of the expansion factors.
+<span class="lineNum">      75 </span><span class="lineCov">          1 :   struct Velocity {</span>
+<span class="lineNum">      76 </span><span class="lineNoCov">          0 :     using type = std::array&lt;double, 2&gt;;</span>
+<span class="lineNum">      77 </span><span class="lineNoCov">          0 :     static constexpr OptionString help = {&quot;The rate of expansion.&quot;};</span>
+<span class="lineNum">      78 </span>            :   };
+<span class="lineNum">      79 </span>            :   /// \brief The acceleration of the expansion factors.
+<span class="lineNum">      80 </span><span class="lineCov">          1 :   struct Acceleration {</span>
+<span class="lineNum">      81 </span><span class="lineNoCov">          0 :     using type = std::array&lt;double, 2&gt;;</span>
+<span class="lineNum">      82 </span><span class="lineNoCov">          0 :     static constexpr OptionString help = {&quot;The acceleration of expansion.&quot;};</span>
+<span class="lineNum">      83 </span>            :   };
+<span class="lineNum">      84 </span>            :   /// \brief The names of the functions of times to be added to the added to the
+<span class="lineNum">      85 </span>            :   /// DataBox.
+<span class="lineNum">      86 </span>            :   ///
+<span class="lineNum">      87 </span>            :   /// The defaults are `&quot;ExpansionA&quot;, &quot;ExpansionB&quot;`.
+<span class="lineNum">      88 </span>            :   ///
+<span class="lineNum">      89 </span>            :   /// If the two names are same then a linear radial scaling is used instead of
+<span class="lineNum">      90 </span>            :   /// a cubic scaling.
+<span class="lineNum">      91 </span><span class="lineCov">          1 :   struct FunctionOfTimeNames {</span>
+<span class="lineNum">      92 </span><span class="lineNoCov">          0 :     using type = std::array&lt;std::string, 2&gt;;</span>
+<span class="lineNum">      93 </span><span class="lineNoCov">          0 :     static constexpr OptionString help = {&quot;Names of the functions of time.&quot;};</span>
+<span class="lineNum">      94 </span><span class="lineNoCov">          0 :     static type default_value() noexcept {</span>
+<span class="lineNum">      95 </span>            :       return {{&quot;ExpansionA&quot;, &quot;ExpansionB&quot;}};
+<span class="lineNum">      96 </span>            :     }
+<span class="lineNum">      97 </span>            :   };
+<span class="lineNum">      98 </span>            : 
+<span class="lineNum">      99 </span><span class="lineNoCov">          0 :   using options = tmpl::list&lt;InitialTime, OuterBoundary, FunctionOfTimeNames,</span>
+<span class="lineNum">     100 </span>            :                              InitialExpansion, Velocity, Acceleration&gt;;
+<span class="lineNum">     101 </span>            : 
+<span class="lineNum">     102 </span><span class="lineNoCov">          0 :   static constexpr OptionString help = {</span>
+<span class="lineNum">     103 </span>            :       &quot;A spatial radial scaling either based on a cubic scaling or a simple\n&quot;
+<span class="lineNum">     104 </span>            :       &quot;linear scaling.\n&quot;
+<span class="lineNum">     105 </span>            :       &quot;\n&quot;
+<span class="lineNum">     106 </span>            :       &quot;If the two functions of time have the same name then the scaling is a\n&quot;
+<span class="lineNum">     107 </span>            :       &quot;linear radial scaling.&quot;};
+<span class="lineNum">     108 </span>            : 
+<span class="lineNum">     109 </span><span class="lineNoCov">          0 :   using MapForComposition =</span>
+<span class="lineNum">     110 </span>            :       domain::CoordinateMap&lt;Frame::Grid, Frame::Inertial, CubicScaleMap&gt;;
+<span class="lineNum">     111 </span>            : 
+<span class="lineNum">     112 </span><span class="lineNoCov">          0 :   CubicScale() = default;</span>
+<span class="lineNum">     113 </span><span class="lineNoCov">          0 :   ~CubicScale() override = default;</span>
+<span class="lineNum">     114 </span><span class="lineNoCov">          0 :   CubicScale(const CubicScale&amp;) = delete;</span>
+<span class="lineNum">     115 </span><span class="lineNoCov">          0 :   CubicScale(CubicScale&amp;&amp;) noexcept = default;</span>
+<span class="lineNum">     116 </span><span class="lineNoCov">          0 :   CubicScale&amp; operator=(const CubicScale&amp;) = delete;</span>
+<span class="lineNum">     117 </span><span class="lineNoCov">          0 :   CubicScale&amp; operator=(CubicScale&amp;&amp;) noexcept = default;</span>
+<span class="lineNum">     118 </span>            : 
+<span class="lineNum">     119 </span><span class="lineNoCov">          0 :   CubicScale(double initial_time,</span>
+<span class="lineNum">     120 </span>            :              double outer_boundary,
+<span class="lineNum">     121 </span>            :              std::array&lt;std::string, 2&gt; functions_of_time_names,
+<span class="lineNum">     122 </span>            :              const std::array&lt;double, 2&gt;&amp; initial_expansion,
+<span class="lineNum">     123 </span>            :              const std::array&lt;double, 2&gt;&amp; velocity,
+<span class="lineNum">     124 </span>            :              const std::array&lt;double, 2&gt;&amp; acceleration) noexcept;
+<span class="lineNum">     125 </span>            : 
+<span class="lineNum">     126 </span><span class="lineCov">          1 :   auto get_clone() const noexcept</span>
+<span class="lineNum">     127 </span>            :       -&gt; std::unique_ptr&lt;TimeDependence&lt;MeshDim&gt;&gt; override;
+<span class="lineNum">     128 </span>            : 
+<span class="lineNum">     129 </span><span class="lineCov">          1 :   auto block_maps(size_t number_of_blocks) const noexcept</span>
+<span class="lineNum">     130 </span>            :       -&gt; std::vector&lt;std::unique_ptr&lt;domain::CoordinateMapBase&lt;
+<span class="lineNum">     131 </span>            :           Frame::Grid, Frame::Inertial, MeshDim&gt;&gt;&gt; override;
+<span class="lineNum">     132 </span>            : 
+<span class="lineNum">     133 </span><span class="lineCov">          1 :   auto functions_of_time() const noexcept -&gt; std::unordered_map&lt;</span>
+<span class="lineNum">     134 </span>            :       std::string,
+<span class="lineNum">     135 </span>            :       std::unique_ptr&lt;domain::FunctionsOfTime::FunctionOfTime&gt;&gt; override;
+<span class="lineNum">     136 </span>            : 
+<span class="lineNum">     137 </span>            :   /// Returns the map for each block to be used in a composition of
+<span class="lineNum">     138 </span>            :   /// `TimeDependence`s.
+<span class="lineNum">     139 </span><span class="lineCov">          1 :   MapForComposition map_for_composition() const noexcept;</span>
+<span class="lineNum">     140 </span>            : 
+<span class="lineNum">     141 </span>            :  private:
+<span class="lineNum">     142 </span>            :   template &lt;size_t LocalDim&gt;
+<span class="lineNum">     143 </span>            :   // NOLINTNEXTLINE(readability-redundant-declaration)
+<span class="lineNum">     144 </span><span class="lineNoCov">          0 :   friend bool operator==(const CubicScale&lt;LocalDim&gt;&amp; lhs,</span>
+<span class="lineNum">     145 </span>            :                          const CubicScale&lt;LocalDim&gt;&amp; rhs) noexcept;
+<span class="lineNum">     146 </span>            : 
+<span class="lineNum">     147 </span><span class="lineNoCov">          0 :   double initial_time_{std::numeric_limits&lt;double&gt;::signaling_NaN()};</span>
+<span class="lineNum">     148 </span><span class="lineNoCov">          0 :   double outer_boundary_{std::numeric_limits&lt;double&gt;::signaling_NaN()};</span>
+<span class="lineNum">     149 </span><span class="lineNoCov">          0 :   std::array&lt;std::string, 2&gt; functions_of_time_names_{};</span>
+<span class="lineNum">     150 </span><span class="lineNoCov">          0 :   std::array&lt;double, 2&gt; initial_expansion_{};</span>
+<span class="lineNum">     151 </span><span class="lineNoCov">          0 :   std::array&lt;double, 2&gt; velocity_{};</span>
+<span class="lineNum">     152 </span><span class="lineNoCov">          0 :   std::array&lt;double, 2&gt; acceleration_{};</span>
+<span class="lineNum">     153 </span>            : };
+<span class="lineNum">     154 </span>            : 
+<span class="lineNum">     155 </span>            : template &lt;size_t Dim&gt;
+<span class="lineNum">     156 </span>            : bool operator==(const CubicScale&lt;Dim&gt;&amp; lhs,
+<span class="lineNum">     157 </span>            :                 const CubicScale&lt;Dim&gt;&amp; rhs) noexcept;
+<span class="lineNum">     158 </span>            : 
+<span class="lineNum">     159 </span>            : template &lt;size_t Dim&gt;
+<span class="lineNum">     160 </span>            : bool operator!=(const CubicScale&lt;Dim&gt;&amp; lhs,
+<span class="lineNum">     161 </span>            :                 const CubicScale&lt;Dim&gt;&amp; rhs) noexcept;
+<span class="lineNum">     162 </span>            : }  // namespace time_dependence
+<span class="lineNum">     163 </span>            : }  // namespace creators
+<span class="lineNum">     164 </span>            : }  // namespace domain
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

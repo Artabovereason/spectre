@@ -1,0 +1,421 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - NumericalAlgorithms/LinearSolver/Gmres.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">NumericalAlgorithms/LinearSolver</a> - Gmres.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">2</td>
+            <td class="headerCovTableEntry">39</td>
+            <td class="headerCovTableEntryLo">5.1 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #pragma once
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;boost/none.hpp&gt;
+<span class="lineNum">       7 </span>            : #include &lt;boost/optional.hpp&gt;
+<span class="lineNum">       8 </span>            : #include &lt;boost/optional/optional_io.hpp&gt;
+<span class="lineNum">       9 </span>            : #include &lt;cstddef&gt;
+<span class="lineNum">      10 </span>            : 
+<span class="lineNum">      11 </span>            : #include &quot;DataStructures/DenseMatrix.hpp&quot;
+<span class="lineNum">      12 </span>            : #include &quot;DataStructures/DenseVector.hpp&quot;
+<span class="lineNum">      13 </span>            : #include &quot;Informer/Verbosity.hpp&quot;
+<span class="lineNum">      14 </span>            : #include &quot;NumericalAlgorithms/Convergence/Criteria.hpp&quot;
+<span class="lineNum">      15 </span>            : #include &quot;NumericalAlgorithms/Convergence/HasConverged.hpp&quot;
+<span class="lineNum">      16 </span>            : #include &quot;NumericalAlgorithms/Convergence/Reason.hpp&quot;
+<span class="lineNum">      17 </span>            : #include &quot;NumericalAlgorithms/LinearSolver/InnerProduct.hpp&quot;
+<span class="lineNum">      18 </span>            : #include &quot;Options/Options.hpp&quot;
+<span class="lineNum">      19 </span>            : #include &quot;Utilities/Gsl.hpp&quot;
+<span class="lineNum">      20 </span>            : 
+<span class="lineNum">      21 </span>            : namespace LinearSolver {
+<span class="lineNum">      22 </span>            : namespace gmres_detail {
+<span class="lineNum">      23 </span>            : 
+<span class="lineNum">      24 </span>            : // Perform an Arnoldi orthogonalization to find a new `operand` that is
+<span class="lineNum">      25 </span>            : // orthogonal to all vectors in `basis_history`. Appends a new column to the
+<span class="lineNum">      26 </span>            : // `orthogonalization_history` that holds the inner product of the intermediate
+<span class="lineNum">      27 </span>            : // `operand` with each vector in the `basis_history` and itself.
+<span class="lineNum">      28 </span>            : template &lt;typename VarsType&gt;
+<span class="lineNum">      29 </span>            : void arnoldi_orthogonalize(
+<span class="lineNum">      30 </span>            :     const gsl::not_null&lt;VarsType*&gt; operand,
+<span class="lineNum">      31 </span>            :     const gsl::not_null&lt;DenseMatrix&lt;double&gt;*&gt; orthogonalization_history,
+<span class="lineNum">      32 </span>            :     const std::vector&lt;VarsType&gt;&amp; basis_history,
+<span class="lineNum">      33 </span>            :     const size_t iteration) noexcept {
+<span class="lineNum">      34 </span>            :   // Resize matrix and make sure the new entries that are not being filled below
+<span class="lineNum">      35 </span>            :   // are zero.
+<span class="lineNum">      36 </span>            :   orthogonalization_history-&gt;resize(iteration + 2, iteration + 1);
+<span class="lineNum">      37 </span>            :   for (size_t j = 0; j &lt; iteration; ++j) {
+<span class="lineNum">      38 </span>            :     (*orthogonalization_history)(iteration + 1, j) = 0.;
+<span class="lineNum">      39 </span>            :   }
+<span class="lineNum">      40 </span>            :   // Arnoldi orthogonalization
+<span class="lineNum">      41 </span>            :   for (size_t j = 0; j &lt; iteration + 1; ++j) {
+<span class="lineNum">      42 </span>            :     const double orthogonalization = inner_product(basis_history[j], *operand);
+<span class="lineNum">      43 </span>            :     (*orthogonalization_history)(j, iteration) = orthogonalization;
+<span class="lineNum">      44 </span>            :     *operand -= orthogonalization * basis_history[j];
+<span class="lineNum">      45 </span>            :   }
+<span class="lineNum">      46 </span>            :   (*orthogonalization_history)(iteration + 1, iteration) =
+<span class="lineNum">      47 </span>            :       sqrt(inner_product(*operand, *operand));
+<span class="lineNum">      48 </span>            :   // Avoid an FPE if the new operand norm is exactly zero. In that case the
+<span class="lineNum">      49 </span>            :   // problem is solved and the algorithm will terminate (see Proposition 9.3 in
+<span class="lineNum">      50 </span>            :   // \cite Saad2003). Since there will be no next iteration we don't need to
+<span class="lineNum">      51 </span>            :   // normalize the operand.
+<span class="lineNum">      52 </span>            :   if (UNLIKELY((*orthogonalization_history)(iteration + 1, iteration) == 0.)) {
+<span class="lineNum">      53 </span>            :     return;
+<span class="lineNum">      54 </span>            :   }
+<span class="lineNum">      55 </span>            :   *operand /= (*orthogonalization_history)(iteration + 1, iteration);
+<span class="lineNum">      56 </span>            : }
+<span class="lineNum">      57 </span>            : 
+<span class="lineNum">      58 </span>            : // Solve the linear least-squares problem `||beta - H * y||` for `y`, where `H`
+<span class="lineNum">      59 </span>            : // is the Hessenberg matrix given by `orthogonalization_history` and `beta` is
+<span class="lineNum">      60 </span>            : // the vector `(initial_residual, 0, 0, ...)` by updating the QR decomposition
+<span class="lineNum">      61 </span>            : // of `H` from the previous iteration with a Givens rotation.
+<span class="lineNum">      62 </span>            : void solve_minimal_residual(
+<span class="lineNum">      63 </span>            :     gsl::not_null&lt;DenseMatrix&lt;double&gt;*&gt; orthogonalization_history,
+<span class="lineNum">      64 </span>            :     gsl::not_null&lt;DenseVector&lt;double&gt;*&gt; residual_history,
+<span class="lineNum">      65 </span>            :     gsl::not_null&lt;DenseVector&lt;double&gt;*&gt; givens_sine_history,
+<span class="lineNum">      66 </span>            :     gsl::not_null&lt;DenseVector&lt;double&gt;*&gt; givens_cosine_history,
+<span class="lineNum">      67 </span>            :     size_t iteration) noexcept;
+<span class="lineNum">      68 </span>            : 
+<span class="lineNum">      69 </span>            : // Find the vector that minimizes the residual by inverting the upper
+<span class="lineNum">      70 </span>            : // triangular matrix obtained above.
+<span class="lineNum">      71 </span>            : DenseVector&lt;double&gt; minimal_residual_vector(
+<span class="lineNum">      72 </span>            :     const DenseMatrix&lt;double&gt;&amp; orthogonalization_history,
+<span class="lineNum">      73 </span>            :     const DenseVector&lt;double&gt;&amp; residual_history) noexcept;
+<span class="lineNum">      74 </span>            : 
+<span class="lineNum">      75 </span>            : }  // namespace gmres_detail
+<span class="lineNum">      76 </span>            : 
+<span class="lineNum">      77 </span><span class="lineNoCov">          0 : namespace Serial {</span>
+<span class="lineNum">      78 </span>            : 
+<span class="lineNum">      79 </span>            : template &lt;typename VarsType&gt;
+<span class="lineNum">      80 </span><span class="lineNoCov">          0 : struct IdentityPreconditioner {</span>
+<span class="lineNum">      81 </span><span class="lineNoCov">          0 :   VarsType operator()(const VarsType&amp; arg) const noexcept { return arg; }</span>
+<span class="lineNum">      82 </span>            : };
+<span class="lineNum">      83 </span>            : 
+<span class="lineNum">      84 </span><span class="lineNoCov">          0 : struct NoIterationCallback {</span>
+<span class="lineNum">      85 </span><span class="lineNoCov">          0 :   void operator()(const Convergence::HasConverged&amp; /*has_converged*/) const</span>
+<span class="lineNum">      86 </span>            :       noexcept {}
+<span class="lineNum">      87 </span>            : };
+<span class="lineNum">      88 </span>            : 
+<span class="lineNum">      89 </span>            : /*!
+<span class="lineNum">      90 </span>            :  * \brief A serial GMRES iterative solver for nonsymmetric linear systems of
+<span class="lineNum">      91 </span>            :  * equations.
+<span class="lineNum">      92 </span>            :  *
+<span class="lineNum">      93 </span>            :  * This is an iterative algorithm to solve general linear equations \f$Ax=b\f$
+<span class="lineNum">      94 </span>            :  * where \f$A\f$ is a linear operator. See \cite Saad2003, chapter 6.5 for a
+<span class="lineNum">      95 </span>            :  * description of the GMRES algorithm and Algorithm 9.6 for this implementation.
+<span class="lineNum">      96 </span>            :  * It is matrix-free, which means the operator \f$A\f$ needs not be provided
+<span class="lineNum">      97 </span>            :  * explicity as a matrix but only the operator action \f$A(x)\f$ must be
+<span class="lineNum">      98 </span>            :  * provided for an argument \f$x\f$.
+<span class="lineNum">      99 </span>            :  *
+<span class="lineNum">     100 </span>            :  * The GMRES algorithm does not require the operator \f$A\f$ to be symmetric or
+<span class="lineNum">     101 </span>            :  * positive-definite. Note that other algorithms such as conjugate gradients may
+<span class="lineNum">     102 </span>            :  * be more efficient for symmetric positive-definite operators.
+<span class="lineNum">     103 </span>            :  *
+<span class="lineNum">     104 </span>            :  * \par Convergence:
+<span class="lineNum">     105 </span>            :  * Given a set of \f$N_A\f$ equations (e.g. through an \f$N_A\times N_A\f$
+<span class="lineNum">     106 </span>            :  * matrix) the GMRES algorithm will converge to numerical precision in at most
+<span class="lineNum">     107 </span>            :  * \f$N_A\f$ iterations. However, depending on the properties of the linear
+<span class="lineNum">     108 </span>            :  * operator, an approximate solution can ideally be obtained in only a few
+<span class="lineNum">     109 </span>            :  * iterations. See \cite Saad2003, section 6.11.4 for details on the convergence
+<span class="lineNum">     110 </span>            :  * of the GMRES algorithm.
+<span class="lineNum">     111 </span>            :  *
+<span class="lineNum">     112 </span>            :  * \par Restarting:
+<span class="lineNum">     113 </span>            :  * This implementation of the GMRES algorithm supports restarting, as detailed
+<span class="lineNum">     114 </span>            :  * in \cite Saad2003, section 6.5.5. Since the GMRES algorithm iteratively
+<span class="lineNum">     115 </span>            :  * builds up an orthogonal basis of the solution space the cost of each
+<span class="lineNum">     116 </span>            :  * iteration increases linearly with the number of iterations. Therefore it is
+<span class="lineNum">     117 </span>            :  * sometimes helpful to restart the algorithm every \f$N_\mathrm{restart}\f$
+<span class="lineNum">     118 </span>            :  * iterations, discarding the set of basis vectors and starting again from the
+<span class="lineNum">     119 </span>            :  * current solution estimate. This strategy can improve the performance of the
+<span class="lineNum">     120 </span>            :  * solver, but note that the solver can stagnate for non-positive-definite
+<span class="lineNum">     121 </span>            :  * operators and is not guaranteed to converge within \f$N_A\f$ iterations
+<span class="lineNum">     122 </span>            :  * anymore. Set the `restart` argument of the constructor to
+<span class="lineNum">     123 </span>            :  * \f$N_\mathrm{restart}\f$ to activate restarting, or set it to zero to
+<span class="lineNum">     124 </span>            :  * deactivate restarting (default behaviour).
+<span class="lineNum">     125 </span>            :  *
+<span class="lineNum">     126 </span>            :  * \par Preconditioning:
+<span class="lineNum">     127 </span>            :  * This implementation of the GMRES algorithm also supports preconditioning.
+<span class="lineNum">     128 </span>            :  * You can provide a linear operator \f$P\f$ that approximates the inverse of
+<span class="lineNum">     129 </span>            :  * the operator \f$A\f$ to accelerate the convergence of the linear solve.
+<span class="lineNum">     130 </span>            :  * The algorithm is right-preconditioned, which allows the preconditioner to
+<span class="lineNum">     131 </span>            :  * change in every iteration (&quot;flexible&quot; variant). See \cite Saad2003, sections
+<span class="lineNum">     132 </span>            :  * 9.3.2 and 9.4.1 for details. This implementation follows Algorithm 9.6 in
+<span class="lineNum">     133 </span>            :  * \cite Saad2003.
+<span class="lineNum">     134 </span>            :  *
+<span class="lineNum">     135 </span>            :  * \par Improvements:
+<span class="lineNum">     136 </span>            :  * Further improvements can potentially be implemented for this algorithm, see
+<span class="lineNum">     137 </span>            :  * e.g. \cite Ayachour2003.
+<span class="lineNum">     138 </span>            :  *
+<span class="lineNum">     139 </span>            :  * \example
+<span class="lineNum">     140 </span>            :  * \snippet NumericalAlgorithms/LinearSolver/Test_Gmres.cpp gmres_example
+<span class="lineNum">     141 </span>            :  */
+<span class="lineNum">     142 </span>            : template &lt;typename VarsType&gt;
+<span class="lineNum">     143 </span><span class="lineCov">          1 : struct Gmres {</span>
+<span class="lineNum">     144 </span>            :  private:
+<span class="lineNum">     145 </span><span class="lineNoCov">          0 :   struct ConvergenceCriteria {</span>
+<span class="lineNum">     146 </span><span class="lineNoCov">          0 :     using type = Convergence::Criteria;</span>
+<span class="lineNum">     147 </span><span class="lineNoCov">          0 :     static constexpr OptionString help =</span>
+<span class="lineNum">     148 </span>            :         &quot;Determine convergence of the algorithm&quot;;
+<span class="lineNum">     149 </span>            :   };
+<span class="lineNum">     150 </span><span class="lineNoCov">          0 :   struct Restart {</span>
+<span class="lineNum">     151 </span><span class="lineNoCov">          0 :     using type = size_t;</span>
+<span class="lineNum">     152 </span><span class="lineNoCov">          0 :     static constexpr OptionString help = &quot;Iterations to run before restarting&quot;;</span>
+<span class="lineNum">     153 </span><span class="lineNoCov">          0 :     static size_t default_value() noexcept { return 0; }</span>
+<span class="lineNum">     154 </span>            :   };
+<span class="lineNum">     155 </span><span class="lineNoCov">          0 :   struct Verbosity {</span>
+<span class="lineNum">     156 </span><span class="lineNoCov">          0 :     using type = ::Verbosity;</span>
+<span class="lineNum">     157 </span><span class="lineNoCov">          0 :     static constexpr OptionString help = &quot;Logging verbosity&quot;;</span>
+<span class="lineNum">     158 </span>            :   };
+<span class="lineNum">     159 </span>            : 
+<span class="lineNum">     160 </span>            :  public:
+<span class="lineNum">     161 </span><span class="lineNoCov">          0 :   static constexpr OptionString help =</span>
+<span class="lineNum">     162 </span>            :       &quot;A serial GMRES iterative solver for nonsymmetric linear systems of\n&quot;
+<span class="lineNum">     163 </span>            :       &quot;equations Ax=b. It will converge to numerical precision in at most N_A\n&quot;
+<span class="lineNum">     164 </span>            :       &quot;iterations, where N_A is the number of equations represented by the\n&quot;
+<span class="lineNum">     165 </span>            :       &quot;linear operator A, but will ideally converge to a reasonable\n&quot;
+<span class="lineNum">     166 </span>            :       &quot;approximation of the solution x in only a few iterations.\n&quot;
+<span class="lineNum">     167 </span>            :       &quot;\n&quot;
+<span class="lineNum">     168 </span>            :       &quot;Restarting: It is sometimes helpful to restart the algorithm every\n&quot;
+<span class="lineNum">     169 </span>            :       &quot;N_restart iterations to speed it up. Note that it can stagnate for\n&quot;
+<span class="lineNum">     170 </span>            :       &quot;non-positive-definite matrices and is not guaranteed to converge\n&quot;
+<span class="lineNum">     171 </span>            :       &quot;within N_A iterations anymore when restarting is activated.\n&quot;
+<span class="lineNum">     172 </span>            :       &quot;Activate restarting by setting the 'Restart' option to N_restart, or\n&quot;
+<span class="lineNum">     173 </span>            :       &quot;deactivate restarting by setting it to zero (default).&quot;;
+<span class="lineNum">     174 </span><span class="lineNoCov">          0 :   using options = tmpl::list&lt;ConvergenceCriteria, Verbosity, Restart&gt;;</span>
+<span class="lineNum">     175 </span>            : 
+<span class="lineNum">     176 </span><span class="lineNoCov">          0 :   Gmres(Convergence::Criteria convergence_criteria, ::Verbosity verbosity,</span>
+<span class="lineNum">     177 </span>            :         size_t restart = 0) noexcept
+<span class="lineNum">     178 </span>            :       // clang-tidy: trivially copyable
+<span class="lineNum">     179 </span>            :       : convergence_criteria_(std::move(convergence_criteria)),  // NOLINT
+<span class="lineNum">     180 </span>            :         verbosity_(std::move(verbosity)),                        // NOLINT
+<span class="lineNum">     181 </span>            :         restart_(restart &gt; 0 ? restart : convergence_criteria_.max_iterations) {
+<span class="lineNum">     182 </span>            :     initialize();
+<span class="lineNum">     183 </span>            :   }
+<span class="lineNum">     184 </span>            : 
+<span class="lineNum">     185 </span><span class="lineNoCov">          0 :   Gmres() = default;</span>
+<span class="lineNum">     186 </span><span class="lineNoCov">          0 :   Gmres(const Gmres&amp; /*rhs*/) = default;</span>
+<span class="lineNum">     187 </span><span class="lineNoCov">          0 :   Gmres&amp; operator=(const Gmres&amp; /*rhs*/) = default;</span>
+<span class="lineNum">     188 </span><span class="lineNoCov">          0 :   Gmres(Gmres&amp;&amp; /*rhs*/) = default;</span>
+<span class="lineNum">     189 </span><span class="lineNoCov">          0 :   Gmres&amp; operator=(Gmres&amp;&amp; /*rhs*/) = default;</span>
+<span class="lineNum">     190 </span><span class="lineNoCov">          0 :   ~Gmres() = default;</span>
+<span class="lineNum">     191 </span>            : 
+<span class="lineNum">     192 </span><span class="lineNoCov">          0 :   void initialize() noexcept {</span>
+<span class="lineNum">     193 </span>            :     orthogonalization_history_.reserve(restart_ + 1);
+<span class="lineNum">     194 </span>            :     residual_history_.reserve(restart_ + 1);
+<span class="lineNum">     195 </span>            :     givens_sine_history_.reserve(restart_);
+<span class="lineNum">     196 </span>            :     givens_cosine_history_.reserve(restart_);
+<span class="lineNum">     197 </span>            :     basis_history_.resize(restart_ + 1);
+<span class="lineNum">     198 </span>            :     preconditioned_basis_history_.resize(restart_);
+<span class="lineNum">     199 </span>            :   }
+<span class="lineNum">     200 </span>            : 
+<span class="lineNum">     201 </span><span class="lineNoCov">          0 :   const Convergence::Criteria&amp; convergence_criteria() const noexcept {</span>
+<span class="lineNum">     202 </span>            :     return convergence_criteria_;
+<span class="lineNum">     203 </span>            :   }
+<span class="lineNum">     204 </span>            : 
+<span class="lineNum">     205 </span><span class="lineNoCov">          0 :   void pup(PUP::er&amp; p) noexcept {  // NOLINT</span>
+<span class="lineNum">     206 </span>            :     p | convergence_criteria_;
+<span class="lineNum">     207 </span>            :     p | verbosity_;
+<span class="lineNum">     208 </span>            :     p | restart_;
+<span class="lineNum">     209 </span>            :     if (p.isUnpacking()) {
+<span class="lineNum">     210 </span>            :       initialize();
+<span class="lineNum">     211 </span>            :     }
+<span class="lineNum">     212 </span>            :   }
+<span class="lineNum">     213 </span>            : 
+<span class="lineNum">     214 </span>            :   /*!
+<span class="lineNum">     215 </span>            :    * \brief Iteratively solve the problem \f$Ax=b\f$ for \f$x\f$ where \f$A\f$
+<span class="lineNum">     216 </span>            :    * is the `linear_operator` and \f$b\f$ is the `source`, starting \f$x\f$ at
+<span class="lineNum">     217 </span>            :    * `initial_guess`.
+<span class="lineNum">     218 </span>            :    *
+<span class="lineNum">     219 </span>            :    * Optionally provide a `preconditioner` (see class documentation).
+<span class="lineNum">     220 </span>            :    *
+<span class="lineNum">     221 </span>            :    * \return An instance of `Convergence::HasConverged` that provides
+<span class="lineNum">     222 </span>            :    * information on the convergence status of the completed solve, and the
+<span class="lineNum">     223 </span>            :    * approximate solution \f$x\f$.
+<span class="lineNum">     224 </span>            :    */
+<span class="lineNum">     225 </span>            :   template &lt;typename LinearOperator, typename SourceType,
+<span class="lineNum">     226 </span>            :             typename Preconditioner = IdentityPreconditioner&lt;VarsType&gt;,
+<span class="lineNum">     227 </span>            :             typename IterationCallback = NoIterationCallback&gt;
+<span class="lineNum">     228 </span><span class="lineCov">          1 :   std::pair&lt;Convergence::HasConverged, VarsType&gt; operator()(</span>
+<span class="lineNum">     229 </span>            :       LinearOperator&amp;&amp; linear_operator, const SourceType&amp; source,
+<span class="lineNum">     230 </span>            :       const VarsType&amp; initial_guess,
+<span class="lineNum">     231 </span>            :       Preconditioner&amp;&amp; preconditioner = IdentityPreconditioner&lt;VarsType&gt;{},
+<span class="lineNum">     232 </span>            :       IterationCallback&amp;&amp; = NoIterationCallback{}) const noexcept;
+<span class="lineNum">     233 </span>            : 
+<span class="lineNum">     234 </span>            :  private:
+<span class="lineNum">     235 </span><span class="lineNoCov">          0 :   Convergence::Criteria convergence_criteria_{};</span>
+<span class="lineNum">     236 </span><span class="lineNoCov">          0 :   ::Verbosity verbosity_{::Verbosity::Verbose};</span>
+<span class="lineNum">     237 </span><span class="lineNoCov">          0 :   size_t restart_{};</span>
+<span class="lineNum">     238 </span>            : 
+<span class="lineNum">     239 </span>            :   // Memory buffers to avoid re-allocating memory for successive solves:
+<span class="lineNum">     240 </span>            :   // The `orthogonalization_history_` is built iteratively from inner products
+<span class="lineNum">     241 </span>            :   // between existing and potential basis vectors and then Givens-rotated to
+<span class="lineNum">     242 </span>            :   // become upper-triangular.
+<span class="lineNum">     243 </span><span class="lineNoCov">          0 :   mutable DenseMatrix&lt;double&gt; orthogonalization_history_{};</span>
+<span class="lineNum">     244 </span>            :   // The `residual_history_` holds the remaining residual in its last entry, and
+<span class="lineNum">     245 </span>            :   // the other entries `g` &quot;source&quot; the minimum residual vector `y` in
+<span class="lineNum">     246 </span>            :   // `R * y = g` where `R` is the upper-triangular `orthogonalization_history_`.
+<span class="lineNum">     247 </span><span class="lineNoCov">          0 :   mutable DenseVector&lt;double&gt; residual_history_{};</span>
+<span class="lineNum">     248 </span>            :   // These represent the accumulated Givens rotations up to the current
+<span class="lineNum">     249 </span>            :   // iteration.
+<span class="lineNum">     250 </span><span class="lineNoCov">          0 :   mutable DenseVector&lt;double&gt; givens_sine_history_{};</span>
+<span class="lineNum">     251 </span><span class="lineNoCov">          0 :   mutable DenseVector&lt;double&gt; givens_cosine_history_{};</span>
+<span class="lineNum">     252 </span>            :   // These represent the orthogonal Krylov-subspace basis that is constructed
+<span class="lineNum">     253 </span>            :   // iteratively by Arnoldi-orthogonalizing a new vector in each iteration and
+<span class="lineNum">     254 </span>            :   // appending it to the `basis_history_`.
+<span class="lineNum">     255 </span><span class="lineNoCov">          0 :   mutable std::vector&lt;VarsType&gt; basis_history_{};</span>
+<span class="lineNum">     256 </span>            :   // When a preconditioner is used it is applied to each new basis vector. The
+<span class="lineNum">     257 </span>            :   // preconditioned basis is used to construct the solution when the algorithm
+<span class="lineNum">     258 </span>            :   // has converged.
+<span class="lineNum">     259 </span><span class="lineNoCov">          0 :   mutable std::vector&lt;VarsType&gt; preconditioned_basis_history_{};</span>
+<span class="lineNum">     260 </span>            : };
+<span class="lineNum">     261 </span>            : 
+<span class="lineNum">     262 </span>            : template &lt;typename VarsType&gt;
+<span class="lineNum">     263 </span>            : template &lt;typename LinearOperator, typename SourceType, typename Preconditioner,
+<span class="lineNum">     264 </span>            :           typename IterationCallback&gt;
+<span class="lineNum">     265 </span>            : std::pair&lt;Convergence::HasConverged, VarsType&gt; Gmres&lt;VarsType&gt;::operator()(
+<span class="lineNum">     266 </span>            :     LinearOperator&amp;&amp; linear_operator, const SourceType&amp; source,
+<span class="lineNum">     267 </span>            :     const VarsType&amp; initial_guess, Preconditioner&amp;&amp; preconditioner,
+<span class="lineNum">     268 </span>            :     IterationCallback&amp;&amp; iteration_callback) const noexcept {
+<span class="lineNum">     269 </span>            :   constexpr bool use_preconditioner =
+<span class="lineNum">     270 </span>            :       not std::is_same_v&lt;Preconditioner, IdentityPreconditioner&lt;VarsType&gt;&gt;;
+<span class="lineNum">     271 </span>            :   constexpr bool use_iteration_callback =
+<span class="lineNum">     272 </span>            :       not std::is_same_v&lt;IterationCallback, NoIterationCallback&gt;;
+<span class="lineNum">     273 </span>            : 
+<span class="lineNum">     274 </span>            :   auto result = initial_guess;
+<span class="lineNum">     275 </span>            :   Convergence::HasConverged has_converged{};
+<span class="lineNum">     276 </span>            :   size_t iteration = 0;
+<span class="lineNum">     277 </span>            : 
+<span class="lineNum">     278 </span>            :   while (not has_converged) {
+<span class="lineNum">     279 </span>            :     auto&amp; initial_operand = basis_history_[0] =
+<span class="lineNum">     280 </span>            :         source - linear_operator(result);
+<span class="lineNum">     281 </span>            :     const double initial_residual_magnitude =
+<span class="lineNum">     282 </span>            :         sqrt(inner_product(initial_operand, initial_operand));
+<span class="lineNum">     283 </span>            :     has_converged = Convergence::HasConverged{convergence_criteria_, iteration,
+<span class="lineNum">     284 </span>            :                                               initial_residual_magnitude,
+<span class="lineNum">     285 </span>            :                                               initial_residual_magnitude};
+<span class="lineNum">     286 </span>            :     if (use_iteration_callback) {
+<span class="lineNum">     287 </span>            :       iteration_callback(has_converged);
+<span class="lineNum">     288 </span>            :     }
+<span class="lineNum">     289 </span>            :     if (UNLIKELY(has_converged)) {
+<span class="lineNum">     290 </span>            :       break;
+<span class="lineNum">     291 </span>            :     }
+<span class="lineNum">     292 </span>            :     initial_operand /= initial_residual_magnitude;
+<span class="lineNum">     293 </span>            :     residual_history_.resize(1);
+<span class="lineNum">     294 </span>            :     residual_history_[0] = initial_residual_magnitude;
+<span class="lineNum">     295 </span>            :     for (size_t k = 0; k &lt; restart_; ++k) {
+<span class="lineNum">     296 </span>            :       auto&amp; operand = basis_history_[k + 1];
+<span class="lineNum">     297 </span>            :       if (use_preconditioner) {
+<span class="lineNum">     298 </span>            :         preconditioned_basis_history_[k] = preconditioner(basis_history_[k]);
+<span class="lineNum">     299 </span>            :       }
+<span class="lineNum">     300 </span>            :       operand =
+<span class="lineNum">     301 </span>            :           linear_operator(use_preconditioner ? preconditioned_basis_history_[k]
+<span class="lineNum">     302 </span>            :                                              : basis_history_[k]);
+<span class="lineNum">     303 </span>            :       // Find a new orthogonal basis vector of the Krylov subspace
+<span class="lineNum">     304 </span>            :       gmres_detail::arnoldi_orthogonalize(
+<span class="lineNum">     305 </span>            :           make_not_null(&amp;operand), make_not_null(&amp;orthogonalization_history_),
+<span class="lineNum">     306 </span>            :           basis_history_, k);
+<span class="lineNum">     307 </span>            :       // Least-squares solve for the minimal residual
+<span class="lineNum">     308 </span>            :       gmres_detail::solve_minimal_residual(
+<span class="lineNum">     309 </span>            :           make_not_null(&amp;orthogonalization_history_),
+<span class="lineNum">     310 </span>            :           make_not_null(&amp;residual_history_),
+<span class="lineNum">     311 </span>            :           make_not_null(&amp;givens_sine_history_),
+<span class="lineNum">     312 </span>            :           make_not_null(&amp;givens_cosine_history_), k);
+<span class="lineNum">     313 </span>            :       ++iteration;
+<span class="lineNum">     314 </span>            :       has_converged = Convergence::HasConverged{
+<span class="lineNum">     315 </span>            :           convergence_criteria_, iteration, abs(residual_history_[k + 1]),
+<span class="lineNum">     316 </span>            :           initial_residual_magnitude};
+<span class="lineNum">     317 </span>            :       if (use_iteration_callback) {
+<span class="lineNum">     318 </span>            :         iteration_callback(has_converged);
+<span class="lineNum">     319 </span>            :       }
+<span class="lineNum">     320 </span>            :       if (UNLIKELY(has_converged)) {
+<span class="lineNum">     321 </span>            :         break;
+<span class="lineNum">     322 </span>            :       }
+<span class="lineNum">     323 </span>            :     }
+<span class="lineNum">     324 </span>            :     // Find the vector w.r.t. the constructed orthogonal basis of the Krylov
+<span class="lineNum">     325 </span>            :     // subspace that minimizes the residual
+<span class="lineNum">     326 </span>            :     const auto minres = gmres_detail::minimal_residual_vector(
+<span class="lineNum">     327 </span>            :         orthogonalization_history_, residual_history_);
+<span class="lineNum">     328 </span>            :     // Construct the solution from the orthogonal basis and the minimal residual
+<span class="lineNum">     329 </span>            :     // vector
+<span class="lineNum">     330 </span>            :     for (size_t i = 0; i &lt; minres.size(); ++i) {
+<span class="lineNum">     331 </span>            :       result +=
+<span class="lineNum">     332 </span>            :           minres[i] * gsl::at(use_preconditioner ? preconditioned_basis_history_
+<span class="lineNum">     333 </span>            :                                                  : basis_history_,
+<span class="lineNum">     334 </span>            :                               i);
+<span class="lineNum">     335 </span>            :     }
+<span class="lineNum">     336 </span>            :   }
+<span class="lineNum">     337 </span>            :   return {std::move(has_converged), std::move(result)};
+<span class="lineNum">     338 </span>            : }
+<span class="lineNum">     339 </span>            : 
+<span class="lineNum">     340 </span>            : }  // namespace Serial
+<span class="lineNum">     341 </span>            : }  // namespace LinearSolver
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

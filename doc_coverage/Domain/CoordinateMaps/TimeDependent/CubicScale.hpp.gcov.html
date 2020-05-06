@@ -1,0 +1,254 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - Domain/CoordinateMaps/TimeDependent/CubicScale.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../index.html">top level</a> - <a href="index.html">Domain/CoordinateMaps/TimeDependent</a> - CubicScale.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">2</td>
+            <td class="headerCovTableEntry">18</td>
+            <td class="headerCovTableEntryLo">11.1 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #pragma once
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;array&gt;
+<span class="lineNum">       7 </span>            : #include &lt;boost/optional.hpp&gt;
+<span class="lineNum">       8 </span>            : #include &lt;cstddef&gt;
+<span class="lineNum">       9 </span>            : #include &lt;limits&gt;
+<span class="lineNum">      10 </span>            : #include &lt;memory&gt;
+<span class="lineNum">      11 </span>            : #include &lt;string&gt;
+<span class="lineNum">      12 </span>            : #include &lt;unordered_map&gt;
+<span class="lineNum">      13 </span>            : 
+<span class="lineNum">      14 </span>            : #include &quot;DataStructures/Tensor/TypeAliases.hpp&quot;
+<span class="lineNum">      15 </span>            : #include &quot;Utilities/TypeTraits/RemoveReferenceWrapper.hpp&quot;
+<span class="lineNum">      16 </span>            : 
+<span class="lineNum">      17 </span>            : /// \cond
+<span class="lineNum">      18 </span>            : namespace domain {
+<span class="lineNum">      19 </span>            : namespace FunctionsOfTime {
+<span class="lineNum">      20 </span>            : class FunctionOfTime;
+<span class="lineNum">      21 </span>            : }  // namespace FunctionsOfTime
+<span class="lineNum">      22 </span>            : }  // namespace domain
+<span class="lineNum">      23 </span>            : namespace PUP {
+<span class="lineNum">      24 </span>            : class er;
+<span class="lineNum">      25 </span>            : }  // namespace PUP
+<span class="lineNum">      26 </span>            : /// \endcond
+<span class="lineNum">      27 </span>            : 
+<span class="lineNum">      28 </span>            : namespace domain {
+<span class="lineNum">      29 </span>            : namespace CoordinateMaps {
+<span class="lineNum">      30 </span>            : namespace TimeDependent {
+<span class="lineNum">      31 </span>            : /*!
+<span class="lineNum">      32 </span>            :  * \ingroup CoordMapsTimeDependentGroup
+<span class="lineNum">      33 </span>            :  * \brief Maps the radius as \f$r(t) = a(t)\rho + \left(b(t) - a(t)\right)
+<span class="lineNum">      34 </span>            :  * \frac{\rho^3} {R^2}\f$ where \f$\rho\f$ is the radius of the source
+<span class="lineNum">      35 </span>            :  * coordinates.
+<span class="lineNum">      36 </span>            :  *
+<span class="lineNum">      37 </span>            :  * The map scales the radius \f$\rho\f$ in the source coordinates
+<span class="lineNum">      38 </span>            :  * \f$\xi^{\hat{i}}\f$ by a factor \f$a(t)\f$, while the coordinates near the
+<span class="lineNum">      39 </span>            :  * outer boundary \f$R\f$, are scaled by a factor \f$b(t)\f$. Here \f$a(t)\f$
+<span class="lineNum">      40 </span>            :  * and \f$b(t)\f$ are FunctionsOfTime. The target/mapped coordinates are denoted
+<span class="lineNum">      41 </span>            :  * by \f$x^i\f$.
+<span class="lineNum">      42 </span>            :  *
+<span class="lineNum">      43 </span>            :  * The mapped coordinates are given by:
+<span class="lineNum">      44 </span>            :  *
+<span class="lineNum">      45 </span>            :  * \f{align}{
+<span class="lineNum">      46 </span>            :  * x^i = \left[a + (b-a) \frac{\rho^2}{R^2}\right] \xi^{\hat{i}}
+<span class="lineNum">      47 </span>            :  *       \delta^i_{\hat{i}},
+<span class="lineNum">      48 </span>            :  * \f}
+<span class="lineNum">      49 </span>            :  *
+<span class="lineNum">      50 </span>            :  * where \f$\xi^{\hat{i}}\f$ are the source coordinates, \f$a\f$ and \f$b\f$ are
+<span class="lineNum">      51 </span>            :  * functions of time, \f$\rho\f$ is the radius in the source coordinates, and
+<span class="lineNum">      52 </span>            :  * \f$R\f$ is the outer boundary.
+<span class="lineNum">      53 </span>            :  *
+<span class="lineNum">      54 </span>            :  * The inverse map is computed by solving the cubic equation:
+<span class="lineNum">      55 </span>            :  *
+<span class="lineNum">      56 </span>            :  * \f{align}{
+<span class="lineNum">      57 </span>            :  * (b-a)\frac{\rho^3}{R^2} + a \rho - r = 0,
+<span class="lineNum">      58 </span>            :  * \f}
+<span class="lineNum">      59 </span>            :  *
+<span class="lineNum">      60 </span>            :  * which is done by defining \f$q=\rho/R\f$, and solving
+<span class="lineNum">      61 </span>            :  *
+<span class="lineNum">      62 </span>            :  * \f{align}{
+<span class="lineNum">      63 </span>            :  * q \left[(b-a) q^2 + a\right] - \frac{r}{R} = 0.
+<span class="lineNum">      64 </span>            :  * \f}
+<span class="lineNum">      65 </span>            :  *
+<span class="lineNum">      66 </span>            :  * The source coordinates are obtained using:
+<span class="lineNum">      67 </span>            :  *
+<span class="lineNum">      68 </span>            :  * \f{align}{
+<span class="lineNum">      69 </span>            :  * \xi^{\hat{i}} = \frac{qR}{r} x^i(t) \delta^{\hat{i}}_i
+<span class="lineNum">      70 </span>            :  * \f}
+<span class="lineNum">      71 </span>            :  *
+<span class="lineNum">      72 </span>            :  * The Jacobian is given by:
+<span class="lineNum">      73 </span>            :  *
+<span class="lineNum">      74 </span>            :  * \f{align}{
+<span class="lineNum">      75 </span>            :  * \frac{\partial x^i}{\partial \xi^{\hat{i}}}=
+<span class="lineNum">      76 </span>            :  *    \left[a + (b-a) \frac{\rho^2}{R^2}\right] \delta^i_{\hat{i}}
+<span class="lineNum">      77 </span>            :  *    + \frac{2 (b-a)}{R^2} \xi^{\hat{j}} \delta^i_{\hat{j}} \xi^{\hat{k}}
+<span class="lineNum">      78 </span>            :  *      \delta_{\hat{k}\hat{i}}
+<span class="lineNum">      79 </span>            :  * \f}
+<span class="lineNum">      80 </span>            :  *
+<span class="lineNum">      81 </span>            :  * The inverse Jacobian is given by:
+<span class="lineNum">      82 </span>            :  *
+<span class="lineNum">      83 </span>            :  * \f{align}{
+<span class="lineNum">      84 </span>            :  * \frac{\partial \xi^{\hat{i}}}{\partial x^i}=
+<span class="lineNum">      85 </span>            :  * \frac{1}{\left[a + (b-a)\rho^2/R^2\right]}
+<span class="lineNum">      86 </span>            :  *  \left[\delta^{\hat{i}}_i -
+<span class="lineNum">      87 </span>            :  *        \frac{2 (b-a)}{\left[a R^2 + 3(b-a)\rho^2\right]}
+<span class="lineNum">      88 </span>            :  *        \xi^{\hat{i}}\xi^{\hat{j}}\delta_{\hat{j}i}\right]
+<span class="lineNum">      89 </span>            :  * \f}
+<span class="lineNum">      90 </span>            :  *
+<span class="lineNum">      91 </span>            :  * The mesh velocity \f$v_g^i\f$ is given by:
+<span class="lineNum">      92 </span>            :  *
+<span class="lineNum">      93 </span>            :  * \f{align}{
+<span class="lineNum">      94 </span>            :  * v_g^i = \left[\frac{da}{dt} + \left(\frac{db}{dt}-\frac{da}{dt}\right)
+<span class="lineNum">      95 </span>            :  *         \frac{\rho^2}{R^2}\right] \xi^{\hat{i}} \delta^i_{\hat{i}}.
+<span class="lineNum">      96 </span>            :  * \f}
+<span class="lineNum">      97 </span>            :  */
+<span class="lineNum">      98 </span>            : template &lt;size_t Dim&gt;
+<span class="lineNum">      99 </span><span class="lineCov">          1 : class CubicScale {</span>
+<span class="lineNum">     100 </span>            :  public:
+<span class="lineNum">     101 </span><span class="lineNoCov">          0 :   static constexpr size_t dim = Dim;</span>
+<span class="lineNum">     102 </span>            : 
+<span class="lineNum">     103 </span><span class="lineNoCov">          0 :   explicit CubicScale(double outer_boundary,</span>
+<span class="lineNum">     104 </span>            :                       std::string function_of_time_name_a,
+<span class="lineNum">     105 </span>            :                       std::string function_of_time_name_b) noexcept;
+<span class="lineNum">     106 </span><span class="lineNoCov">          0 :   CubicScale() = default;</span>
+<span class="lineNum">     107 </span>            : 
+<span class="lineNum">     108 </span>            :   template &lt;typename T&gt;
+<span class="lineNum">     109 </span><span class="lineNoCov">          0 :   std::array&lt;tt::remove_cvref_wrap_t&lt;T&gt;, Dim&gt; operator()(</span>
+<span class="lineNum">     110 </span>            :       const std::array&lt;T, Dim&gt;&amp; source_coords, double time,
+<span class="lineNum">     111 </span>            :       const std::unordered_map&lt;
+<span class="lineNum">     112 </span>            :           std::string,
+<span class="lineNum">     113 </span>            :           std::unique_ptr&lt;domain::FunctionsOfTime::FunctionOfTime&gt;&gt;&amp;
+<span class="lineNum">     114 </span>            :           functions_of_time) const noexcept;
+<span class="lineNum">     115 </span>            : 
+<span class="lineNum">     116 </span>            :   /// Returns boost::none if the point is outside the range of the map.
+<span class="lineNum">     117 </span>            :   template &lt;typename T&gt;
+<span class="lineNum">     118 </span><span class="lineCov">          1 :   boost::optional&lt;std::array&lt;tt::remove_cvref_wrap_t&lt;T&gt;, Dim&gt;&gt; inverse(</span>
+<span class="lineNum">     119 </span>            :       const std::array&lt;T, Dim&gt;&amp; target_coords, double time,
+<span class="lineNum">     120 </span>            :       const std::unordered_map&lt;
+<span class="lineNum">     121 </span>            :           std::string,
+<span class="lineNum">     122 </span>            :           std::unique_ptr&lt;domain::FunctionsOfTime::FunctionOfTime&gt;&gt;&amp;
+<span class="lineNum">     123 </span>            :           functions_of_time) const noexcept;
+<span class="lineNum">     124 </span>            : 
+<span class="lineNum">     125 </span>            :   template &lt;typename T&gt;
+<span class="lineNum">     126 </span><span class="lineNoCov">          0 :   std::array&lt;tt::remove_cvref_wrap_t&lt;T&gt;, Dim&gt; frame_velocity(</span>
+<span class="lineNum">     127 </span>            :       const std::array&lt;T, Dim&gt;&amp; source_coords, double time,
+<span class="lineNum">     128 </span>            :       const std::unordered_map&lt;
+<span class="lineNum">     129 </span>            :           std::string,
+<span class="lineNum">     130 </span>            :           std::unique_ptr&lt;domain::FunctionsOfTime::FunctionOfTime&gt;&gt;&amp;
+<span class="lineNum">     131 </span>            :           functions_of_time) const noexcept;
+<span class="lineNum">     132 </span>            : 
+<span class="lineNum">     133 </span>            :   template &lt;typename T&gt;
+<span class="lineNum">     134 </span><span class="lineNoCov">          0 :   tnsr::Ij&lt;tt::remove_cvref_wrap_t&lt;T&gt;, Dim, Frame::NoFrame&gt; inv_jacobian(</span>
+<span class="lineNum">     135 </span>            :       const std::array&lt;T, Dim&gt;&amp; source_coords, double time,
+<span class="lineNum">     136 </span>            :       const std::unordered_map&lt;
+<span class="lineNum">     137 </span>            :           std::string,
+<span class="lineNum">     138 </span>            :           std::unique_ptr&lt;domain::FunctionsOfTime::FunctionOfTime&gt;&gt;&amp;
+<span class="lineNum">     139 </span>            :           functions_of_time) const noexcept;
+<span class="lineNum">     140 </span>            : 
+<span class="lineNum">     141 </span>            :   template &lt;typename T&gt;
+<span class="lineNum">     142 </span><span class="lineNoCov">          0 :   tnsr::Ij&lt;tt::remove_cvref_wrap_t&lt;T&gt;, Dim, Frame::NoFrame&gt; jacobian(</span>
+<span class="lineNum">     143 </span>            :       const std::array&lt;T, Dim&gt;&amp; source_coords, double time,
+<span class="lineNum">     144 </span>            :       const std::unordered_map&lt;
+<span class="lineNum">     145 </span>            :           std::string,
+<span class="lineNum">     146 </span>            :           std::unique_ptr&lt;domain::FunctionsOfTime::FunctionOfTime&gt;&gt;&amp;
+<span class="lineNum">     147 </span>            :           functions_of_time) const noexcept;
+<span class="lineNum">     148 </span>            : 
+<span class="lineNum">     149 </span>            :   // clang-tidy: google-runtime-references
+<span class="lineNum">     150 </span><span class="lineNoCov">          0 :   void pup(PUP::er&amp; p) noexcept;  // NOLINT</span>
+<span class="lineNum">     151 </span>            : 
+<span class="lineNum">     152 </span><span class="lineNoCov">          0 :   bool is_identity() const noexcept { return false; }</span>
+<span class="lineNum">     153 </span>            : 
+<span class="lineNum">     154 </span>            :  private:
+<span class="lineNum">     155 </span>            :   template &lt;size_t LocalDim&gt;
+<span class="lineNum">     156 </span>            :   // NOLINTNEXTLINE(readability-redundant-declaration)
+<span class="lineNum">     157 </span><span class="lineNoCov">          0 :   friend bool operator==(const CubicScale&lt;LocalDim&gt;&amp; lhs,</span>
+<span class="lineNum">     158 </span>            :                          const CubicScale&lt;LocalDim&gt;&amp; rhs) noexcept;
+<span class="lineNum">     159 </span>            : 
+<span class="lineNum">     160 </span><span class="lineNoCov">          0 :   std::string f_of_t_a_{};</span>
+<span class="lineNum">     161 </span><span class="lineNoCov">          0 :   std::string f_of_t_b_{};</span>
+<span class="lineNum">     162 </span><span class="lineNoCov">          0 :   double one_over_outer_boundary_{std::numeric_limits&lt;double&gt;::signaling_NaN()};</span>
+<span class="lineNum">     163 </span><span class="lineNoCov">          0 :   bool functions_of_time_equal_{false};</span>
+<span class="lineNum">     164 </span>            : };
+<span class="lineNum">     165 </span>            : 
+<span class="lineNum">     166 </span>            : template &lt;size_t Dim&gt;
+<span class="lineNum">     167 </span><span class="lineNoCov">          0 : bool operator!=(const CubicScale&lt;Dim&gt;&amp; lhs,</span>
+<span class="lineNum">     168 </span>            :                 const CubicScale&lt;Dim&gt;&amp; rhs) noexcept {
+<span class="lineNum">     169 </span>            :   return not(lhs == rhs);
+<span class="lineNum">     170 </span>            : }
+<span class="lineNum">     171 </span>            : 
+<span class="lineNum">     172 </span>            : }  // namespace TimeDependent
+<span class="lineNum">     173 </span>            : }  // namespace CoordinateMaps
+<span class="lineNum">     174 </span>            : }  // namespace domain
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

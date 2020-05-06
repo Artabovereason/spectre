@@ -1,0 +1,402 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - DataStructures/DataBox/DataBoxTag.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">DataStructures/DataBox</a> - DataBoxTag.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">8</td>
+            <td class="headerCovTableEntry">12</td>
+            <td class="headerCovTableEntryLo">66.7 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineCov">          1 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : /// \file
+<span class="lineNum">       5 </span>            : /// Defines classes SimpleTag, PrefixTag, ComputeTag and several
+<span class="lineNum">       6 </span>            : /// functions for retrieving tag info
+<span class="lineNum">       7 </span>            : 
+<span class="lineNum">       8 </span>            : #pragma once
+<span class="lineNum">       9 </span>            : 
+<span class="lineNum">      10 </span>            : #include &lt;cstddef&gt;
+<span class="lineNum">      11 </span>            : #include &lt;ostream&gt;
+<span class="lineNum">      12 </span>            : #include &lt;string&gt;
+<span class="lineNum">      13 </span>            : 
+<span class="lineNum">      14 </span>            : #include &quot;DataStructures/DataBox/Tag.hpp&quot;
+<span class="lineNum">      15 </span>            : #include &quot;DataStructures/DataBox/TagTraits.hpp&quot;
+<span class="lineNum">      16 </span>            : #include &quot;DataStructures/VariablesTag.hpp&quot;
+<span class="lineNum">      17 </span>            : #include &quot;ErrorHandling/Assert.hpp&quot;
+<span class="lineNum">      18 </span>            : #include &quot;Utilities/ConstantExpressions.hpp&quot;
+<span class="lineNum">      19 </span>            : #include &quot;Utilities/NoSuchType.hpp&quot;
+<span class="lineNum">      20 </span>            : #include &quot;Utilities/PrettyType.hpp&quot;
+<span class="lineNum">      21 </span>            : #include &quot;Utilities/Requires.hpp&quot;
+<span class="lineNum">      22 </span>            : #include &quot;Utilities/TMPL.hpp&quot;
+<span class="lineNum">      23 </span>            : #include &quot;Utilities/TypeTraits.hpp&quot;
+<span class="lineNum">      24 </span>            : #include &quot;Utilities/TypeTraits/CreateIsCallable.hpp&quot;
+<span class="lineNum">      25 </span>            : #include &quot;Utilities/TypeTraits/IsA.hpp&quot;
+<span class="lineNum">      26 </span>            : 
+<span class="lineNum">      27 </span><span class="lineNoCov">          0 : namespace Tags {</span>
+<span class="lineNum">      28 </span>            : /*!
+<span class="lineNum">      29 </span>            :  * \ingroup DataBoxTagsGroup
+<span class="lineNum">      30 </span>            :  * \brief Tag used to retrieve the DataBox from the `db::get` function
+<span class="lineNum">      31 </span>            :  *
+<span class="lineNum">      32 </span>            :  * The main use of this tag is to allow fetching the DataBox from itself. The
+<span class="lineNum">      33 </span>            :  * primary use case is to allow an invokable to take a DataBox as an argument
+<span class="lineNum">      34 </span>            :  * when called through `db::apply`.
+<span class="lineNum">      35 </span>            :  *
+<span class="lineNum">      36 </span>            :  * \snippet Test_DataBox.cpp databox_self_tag_example
+<span class="lineNum">      37 </span>            :  */
+<span class="lineNum">      38 </span><span class="lineCov">          1 : struct DataBox {</span>
+<span class="lineNum">      39 </span>            :   // Trick to get friend function declaration to compile but a const void&amp; is
+<span class="lineNum">      40 </span>            :   // rather useless
+<span class="lineNum">      41 </span><span class="lineNoCov">          0 :   using type = void;</span>
+<span class="lineNum">      42 </span>            : };
+<span class="lineNum">      43 </span>            : }  // namespace Tags
+<span class="lineNum">      44 </span>            : 
+<span class="lineNum">      45 </span>            : namespace db {
+<span class="lineNum">      46 </span>            : 
+<span class="lineNum">      47 </span>            : namespace DataBox_detail {
+<span class="lineNum">      48 </span>            : template &lt;typename TagList, typename Tag&gt;
+<span class="lineNum">      49 </span>            : using list_of_matching_tags = tmpl::conditional_t&lt;
+<span class="lineNum">      50 </span>            :     std::is_same_v&lt;Tag, ::Tags::DataBox&gt;, tmpl::list&lt;::Tags::DataBox&gt;,
+<span class="lineNum">      51 </span>            :     tmpl::filter&lt;TagList, std::is_base_of&lt;tmpl::pin&lt;Tag&gt;, tmpl::_1&gt;&gt;&gt;;
+<span class="lineNum">      52 </span>            : 
+<span class="lineNum">      53 </span>            : template &lt;typename Tag, typename TagList,
+<span class="lineNum">      54 </span>            :           typename MatchingTagsList = list_of_matching_tags&lt;TagList, Tag&gt;&gt;
+<span class="lineNum">      55 </span>            : struct first_matching_tag_impl {
+<span class="lineNum">      56 </span>            :   using type = tmpl::front&lt;MatchingTagsList&gt;;
+<span class="lineNum">      57 </span>            : };
+<span class="lineNum">      58 </span>            : 
+<span class="lineNum">      59 </span>            : template &lt;typename Tag, typename TagList&gt;
+<span class="lineNum">      60 </span>            : struct first_matching_tag_impl&lt;Tag, TagList, tmpl::list&lt;&gt;&gt; {
+<span class="lineNum">      61 </span>            :   static_assert(std::is_same&lt;Tag, NoSuchType&gt;::value,
+<span class="lineNum">      62 </span>            :                 &quot;Could not find the DataBox tag in the list of DataBox tags. &quot;
+<span class="lineNum">      63 </span>            :                 &quot;The first template parameter of 'first_matching_tag_impl' is &quot;
+<span class="lineNum">      64 </span>            :                 &quot;the tag that cannot be found and the second is the list of &quot;
+<span class="lineNum">      65 </span>            :                 &quot;tags being searched.&quot;);
+<span class="lineNum">      66 </span>            :   using type = NoSuchType;
+<span class="lineNum">      67 </span>            : };
+<span class="lineNum">      68 </span>            : 
+<span class="lineNum">      69 </span>            : template &lt;typename TagList, typename Tag&gt;
+<span class="lineNum">      70 </span>            : using first_matching_tag = typename first_matching_tag_impl&lt;Tag, TagList&gt;::type;
+<span class="lineNum">      71 </span>            : 
+<span class="lineNum">      72 </span>            : template &lt;typename TagList, typename Tag&gt;
+<span class="lineNum">      73 </span>            : constexpr auto number_of_matching_tags =
+<span class="lineNum">      74 </span>            :     tmpl::size&lt;list_of_matching_tags&lt;TagList, Tag&gt;&gt;::value;
+<span class="lineNum">      75 </span>            : 
+<span class="lineNum">      76 </span>            : template &lt;typename TagList, typename Tag&gt;
+<span class="lineNum">      77 </span>            : struct has_unique_matching_tag
+<span class="lineNum">      78 </span>            :     : std::integral_constant&lt;bool, number_of_matching_tags&lt;TagList, Tag&gt; == 1&gt; {
+<span class="lineNum">      79 </span>            : };
+<span class="lineNum">      80 </span>            : 
+<span class="lineNum">      81 </span>            : template &lt;typename TagList, typename Tag&gt;
+<span class="lineNum">      82 </span>            : using has_unique_matching_tag_t =
+<span class="lineNum">      83 </span>            :     typename has_unique_matching_tag&lt;TagList, Tag&gt;::type;
+<span class="lineNum">      84 </span>            : 
+<span class="lineNum">      85 </span>            : template &lt;typename TagList, typename Tag&gt;
+<span class="lineNum">      86 </span>            : constexpr bool has_unique_matching_tag_v =
+<span class="lineNum">      87 </span>            :     has_unique_matching_tag&lt;TagList, Tag&gt;::value;
+<span class="lineNum">      88 </span>            : 
+<span class="lineNum">      89 </span>            : template &lt;typename TagList, typename Tag&gt;
+<span class="lineNum">      90 </span>            : struct has_no_matching_tag
+<span class="lineNum">      91 </span>            :     : std::integral_constant&lt;bool, number_of_matching_tags&lt;TagList, Tag&gt; == 0&gt; {
+<span class="lineNum">      92 </span>            : };
+<span class="lineNum">      93 </span>            : 
+<span class="lineNum">      94 </span>            : template &lt;typename TagList, typename Tag&gt;
+<span class="lineNum">      95 </span>            : using has_no_matching_tag_t = typename has_no_matching_tag&lt;TagList, Tag&gt;::type;
+<span class="lineNum">      96 </span>            : 
+<span class="lineNum">      97 </span>            : template &lt;typename TagList, typename Tag&gt;
+<span class="lineNum">      98 </span>            : constexpr bool has_no_matching_tag_v = has_no_matching_tag&lt;TagList, Tag&gt;::value;
+<span class="lineNum">      99 </span>            : }  // namespace DataBox_detail
+<span class="lineNum">     100 </span>            : 
+<span class="lineNum">     101 </span>            : 
+<span class="lineNum">     102 </span>            : 
+<span class="lineNum">     103 </span>            : template &lt;class T, class = void&gt;
+<span class="lineNum">     104 </span><span class="lineNoCov">          0 : struct has_return_type_member : std::false_type {};</span>
+<span class="lineNum">     105 </span>            : template &lt;class T&gt;
+<span class="lineNum">     106 </span>            : struct has_return_type_member&lt;T, std::void_t&lt;typename T::return_type&gt;&gt;
+<span class="lineNum">     107 </span>            :     : std::true_type {};
+<span class="lineNum">     108 </span>            : 
+<span class="lineNum">     109 </span>            : /*!
+<span class="lineNum">     110 </span>            :  * \brief `true` if `T` has nested type alias named `return_type`
+<span class="lineNum">     111 </span>            :  */
+<span class="lineNum">     112 </span>            : template &lt;class T&gt;
+<span class="lineNum">     113 </span><span class="lineCov">          1 : constexpr bool has_return_type_member_v = has_return_type_member&lt;T&gt;::value;</span>
+<span class="lineNum">     114 </span>            : 
+<span class="lineNum">     115 </span>            : namespace DataBox_detail {
+<span class="lineNum">     116 </span>            : template &lt;typename T&gt;
+<span class="lineNum">     117 </span>            : const T&amp; convert_to_const_type(const T&amp; item) noexcept {
+<span class="lineNum">     118 </span>            :   return item;
+<span class="lineNum">     119 </span>            : }
+<span class="lineNum">     120 </span>            : 
+<span class="lineNum">     121 </span>            : template &lt;typename T&gt;
+<span class="lineNum">     122 </span>            : const T&amp; convert_to_const_type(const std::unique_ptr&lt;T&gt;&amp; item) noexcept {
+<span class="lineNum">     123 </span>            :   return *item;
+<span class="lineNum">     124 </span>            : }
+<span class="lineNum">     125 </span>            : 
+<span class="lineNum">     126 </span>            : template &lt;typename TagList, typename Tag&gt;
+<span class="lineNum">     127 </span>            : struct storage_type_impl;
+<span class="lineNum">     128 </span>            : 
+<span class="lineNum">     129 </span>            : template &lt;int SelectTagType&gt;
+<span class="lineNum">     130 </span>            : struct dispatch_storage_type;
+<span class="lineNum">     131 </span>            : 
+<span class="lineNum">     132 </span>            : template &lt;typename ArgsList&gt;
+<span class="lineNum">     133 </span>            : struct compute_item_type;
+<span class="lineNum">     134 </span>            : 
+<span class="lineNum">     135 </span>            : template &lt;typename TagList, typename Tag&gt;
+<span class="lineNum">     136 </span>            : struct storage_type_impl {
+<span class="lineNum">     137 </span>            :   // storage_type_impl is intentionally a lazy metafunction rather than a
+<span class="lineNum">     138 </span>            :   // metaclosure or a metacontinuation. The reason is that it is quite likely we
+<span class="lineNum">     139 </span>            :   // call `db::item_type&lt;Tag&gt;` multiple times within the same translation unit
+<span class="lineNum">     140 </span>            :   // and so we want to memoize the resulting type. However, we do not want to
+<span class="lineNum">     141 </span>            :   // memoize the dispatch calls.
+<span class="lineNum">     142 </span>            :   using type = typename dispatch_storage_type&lt;
+<span class="lineNum">     143 </span>            :       is_base_tag_v&lt;Tag&gt;
+<span class="lineNum">     144 </span>            :           ? 4
+<span class="lineNum">     145 </span>            :           : (is_compute_item_v&lt;Tag&gt;and has_return_type_member_v&lt;Tag&gt;)
+<span class="lineNum">     146 </span>            :                 ? 3
+<span class="lineNum">     147 </span>            :                 : is_compute_item_v&lt;Tag&gt; ? 2
+<span class="lineNum">     148 </span>            :                                          : std::is_base_of_v&lt;db::SimpleTag, Tag&gt;
+<span class="lineNum">     149 </span>            :                                                ? 1
+<span class="lineNum">     150 </span>            :                                                : 0&gt;::template f&lt;TagList, Tag&gt;;
+<span class="lineNum">     151 </span>            : };
+<span class="lineNum">     152 </span>            : 
+<span class="lineNum">     153 </span>            : template &lt;&gt;
+<span class="lineNum">     154 </span>            : struct dispatch_storage_type&lt;0&gt; {
+<span class="lineNum">     155 </span>            :   // Tag is not a tag. This is necessary for SFINAE friendliness, specifically
+<span class="lineNum">     156 </span>            :   // if someone calls Requires&lt;tt::is_a_v&lt;std::vector, db::item_type&lt;Tag&gt;&gt;&gt;
+<span class="lineNum">     157 </span>            :   // with, say Tag = double, then this should probably SFINAE away, not fail to
+<span class="lineNum">     158 </span>            :   // compile.
+<span class="lineNum">     159 </span>            :   template &lt;typename TagList, typename Tag&gt;
+<span class="lineNum">     160 </span>            :   using f = NoSuchType;
+<span class="lineNum">     161 </span>            : };
+<span class="lineNum">     162 </span>            : 
+<span class="lineNum">     163 </span>            : template &lt;&gt;
+<span class="lineNum">     164 </span>            : struct dispatch_storage_type&lt;1&gt; {
+<span class="lineNum">     165 </span>            :   // simple item
+<span class="lineNum">     166 </span>            :   template &lt;typename TagList, typename Tag&gt;
+<span class="lineNum">     167 </span>            :   using f = typename Tag::type;
+<span class="lineNum">     168 </span>            : };
+<span class="lineNum">     169 </span>            : 
+<span class="lineNum">     170 </span>            : template &lt;&gt;
+<span class="lineNum">     171 </span>            : struct dispatch_storage_type&lt;2&gt; {
+<span class="lineNum">     172 </span>            :   // compute item
+<span class="lineNum">     173 </span>            :   template &lt;typename TagList, typename Tag&gt;
+<span class="lineNum">     174 </span>            :   using f = typename compute_item_type&lt;typename Tag::argument_tags&gt;::template f&lt;
+<span class="lineNum">     175 </span>            :       TagList, Tag&gt;;
+<span class="lineNum">     176 </span>            : };
+<span class="lineNum">     177 </span>            : 
+<span class="lineNum">     178 </span>            : template &lt;&gt;
+<span class="lineNum">     179 </span>            : struct dispatch_storage_type&lt;3&gt; {
+<span class="lineNum">     180 </span>            :   // mutating compute item
+<span class="lineNum">     181 </span>            :   template &lt;typename TagList, typename Tag&gt;
+<span class="lineNum">     182 </span>            :   using f = typename Tag::return_type;
+<span class="lineNum">     183 </span>            : };
+<span class="lineNum">     184 </span>            : 
+<span class="lineNum">     185 </span>            : template &lt;typename TagList, typename Tag&gt;
+<span class="lineNum">     186 </span>            : struct get_first_derived_tag_for_base_tag {
+<span class="lineNum">     187 </span>            :   static_assert(
+<span class="lineNum">     188 </span>            :       not std::is_same_v&lt;TagList, NoSuchType&gt;,
+<span class="lineNum">     189 </span>            :       &quot;Can't retrieve the storage type of a base tag without the full tag &quot;
+<span class="lineNum">     190 </span>            :       &quot;list. If you're using 'item_type' or 'const_item_type' then make sure &quot;
+<span class="lineNum">     191 </span>            :       &quot;you pass the DataBox's tag list as the second template parameter to &quot;
+<span class="lineNum">     192 </span>            :       &quot;those metafunctions. The base tag for which the storage type is being&quot;
+<span class="lineNum">     193 </span>            :       &quot;retrieved is listed as the second template argument to the &quot;
+<span class="lineNum">     194 </span>            :       &quot;'get_first_derived_tag_for_base_tag' class below&quot;);
+<span class="lineNum">     195 </span>            :   using type = first_matching_tag&lt;TagList, Tag&gt;;
+<span class="lineNum">     196 </span>            : };
+<span class="lineNum">     197 </span>            : 
+<span class="lineNum">     198 </span>            : template &lt;&gt;
+<span class="lineNum">     199 </span>            : struct dispatch_storage_type&lt;4&gt; {
+<span class="lineNum">     200 </span>            :   // base tag item: retrieve the derived tag from the tag list then call
+<span class="lineNum">     201 </span>            :   // storage_type_impl on the result.
+<span class="lineNum">     202 </span>            :   // We do not check that there is only one matching tag in the DataBox because
+<span class="lineNum">     203 </span>            :   // the uniqueness is only checked in get and mutate. The reason for that is
+<span class="lineNum">     204 </span>            :   // that it is fine to have multiple derived tags in the DataBox as long as
+<span class="lineNum">     205 </span>            :   // they all have the same type. We do not check that the types are all the
+<span class="lineNum">     206 </span>            :   // same, it is undefined behavior if they are not and the user's
+<span class="lineNum">     207 </span>            :   // responsibility.
+<span class="lineNum">     208 </span>            :   template &lt;typename TagList, typename Tag&gt;
+<span class="lineNum">     209 </span>            :   using f = typename storage_type_impl&lt;
+<span class="lineNum">     210 </span>            :       TagList,
+<span class="lineNum">     211 </span>            :       tmpl::type_from&lt;get_first_derived_tag_for_base_tag&lt;TagList, Tag&gt;&gt;&gt;::type;
+<span class="lineNum">     212 </span>            : };
+<span class="lineNum">     213 </span>            : 
+<span class="lineNum">     214 </span>            : // The type internally stored in a simple or compute item.  For
+<span class="lineNum">     215 </span>            : // convenience in implementing the various tag type metafunctions,
+<span class="lineNum">     216 </span>            : // this will also look up types for db::BaseTags, even though they
+<span class="lineNum">     217 </span>            : // cannot actually store anything.
+<span class="lineNum">     218 </span>            : template &lt;typename Tag, typename TagList&gt;
+<span class="lineNum">     219 </span>            : using storage_type = typename storage_type_impl&lt;TagList, Tag&gt;::type;
+<span class="lineNum">     220 </span>            : 
+<span class="lineNum">     221 </span>            : template &lt;typename TagList, typename Tag&gt;
+<span class="lineNum">     222 </span>            : struct item_type_impl {
+<span class="lineNum">     223 </span>            :   static_assert(not is_compute_item_v&lt;Tag&gt;,
+<span class="lineNum">     224 </span>            :                 &quot;Can't call item_type on a compute item because compute items &quot;
+<span class="lineNum">     225 </span>            :                 &quot;cannot be modified.  You probably wanted const_item_type.&quot;);
+<span class="lineNum">     226 </span>            :   using type = DataBox_detail::storage_type&lt;Tag, TagList&gt;;
+<span class="lineNum">     227 </span>            : };
+<span class="lineNum">     228 </span>            : }  // namespace DataBox_detail
+<span class="lineNum">     229 </span>            : 
+<span class="lineNum">     230 </span>            : /*!
+<span class="lineNum">     231 </span>            :  * \ingroup DataBoxGroup
+<span class="lineNum">     232 </span>            :  * \brief Get the type that is returned by `get&lt;Tag&gt;`. If it is a base
+<span class="lineNum">     233 </span>            :  * tag then a `TagList` must be passed as a second argument.
+<span class="lineNum">     234 </span>            :  */
+<span class="lineNum">     235 </span>            : template &lt;typename Tag, typename TagList = NoSuchType&gt;
+<span class="lineNum">     236 </span><span class="lineCov">          1 : using const_item_type =</span>
+<span class="lineNum">     237 </span>            :     std::decay_t&lt;decltype(DataBox_detail::convert_to_const_type(
+<span class="lineNum">     238 </span>            :         std::declval&lt;DataBox_detail::storage_type&lt;Tag, TagList&gt;&gt;()))&gt;;
+<span class="lineNum">     239 </span>            : 
+<span class="lineNum">     240 </span>            : /*!
+<span class="lineNum">     241 </span>            :  * \ingroup DataBoxGroup
+<span class="lineNum">     242 </span>            :  * \brief Get the type that can be written to the `Tag`. If it is a
+<span class="lineNum">     243 </span>            :  * base tag then a `TagList` must be passed as a second argument.
+<span class="lineNum">     244 </span>            :  */
+<span class="lineNum">     245 </span>            : template &lt;typename Tag, typename TagList = NoSuchType&gt;
+<span class="lineNum">     246 </span><span class="lineCov">          1 : using item_type = typename DataBox_detail::item_type_impl&lt;TagList, Tag&gt;::type;</span>
+<span class="lineNum">     247 </span>            : 
+<span class="lineNum">     248 </span>            : namespace DataBox_detail {
+<span class="lineNum">     249 </span>            : CREATE_IS_CALLABLE(function)
+<span class="lineNum">     250 </span>            : CREATE_IS_CALLABLE_V(function)
+<span class="lineNum">     251 </span>            : 
+<span class="lineNum">     252 </span>            : template &lt;typename Tag, typename TagList, typename TagTypesList&gt;
+<span class="lineNum">     253 </span>            : struct check_compute_item_is_invokable;
+<span class="lineNum">     254 </span>            : 
+<span class="lineNum">     255 </span>            : template &lt;typename Tag, typename... Tags, typename... TagTypes&gt;
+<span class="lineNum">     256 </span>            : struct check_compute_item_is_invokable&lt;Tag, tmpl::list&lt;Tags...&gt;,
+<span class="lineNum">     257 </span>            :                                        tmpl::list&lt;TagTypes...&gt;&gt; {
+<span class="lineNum">     258 </span>            :   static_assert(
+<span class="lineNum">     259 </span>            :       is_function_callable_v&lt;Tag, TagTypes...&gt;,
+<span class="lineNum">     260 </span>            :       &quot;The compute item is not callable with the types that the tags hold. The &quot;
+<span class="lineNum">     261 </span>            :       &quot;compute item tag that is the problem should be shown in the first line &quot;
+<span class="lineNum">     262 </span>            :       &quot; after the static assert error: &quot;
+<span class="lineNum">     263 </span>            :       &quot;'check_compute_item_is_invokable&lt;TheItemThatsFailingToBeCalled, &quot;
+<span class="lineNum">     264 </span>            :       &quot;brigand::list&lt;PassedTags...&gt;, &quot;
+<span class="lineNum">     265 </span>            :       &quot;brigand::list&lt;const_item_type&lt;PassedTags&gt;...&gt;&gt;'&quot;);
+<span class="lineNum">     266 </span>            : };
+<span class="lineNum">     267 </span>            : 
+<span class="lineNum">     268 </span>            : template &lt;typename... Args&gt;
+<span class="lineNum">     269 </span>            : struct compute_item_type&lt;tmpl::list&lt;Args...&gt;&gt; {
+<span class="lineNum">     270 </span>            :   template &lt;typename TagList, typename Tag&gt;
+<span class="lineNum">     271 </span>            :   using f = decltype(
+<span class="lineNum">     272 </span>            : #ifdef SPECTRE_DEBUG
+<span class="lineNum">     273 </span>            :       (void)check_compute_item_is_invokable&lt;
+<span class="lineNum">     274 </span>            :           Tag, tmpl::list&lt;Args...&gt;,
+<span class="lineNum">     275 </span>            :           tmpl::list&lt;const_item_type&lt;Args, TagList&gt;...&gt;&gt;{},
+<span class="lineNum">     276 </span>            : #endif  // SPECTRE_DEBUG
+<span class="lineNum">     277 </span>            :       Tag::function(std::declval&lt;const_item_type&lt;Args, TagList&gt;&gt;()...));
+<span class="lineNum">     278 </span>            : };
+<span class="lineNum">     279 </span>            : }  // namespace DataBox_detail
+<span class="lineNum">     280 </span>            : 
+<span class="lineNum">     281 </span>            : /// \ingroup DataBoxGroup
+<span class="lineNum">     282 </span>            : /// Struct that can be specialized to allow DataBox items to have
+<span class="lineNum">     283 </span>            : /// subitems.  Specializations must define:
+<span class="lineNum">     284 </span>            : /// * `using type = tmpl::list&lt;...&gt;` listing the subtags of `Tag`
+<span class="lineNum">     285 </span>            : /// * A static member function to initialize a subitem of a simple
+<span class="lineNum">     286 </span>            : ///   item:
+<span class="lineNum">     287 </span>            : ///   ```
+<span class="lineNum">     288 </span>            : ///   template &lt;typename Subtag&gt;
+<span class="lineNum">     289 </span>            : ///   static void create_item(
+<span class="lineNum">     290 </span>            : ///       const gsl::not_null&lt;item_type&lt;Tag&gt;*&gt; parent_value,
+<span class="lineNum">     291 </span>            : ///       const gsl::not_null&lt;item_type&lt;Subtag&gt;*&gt; sub_value) noexcept;
+<span class="lineNum">     292 </span>            : ///   ```
+<span class="lineNum">     293 </span>            : ///   Mutating the subitems must also modify the main item.
+<span class="lineNum">     294 </span>            : /// * A static member function evaluating a subitem of a compute
+<span class="lineNum">     295 </span>            : ///   item:
+<span class="lineNum">     296 </span>            : ///   ```
+<span class="lineNum">     297 </span>            : ///   template &lt;typename Subtag&gt;
+<span class="lineNum">     298 </span>            : ///   static item_type&lt;Subtag&gt; create_compute_item(
+<span class="lineNum">     299 </span>            : ///       const item_type&lt;Tag&gt;&amp; parent_value) noexcept;
+<span class="lineNum">     300 </span>            : ///   ```
+<span class="lineNum">     301 </span>            : template &lt;typename TagList, typename Tag, typename = std::nullptr_t&gt;
+<span class="lineNum">     302 </span><span class="lineCov">          1 : struct Subitems {</span>
+<span class="lineNum">     303 </span><span class="lineNoCov">          0 :   using type = tmpl::list&lt;&gt;;</span>
+<span class="lineNum">     304 </span>            : };
+<span class="lineNum">     305 </span>            : 
+<span class="lineNum">     306 </span>            : /// \ingroup DataBoxGroup
+<span class="lineNum">     307 </span>            : /// Split a tag into its subitems.  `Tag` cannot be a base tag.
+<span class="lineNum">     308 </span>            : template &lt;typename Tag, typename TagList = NoSuchType&gt;
+<span class="lineNum">     309 </span><span class="lineCov">          1 : using split_tag = tmpl::conditional_t&lt;</span>
+<span class="lineNum">     310 </span>            :     tmpl::size&lt;typename Subitems&lt;TagList, Tag&gt;::type&gt;::value == 0,
+<span class="lineNum">     311 </span>            :     tmpl::list&lt;Tag&gt;, typename Subitems&lt;TagList, Tag&gt;::type&gt;;
+<span class="lineNum">     312 </span>            : 
+<span class="lineNum">     313 </span>            : /// \ingroup DataBoxTagsGroup
+<span class="lineNum">     314 </span>            : /// \brief `true_type` if the prefix tag wraps the specified tag, `false_type`
+<span class="lineNum">     315 </span>            : /// otherwise. Can be used with `tmpl::filter` to extract a subset of a
+<span class="lineNum">     316 </span>            : /// `tmpl::list` of prefix tags which wrap a specified tag.
+<span class="lineNum">     317 </span>            : ///
+<span class="lineNum">     318 </span>            : /// \snippet Test_DataBoxTag.cpp prefix_tag_wraps_specified_tag
+<span class="lineNum">     319 </span>            : template &lt;typename PrefixTag, typename Tag&gt;
+<span class="lineNum">     320 </span>            : struct prefix_tag_wraps_specified_tag
+<span class="lineNum">     321 </span><span class="lineCov">          1 :     : std::is_same&lt;Tag, typename PrefixTag::tag&gt; {};</span>
+<span class="lineNum">     322 </span>            : }  // namespace db
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

@@ -1,0 +1,157 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - Utilities/TypeTraits/RemoveReferenceWrapper.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">Utilities/TypeTraits</a> - RemoveReferenceWrapper.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">2</td>
+            <td class="headerCovTableEntry">7</td>
+            <td class="headerCovTableEntryLo">28.6 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #pragma once
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;functional&gt;
+<span class="lineNum">       7 </span>            : 
+<span class="lineNum">       8 </span>            : #include &quot;Utilities/TypeTraits.hpp&quot;
+<span class="lineNum">       9 </span>            : 
+<span class="lineNum">      10 </span>            : namespace tt {
+<span class="lineNum">      11 </span>            : // @{
+<span class="lineNum">      12 </span>            : /*!
+<span class="lineNum">      13 </span>            :  * \ingroup TypeTraitsGroup
+<span class="lineNum">      14 </span>            :  * \brief Gets the underlying type if the type is a std::reference_wrapper,
+<span class="lineNum">      15 </span>            :  * otherwise returns the type itself
+<span class="lineNum">      16 </span>            :  *
+<span class="lineNum">      17 </span>            :  * \usage
+<span class="lineNum">      18 </span>            :  * For any type `I`,
+<span class="lineNum">      19 </span>            :  * \code
+<span class="lineNum">      20 </span>            :  * using result = tt::remove_reference_wrapper&lt;I&gt;;
+<span class="lineNum">      21 </span>            :  * \endcode
+<span class="lineNum">      22 </span>            :  * \metareturns
+<span class="lineNum">      23 </span>            :  * either `I::type` if `I` is a std::reference_wrapper, else returns I
+<span class="lineNum">      24 </span>            :  *
+<span class="lineNum">      25 </span>            :  * \example
+<span class="lineNum">      26 </span>            :  * \snippet Test_RemoveReferenceWrapper.cpp remove_reference_wrapper_example
+<span class="lineNum">      27 </span>            :  * \see std::reference_wrapper
+<span class="lineNum">      28 </span>            :  */
+<span class="lineNum">      29 </span>            : template &lt;typename T&gt;
+<span class="lineNum">      30 </span><span class="lineCov">          1 : struct remove_reference_wrapper {</span>
+<span class="lineNum">      31 </span><span class="lineNoCov">          0 :   using type = T;</span>
+<span class="lineNum">      32 </span>            : };
+<span class="lineNum">      33 </span>            : 
+<span class="lineNum">      34 </span>            : /// \cond HIDDEN_SYMBOLS
+<span class="lineNum">      35 </span>            : template &lt;typename T&gt;
+<span class="lineNum">      36 </span>            : struct remove_reference_wrapper&lt;std::reference_wrapper&lt;T&gt;&gt; {
+<span class="lineNum">      37 </span>            :   using type = T;
+<span class="lineNum">      38 </span>            : };
+<span class="lineNum">      39 </span>            : 
+<span class="lineNum">      40 </span>            : template &lt;typename T&gt;
+<span class="lineNum">      41 </span>            : struct remove_reference_wrapper&lt;const std::reference_wrapper&lt;T&gt;&gt; {
+<span class="lineNum">      42 </span>            :   using type = T;
+<span class="lineNum">      43 </span>            : };
+<span class="lineNum">      44 </span>            : 
+<span class="lineNum">      45 </span>            : template &lt;typename T&gt;
+<span class="lineNum">      46 </span>            : struct remove_reference_wrapper&lt;volatile std::reference_wrapper&lt;T&gt;&gt; {
+<span class="lineNum">      47 </span>            :   using type = T;
+<span class="lineNum">      48 </span>            : };
+<span class="lineNum">      49 </span>            : 
+<span class="lineNum">      50 </span>            : template &lt;typename T&gt;
+<span class="lineNum">      51 </span>            : struct remove_reference_wrapper&lt;const volatile std::reference_wrapper&lt;T&gt;&gt; {
+<span class="lineNum">      52 </span>            :   using type = T;
+<span class="lineNum">      53 </span>            : };
+<span class="lineNum">      54 </span>            : /// \endcond
+<span class="lineNum">      55 </span>            : 
+<span class="lineNum">      56 </span>            : template &lt;typename T&gt;
+<span class="lineNum">      57 </span><span class="lineNoCov">          0 : using remove_reference_wrapper_t = typename remove_reference_wrapper&lt;T&gt;::type;</span>
+<span class="lineNum">      58 </span>            : // @}
+<span class="lineNum">      59 </span>            : 
+<span class="lineNum">      60 </span>            : // @{
+<span class="lineNum">      61 </span>            : /*!
+<span class="lineNum">      62 </span>            :  * \ingroup TypeTraitsGroup
+<span class="lineNum">      63 </span>            :  * \brief Removes std::reference_wrapper, references, and cv qualifiers.
+<span class="lineNum">      64 </span>            :  *
+<span class="lineNum">      65 </span>            :  * \example
+<span class="lineNum">      66 </span>            :  * \snippet Test_RemoveReferenceWrapper.cpp remove_cvref_wrap
+<span class="lineNum">      67 </span>            :  * \see std::reference_wrapper remove_reference_wrapper std::remove_cvref
+<span class="lineNum">      68 </span>            :  */
+<span class="lineNum">      69 </span>            : template &lt;typename T&gt;
+<span class="lineNum">      70 </span><span class="lineCov">          1 : struct remove_cvref_wrap {</span>
+<span class="lineNum">      71 </span><span class="lineNoCov">          0 :   using type = cpp20::remove_cvref_t&lt;tt::remove_reference_wrapper_t&lt;T&gt;&gt;;</span>
+<span class="lineNum">      72 </span>            : };
+<span class="lineNum">      73 </span>            : 
+<span class="lineNum">      74 </span>            : template &lt;typename T&gt;
+<span class="lineNum">      75 </span><span class="lineNoCov">          0 : using remove_cvref_wrap_t = typename remove_cvref_wrap&lt;T&gt;::type;</span>
+<span class="lineNum">      76 </span>            : // @}
+<span class="lineNum">      77 </span>            : }  // namespace tt
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

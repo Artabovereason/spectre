@@ -1,0 +1,5 @@
+var searchData=
+[
+  ['flag',['Flag',['../group__ComputationalDomainGroup.html#ga6874579f1400ff7d0d77cbfa978289e2',1,'amr']]],
+  ['formulation',['Formulation',['../group__DiscontinuousGalerkinGroup.html#ga102ad013b7e4298b4c14c52a39bcd8da',1,'dg']]]
+];

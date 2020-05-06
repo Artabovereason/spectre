@@ -1,0 +1,942 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - Evolution/Systems/Cce/ReadBoundaryDataH5.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../index.html">top level</a> - <a href="index.html">Evolution/Systems/Cce</a> - ReadBoundaryDataH5.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">27</td>
+            <td class="headerCovTableEntry">91</td>
+            <td class="headerCovTableEntryLo">29.7 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #pragma once
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;algorithm&gt;
+<span class="lineNum">       7 </span>            : #include &lt;boost/iterator/zip_iterator.hpp&gt;
+<span class="lineNum">       8 </span>            : #include &lt;boost/tuple/tuple.hpp&gt;
+<span class="lineNum">       9 </span>            : #include &lt;boost/tuple/tuple_comparison.hpp&gt;
+<span class="lineNum">      10 </span>            : #include &lt;memory&gt;
+<span class="lineNum">      11 </span>            : #include &lt;string&gt;
+<span class="lineNum">      12 </span>            : 
+<span class="lineNum">      13 </span>            : #include &quot;DataStructures/DataBox/DataBoxTag.hpp&quot;
+<span class="lineNum">      14 </span>            : #include &quot;DataStructures/DataBox/PrefixHelpers.hpp&quot;
+<span class="lineNum">      15 </span>            : #include &quot;DataStructures/DataBox/Prefixes.hpp&quot;
+<span class="lineNum">      16 </span>            : #include &quot;DataStructures/DataBox/Tag.hpp&quot;
+<span class="lineNum">      17 </span>            : #include &quot;DataStructures/DataBox/TagName.hpp&quot;
+<span class="lineNum">      18 </span>            : #include &quot;DataStructures/Matrix.hpp&quot;
+<span class="lineNum">      19 </span>            : #include &quot;ErrorHandling/Assert.hpp&quot;
+<span class="lineNum">      20 </span>            : #include &quot;Evolution/Systems/Cce/BoundaryData.hpp&quot;
+<span class="lineNum">      21 </span>            : #include &quot;Evolution/Systems/Cce/SpecBoundaryData.hpp&quot;
+<span class="lineNum">      22 </span>            : #include &quot;Evolution/Systems/Cce/Tags.hpp&quot;
+<span class="lineNum">      23 </span>            : #include &quot;IO/H5/Dat.hpp&quot;
+<span class="lineNum">      24 </span>            : #include &quot;IO/H5/File.hpp&quot;
+<span class="lineNum">      25 </span>            : #include &quot;IO/H5/Version.hpp&quot;
+<span class="lineNum">      26 </span>            : #include &quot;NumericalAlgorithms/Interpolation/SpanInterpolator.hpp&quot;
+<span class="lineNum">      27 </span>            : #include &quot;Parallel/CharmPupable.hpp&quot;
+<span class="lineNum">      28 </span>            : 
+<span class="lineNum">      29 </span>            : namespace Cce {
+<span class="lineNum">      30 </span>            : namespace Tags {
+<span class="lineNum">      31 </span>            : namespace detail {
+<span class="lineNum">      32 </span>            : // tags for use in the buffers for the modal input worldtube data management
+<span class="lineNum">      33 </span>            : // classes
+<span class="lineNum">      34 </span>            : using SpatialMetric =
+<span class="lineNum">      35 </span>            :     gr::Tags::SpatialMetric&lt;3, ::Frame::Inertial, ComplexModalVector&gt;;
+<span class="lineNum">      36 </span>            : using Shift = gr::Tags::Shift&lt;3, ::Frame::Inertial, ComplexModalVector&gt;;
+<span class="lineNum">      37 </span>            : using Lapse = gr::Tags::Lapse&lt;ComplexModalVector&gt;;
+<span class="lineNum">      38 </span>            : 
+<span class="lineNum">      39 </span>            : // radial derivative prefix tag to be used with the modal input worldtube data
+<span class="lineNum">      40 </span>            : template &lt;typename Tag&gt;
+<span class="lineNum">      41 </span>            : struct Dr : db::SimpleTag, db::PrefixTag {
+<span class="lineNum">      42 </span>            :   using type = typename Tag::type;
+<span class="lineNum">      43 </span>            :   using tag = Tag;
+<span class="lineNum">      44 </span>            :   static std::string name() noexcept {
+<span class="lineNum">      45 </span>            :     return &quot;Dr(&quot; + db::tag_name&lt;Tag&gt;() + &quot;)&quot;;
+<span class="lineNum">      46 </span>            :   }
+<span class="lineNum">      47 </span>            : };
+<span class="lineNum">      48 </span>            : 
+<span class="lineNum">      49 </span>            : // tag for the string for accessing the quantity associated with `Tag` in
+<span class="lineNum">      50 </span>            : // worldtube h5 file
+<span class="lineNum">      51 </span>            : template &lt;typename Tag&gt;
+<span class="lineNum">      52 </span>            : struct InputDataSet : db::SimpleTag, db::PrefixTag {
+<span class="lineNum">      53 </span>            :   using type = std::string;
+<span class="lineNum">      54 </span>            :   using tag = Tag;
+<span class="lineNum">      55 </span>            :   static std::string name() noexcept {
+<span class="lineNum">      56 </span>            :     return &quot;InputDataSet(&quot; + db::tag_name&lt;Tag&gt;() + &quot;)&quot;;
+<span class="lineNum">      57 </span>            :   }
+<span class="lineNum">      58 </span>            : };
+<span class="lineNum">      59 </span>            : }  // namespace detail
+<span class="lineNum">      60 </span>            : }  // namespace Tags
+<span class="lineNum">      61 </span>            : 
+<span class="lineNum">      62 </span>            : namespace detail {
+<span class="lineNum">      63 </span>            : // generates the component dataset name in the worldtube file based on the
+<span class="lineNum">      64 </span>            : // tensor indices requested. For instance, if called with arguments (&quot;/g&quot;, 0,1),
+<span class="lineNum">      65 </span>            : // it returns the dataset name &quot;/gxy&quot;.
+<span class="lineNum">      66 </span>            : template &lt;typename... T&gt;
+<span class="lineNum">      67 </span>            : std::string dataset_name_for_component(std::string base_name,
+<span class="lineNum">      68 </span>            :                                        const T... indices) noexcept {  // NOLINT
+<span class="lineNum">      69 </span>            :   const auto add_index = [&amp;base_name](size_t index) noexcept {
+<span class="lineNum">      70 </span>            :     ASSERT(index &lt; 3, &quot;The character-arithmetic index must be less than 3.&quot;);
+<span class="lineNum">      71 </span>            :     base_name += static_cast&lt;char&gt;('x' + index);
+<span class="lineNum">      72 </span>            :   };
+<span class="lineNum">      73 </span>            :   EXPAND_PACK_LEFT_TO_RIGHT(add_index(indices));
+<span class="lineNum">      74 </span>            :   // void cast so that compilers can tell it's used.
+<span class="lineNum">      75 </span>            :   (void)add_index;
+<span class="lineNum">      76 </span>            :   return base_name;
+<span class="lineNum">      77 </span>            : }
+<span class="lineNum">      78 </span>            : 
+<span class="lineNum">      79 </span>            : // the full set of tensors to be extracted from the worldtube h5 file
+<span class="lineNum">      80 </span>            : using cce_input_tags = tmpl::list&lt;
+<span class="lineNum">      81 </span>            :     Tags::detail::SpatialMetric, Tags::detail::Dr&lt;Tags::detail::SpatialMetric&gt;,
+<span class="lineNum">      82 </span>            :     ::Tags::dt&lt;Tags::detail::SpatialMetric&gt;, Tags::detail::Shift,
+<span class="lineNum">      83 </span>            :     Tags::detail::Dr&lt;Tags::detail::Shift&gt;, ::Tags::dt&lt;Tags::detail::Shift&gt;,
+<span class="lineNum">      84 </span>            :     Tags::detail::Lapse, Tags::detail::Dr&lt;Tags::detail::Lapse&gt;,
+<span class="lineNum">      85 </span>            :     ::Tags::dt&lt;Tags::detail::Lapse&gt;&gt;;
+<span class="lineNum">      86 </span>            : 
+<span class="lineNum">      87 </span>            : using reduced_cce_input_tags =
+<span class="lineNum">      88 </span>            :     tmpl::list&lt;Spectral::Swsh::Tags::SwshTransform&lt;Tags::BondiBeta&gt;,
+<span class="lineNum">      89 </span>            :                Spectral::Swsh::Tags::SwshTransform&lt;Tags::BondiU&gt;,
+<span class="lineNum">      90 </span>            :                Spectral::Swsh::Tags::SwshTransform&lt;Tags::BondiQ&gt;,
+<span class="lineNum">      91 </span>            :                Spectral::Swsh::Tags::SwshTransform&lt;Tags::BondiW&gt;,
+<span class="lineNum">      92 </span>            :                Spectral::Swsh::Tags::SwshTransform&lt;Tags::BondiJ&gt;,
+<span class="lineNum">      93 </span>            :                Spectral::Swsh::Tags::SwshTransform&lt;Tags::Dr&lt;Tags::BondiJ&gt;&gt;,
+<span class="lineNum">      94 </span>            :                Spectral::Swsh::Tags::SwshTransform&lt;Tags::Du&lt;Tags::BondiJ&gt;&gt;,
+<span class="lineNum">      95 </span>            :                Spectral::Swsh::Tags::SwshTransform&lt;Tags::BondiR&gt;,
+<span class="lineNum">      96 </span>            :                Spectral::Swsh::Tags::SwshTransform&lt;Tags::Du&lt;Tags::BondiR&gt;&gt;&gt;;
+<span class="lineNum">      97 </span>            : 
+<span class="lineNum">      98 </span>            : // creates a pair of indices such that the difference is `2 *
+<span class="lineNum">      99 </span>            : // interpolator_length + pad`, centered around `time`, and bounded by
+<span class="lineNum">     100 </span>            : // `lower_bound` and `upper_bound`. If it cannot be centered, it gives a span
+<span class="lineNum">     101 </span>            : // that is appropriately sized and bounded by the supplied bounds. If the bounds
+<span class="lineNum">     102 </span>            : // are too constraining for the necessary size, it gives a span that is the
+<span class="lineNum">     103 </span>            : // correct size starting at `lower bound`, but not constrained by `upper_bound`
+<span class="lineNum">     104 </span>            : std::pair&lt;size_t, size_t&gt; create_span_for_time_value(
+<span class="lineNum">     105 </span>            :     double time, size_t pad, size_t interpolator_length, size_t lower_bound,
+<span class="lineNum">     106 </span>            :     size_t upper_bound, const DataVector&amp; time_buffer) noexcept;
+<span class="lineNum">     107 </span>            : }  // namespace detail
+<span class="lineNum">     108 </span>            : 
+<span class="lineNum">     109 </span>            : /// \cond
+<span class="lineNum">     110 </span>            : class SpecWorldtubeH5BufferUpdater;
+<span class="lineNum">     111 </span>            : /// \endcond
+<span class="lineNum">     112 </span>            : 
+<span class="lineNum">     113 </span>            : /*!
+<span class="lineNum">     114 </span>            :  *  \brief Abstract base class for utilities that are able to perform the buffer
+<span class="lineNum">     115 </span>            :  *  updating procedure needed by the `WorldtubeDataManager`.
+<span class="lineNum">     116 </span>            :  *
+<span class="lineNum">     117 </span>            :  *  \details The methods that are required to be overridden in the derived
+<span class="lineNum">     118 </span>            :  * classes are:
+<span class="lineNum">     119 </span>            :  *  - `WorldtubeBufferUpdater::update_buffers_for_time()`:
+<span class="lineNum">     120 </span>            :  *  updates the buffers passed by pointer and the `time_span_start` and
+<span class="lineNum">     121 </span>            :  *  `time_span_end` to be appropriate for the requested `time`,
+<span class="lineNum">     122 </span>            :  *  `interpolator_length`, and `buffer_depth`.
+<span class="lineNum">     123 </span>            :  *  - `WorldtubeBufferUpdater::get_clone()`
+<span class="lineNum">     124 </span>            :  *  clone function to obtain a `std::unique_ptr` of the base
+<span class="lineNum">     125 </span>            :  *  `WorldtubeBufferUpdater`, needed to pass around the factory-created
+<span class="lineNum">     126 </span>            :  *  object.
+<span class="lineNum">     127 </span>            :  *  - `WorldtubeBufferUpdater::time_is_outside_range()`
+<span class="lineNum">     128 </span>            :  *  the override should return `true` if the `time` could be used in a
+<span class="lineNum">     129 </span>            :  *  `update_buffers_for_time` call given the data available to the derived
+<span class="lineNum">     130 </span>            :  *  class, and `false` otherwise
+<span class="lineNum">     131 </span>            :  *  - `WorldtubeBufferUpdater::get_l_max()`
+<span class="lineNum">     132 </span>            :  *  The override should return the `l_max` it uses in the
+<span class="lineNum">     133 </span>            :  *  Goldberg modal data placed in the buffers.
+<span class="lineNum">     134 </span>            :  *  - `WorldtubeBufferUpdater::get_extraction_radius()`
+<span class="lineNum">     135 </span>            :  *  The override should return the coordinate radius associated with the modal
+<span class="lineNum">     136 </span>            :  *  worldtube data that it supplies in the buffer update function. This is
+<span class="lineNum">     137 </span>            :  *  currently assumed to be a single double, but may be generalized in future
+<span class="lineNum">     138 </span>            :  *  to be time-dependent.
+<span class="lineNum">     139 </span>            :  *  - `WorldtubeBufferUpdater::get_time_buffer`
+<span class="lineNum">     140 </span>            :  *  The override should return the vector of times that it can produce modal
+<span class="lineNum">     141 </span>            :  *  data at. For instance, if associated with a file input, this will be the
+<span class="lineNum">     142 </span>            :  *  times at each of the rows of the time-series data.
+<span class="lineNum">     143 </span>            :  */
+<span class="lineNum">     144 </span><span class="lineCov">          1 : class WorldtubeBufferUpdater : public PUP::able {</span>
+<span class="lineNum">     145 </span>            :  public:
+<span class="lineNum">     146 </span><span class="lineNoCov">          0 :   using creatable_classes = tmpl::list&lt;SpecWorldtubeH5BufferUpdater&gt;;</span>
+<span class="lineNum">     147 </span>            : 
+<span class="lineNum">     148 </span><span class="lineNoCov">          0 :   WRAPPED_PUPable_abstract(WorldtubeBufferUpdater);  // NOLINT</span>
+<span class="lineNum">     149 </span>            : 
+<span class="lineNum">     150 </span><span class="lineNoCov">          0 :   virtual double update_buffers_for_time(</span>
+<span class="lineNum">     151 </span>            :       gsl::not_null&lt;Variables&lt;detail::cce_input_tags&gt;*&gt; buffers,
+<span class="lineNum">     152 </span>            :       gsl::not_null&lt;size_t*&gt; time_span_start,
+<span class="lineNum">     153 </span>            :       gsl::not_null&lt;size_t*&gt; time_span_end, double time,
+<span class="lineNum">     154 </span>            :       size_t computation_l_max, size_t interpolator_length,
+<span class="lineNum">     155 </span>            :       size_t buffer_depth) const noexcept = 0;
+<span class="lineNum">     156 </span>            : 
+<span class="lineNum">     157 </span><span class="lineNoCov">          0 :   virtual std::unique_ptr&lt;WorldtubeBufferUpdater&gt; get_clone() const</span>
+<span class="lineNum">     158 </span>            :       noexcept = 0;
+<span class="lineNum">     159 </span>            : 
+<span class="lineNum">     160 </span><span class="lineNoCov">          0 :   virtual bool time_is_outside_range(double time) const noexcept = 0;</span>
+<span class="lineNum">     161 </span>            : 
+<span class="lineNum">     162 </span><span class="lineNoCov">          0 :   virtual size_t get_l_max() const noexcept = 0;</span>
+<span class="lineNum">     163 </span>            : 
+<span class="lineNum">     164 </span><span class="lineNoCov">          0 :   virtual double get_extraction_radius() const noexcept = 0;</span>
+<span class="lineNum">     165 </span>            : 
+<span class="lineNum">     166 </span><span class="lineNoCov">          0 :   virtual bool radial_derivatives_need_renormalization() const noexcept = 0;</span>
+<span class="lineNum">     167 </span>            : 
+<span class="lineNum">     168 </span><span class="lineNoCov">          0 :   virtual DataVector&amp; get_time_buffer() noexcept = 0;</span>
+<span class="lineNum">     169 </span>            : };
+<span class="lineNum">     170 </span>            : 
+<span class="lineNum">     171 </span>            : /// A `WorldtubeBufferUpdater` specialized to the CCE input worldtube  H5 file
+<span class="lineNum">     172 </span>            : /// produced by SpEC.
+<span class="lineNum">     173 </span><span class="lineCov">          1 : class SpecWorldtubeH5BufferUpdater : public WorldtubeBufferUpdater {</span>
+<span class="lineNum">     174 </span>            :  public:
+<span class="lineNum">     175 </span>            :   // charm needs the empty constructor
+<span class="lineNum">     176 </span><span class="lineNoCov">          0 :   SpecWorldtubeH5BufferUpdater() = default;</span>
+<span class="lineNum">     177 </span>            : 
+<span class="lineNum">     178 </span>            :   /// The constructor takes the filename of the SpEC h5 file that will be used
+<span class="lineNum">     179 </span>            :   /// for boundary data. Note that this assumes that the input data has
+<span class="lineNum">     180 </span>            :   /// correctly-normalized radial derivatives, and that the extraction radius is
+<span class="lineNum">     181 </span>            :   /// encoded as an integer in the filename.
+<span class="lineNum">     182 </span><span class="lineCov">          1 :   explicit SpecWorldtubeH5BufferUpdater(</span>
+<span class="lineNum">     183 </span>            :       const std::string&amp; cce_data_filename) noexcept;
+<span class="lineNum">     184 </span>            : 
+<span class="lineNum">     185 </span><span class="lineNoCov">          0 :   WRAPPED_PUPable_decl_template(SpecWorldtubeH5BufferUpdater);  // NOLINT</span>
+<span class="lineNum">     186 </span>            : 
+<span class="lineNum">     187 </span><span class="lineNoCov">          0 :   explicit SpecWorldtubeH5BufferUpdater(CkMigrateMessage* /*unused*/) noexcept {</span>
+<span class="lineNum">     188 </span>            :   }
+<span class="lineNum">     189 </span>            : 
+<span class="lineNum">     190 </span>            :   /// update the `buffers`, `time_span_start`, and `time_span_end` with
+<span class="lineNum">     191 </span>            :   /// time-varies-fastest, Goldberg modal data and the start and end index in
+<span class="lineNum">     192 </span>            :   /// the member `time_buffer_` covered by the newly updated `buffers`. The
+<span class="lineNum">     193 </span>            :   /// function returns the next time at which a full update will occur. If
+<span class="lineNum">     194 </span>            :   /// called again at times earlier than the next full update time, it will
+<span class="lineNum">     195 </span>            :   /// leave the `buffers` unchanged and again return the next needed time.
+<span class="lineNum">     196 </span><span class="lineCov">          1 :   double update_buffers_for_time(</span>
+<span class="lineNum">     197 </span>            :       gsl::not_null&lt;Variables&lt;detail::cce_input_tags&gt;*&gt; buffers,
+<span class="lineNum">     198 </span>            :       gsl::not_null&lt;size_t*&gt; time_span_start,
+<span class="lineNum">     199 </span>            :       gsl::not_null&lt;size_t*&gt; time_span_end, double time,
+<span class="lineNum">     200 </span>            :       size_t computation_l_max, size_t interpolator_length,
+<span class="lineNum">     201 </span>            :       size_t buffer_depth) const noexcept override;
+<span class="lineNum">     202 </span>            : 
+<span class="lineNum">     203 </span><span class="lineNoCov">          0 :   std::unique_ptr&lt;WorldtubeBufferUpdater&gt; get_clone() const noexcept override;</span>
+<span class="lineNum">     204 </span>            : 
+<span class="lineNum">     205 </span>            :   /// The time can only be supported in the buffer update if it is between the
+<span class="lineNum">     206 </span>            :   /// first and last time of the input file.
+<span class="lineNum">     207 </span><span class="lineCov">          1 :   bool time_is_outside_range(double time) const noexcept override;</span>
+<span class="lineNum">     208 </span>            : 
+<span class="lineNum">     209 </span>            :   /// retrieves the l_max of the input file
+<span class="lineNum">     210 </span><span class="lineCov">          1 :   size_t get_l_max() const noexcept override { return l_max_; }</span>
+<span class="lineNum">     211 </span>            : 
+<span class="lineNum">     212 </span>            :   /// retrieves the extraction radius encoded in the filename
+<span class="lineNum">     213 </span><span class="lineCov">          1 :   double get_extraction_radius() const noexcept override {</span>
+<span class="lineNum">     214 </span>            :     return extraction_radius_;
+<span class="lineNum">     215 </span>            :   }
+<span class="lineNum">     216 </span>            : 
+<span class="lineNum">     217 </span>            :   /// The time buffer is supplied by non-const reference to allow views to
+<span class="lineNum">     218 </span>            :   /// easily point into the buffer.
+<span class="lineNum">     219 </span>            :   ///
+<span class="lineNum">     220 </span>            :   /// \warning Altering this buffer outside of the constructor of this class
+<span class="lineNum">     221 </span>            :   /// results in undefined behavior! This should be supplied by const reference
+<span class="lineNum">     222 </span>            :   /// once there is a convenient method of producing a const view of a vector
+<span class="lineNum">     223 </span>            :   /// type.
+<span class="lineNum">     224 </span><span class="lineCov">          1 :   DataVector&amp; get_time_buffer() noexcept override { return time_buffer_; }</span>
+<span class="lineNum">     225 </span>            : 
+<span class="lineNum">     226 </span><span class="lineNoCov">          0 :   bool radial_derivatives_need_renormalization() const noexcept override {</span>
+<span class="lineNum">     227 </span>            :     return radial_derivatives_need_renormalization_;
+<span class="lineNum">     228 </span>            :   }
+<span class="lineNum">     229 </span>            : 
+<span class="lineNum">     230 </span>            :   /// Serialization for Charm++.
+<span class="lineNum">     231 </span><span class="lineCov">          1 :   void pup(PUP::er&amp; p) noexcept override;</span>
+<span class="lineNum">     232 </span>            : 
+<span class="lineNum">     233 </span>            :  private:
+<span class="lineNum">     234 </span><span class="lineNoCov">          0 :   void update_buffer(gsl::not_null&lt;ComplexModalVector*&gt; buffer_to_update,</span>
+<span class="lineNum">     235 </span>            :                      const h5::Dat&amp; read_data, size_t computation_l_max,
+<span class="lineNum">     236 </span>            :                      size_t time_span_start, size_t time_span_end) const
+<span class="lineNum">     237 </span>            :       noexcept;
+<span class="lineNum">     238 </span>            : 
+<span class="lineNum">     239 </span><span class="lineNoCov">          0 :   bool radial_derivatives_need_renormalization_ = false;</span>
+<span class="lineNum">     240 </span><span class="lineNoCov">          0 :   double extraction_radius_ = 1.0;</span>
+<span class="lineNum">     241 </span><span class="lineNoCov">          0 :   size_t l_max_ = 0;</span>
+<span class="lineNum">     242 </span>            : 
+<span class="lineNum">     243 </span><span class="lineNoCov">          0 :   h5::H5File&lt;h5::AccessType::ReadOnly&gt; cce_data_file_;</span>
+<span class="lineNum">     244 </span><span class="lineNoCov">          0 :   std::string filename_;</span>
+<span class="lineNum">     245 </span>            : 
+<span class="lineNum">     246 </span>            :   tuples::tagged_tuple_from_typelist&lt;
+<span class="lineNum">     247 </span>            :       db::wrap_tags_in&lt;Tags::detail::InputDataSet, detail::cce_input_tags&gt;&gt;
+<span class="lineNum">     248 </span><span class="lineNoCov">          0 :       dataset_names_;</span>
+<span class="lineNum">     249 </span>            : 
+<span class="lineNum">     250 </span>            :   // stores all the times in the input file
+<span class="lineNum">     251 </span><span class="lineNoCov">          0 :   DataVector time_buffer_;</span>
+<span class="lineNum">     252 </span>            : };
+<span class="lineNum">     253 </span>            : 
+<span class="lineNum">     254 </span>            : /// \cond
+<span class="lineNum">     255 </span>            : class ReducedSpecWorldtubeH5BufferUpdater;
+<span class="lineNum">     256 </span>            : /// \endcond
+<span class="lineNum">     257 </span>            : 
+<span class="lineNum">     258 </span><span class="lineNoCov">          0 : class ReducedWorldtubeBufferUpdater : public PUP::able {</span>
+<span class="lineNum">     259 </span>            :  public:
+<span class="lineNum">     260 </span><span class="lineNoCov">          0 :   using creatable_classes = tmpl::list&lt;ReducedSpecWorldtubeH5BufferUpdater&gt;;</span>
+<span class="lineNum">     261 </span>            : 
+<span class="lineNum">     262 </span><span class="lineNoCov">          0 :   WRAPPED_PUPable_abstract(ReducedWorldtubeBufferUpdater);  // NOLINT</span>
+<span class="lineNum">     263 </span>            : 
+<span class="lineNum">     264 </span><span class="lineNoCov">          0 :   virtual double update_buffers_for_time(</span>
+<span class="lineNum">     265 </span>            :       gsl::not_null&lt;Variables&lt;detail::reduced_cce_input_tags&gt;*&gt; buffers,
+<span class="lineNum">     266 </span>            :       gsl::not_null&lt;size_t*&gt; time_span_start,
+<span class="lineNum">     267 </span>            :       gsl::not_null&lt;size_t*&gt; time_span_end, double time,
+<span class="lineNum">     268 </span>            :       size_t computation_l_max, size_t interpolator_length,
+<span class="lineNum">     269 </span>            :       size_t buffer_depth) const noexcept = 0;
+<span class="lineNum">     270 </span>            : 
+<span class="lineNum">     271 </span><span class="lineNoCov">          0 :   virtual std::unique_ptr&lt;ReducedWorldtubeBufferUpdater&gt; get_clone() const</span>
+<span class="lineNum">     272 </span>            :       noexcept = 0;
+<span class="lineNum">     273 </span>            : 
+<span class="lineNum">     274 </span><span class="lineNoCov">          0 :   virtual bool time_is_outside_range(double time) const noexcept = 0;</span>
+<span class="lineNum">     275 </span>            : 
+<span class="lineNum">     276 </span><span class="lineNoCov">          0 :   virtual size_t get_l_max() const noexcept = 0;</span>
+<span class="lineNum">     277 </span>            : 
+<span class="lineNum">     278 </span><span class="lineNoCov">          0 :   virtual double get_extraction_radius() const noexcept = 0;</span>
+<span class="lineNum">     279 </span>            : 
+<span class="lineNum">     280 </span><span class="lineNoCov">          0 :   virtual DataVector&amp; get_time_buffer() noexcept = 0;</span>
+<span class="lineNum">     281 </span>            : };
+<span class="lineNum">     282 </span>            : 
+<span class="lineNum">     283 </span>            : /// A `WorldtubeBufferUpdater` specialized to the CCE input worldtube H5 file
+<span class="lineNum">     284 </span>            : /// produced by the reduced SpEC format.
+<span class="lineNum">     285 </span>            : class ReducedSpecWorldtubeH5BufferUpdater
+<span class="lineNum">     286 </span><span class="lineCov">          1 :     : public ReducedWorldtubeBufferUpdater {</span>
+<span class="lineNum">     287 </span>            :  public:
+<span class="lineNum">     288 </span>            :   // charm needs the empty constructor
+<span class="lineNum">     289 </span><span class="lineNoCov">          0 :   ReducedSpecWorldtubeH5BufferUpdater() = default;</span>
+<span class="lineNum">     290 </span>            : 
+<span class="lineNum">     291 </span>            :   /// The constructor takes the filename of the SpEC h5 file that will be used
+<span class="lineNum">     292 </span>            :   /// for boundary data. Note that this assumes that the input data has
+<span class="lineNum">     293 </span>            :   /// correctly-normalized radial derivatives, and that the extraction radius is
+<span class="lineNum">     294 </span>            :   /// encoded as an integer in the filename.
+<span class="lineNum">     295 </span><span class="lineCov">          1 :   explicit ReducedSpecWorldtubeH5BufferUpdater(</span>
+<span class="lineNum">     296 </span>            :       const std::string&amp; cce_data_filename) noexcept;
+<span class="lineNum">     297 </span>            : 
+<span class="lineNum">     298 </span><span class="lineNoCov">          0 :   WRAPPED_PUPable_decl_template(ReducedSpecWorldtubeH5BufferUpdater);  // NOLINT</span>
+<span class="lineNum">     299 </span>            : 
+<span class="lineNum">     300 </span><span class="lineNoCov">          0 :   explicit ReducedSpecWorldtubeH5BufferUpdater(</span>
+<span class="lineNum">     301 </span>            :       CkMigrateMessage* /*unused*/) noexcept {}
+<span class="lineNum">     302 </span>            : 
+<span class="lineNum">     303 </span>            :   /// update the `buffers`, `time_span_start`, and `time_span_end` with
+<span class="lineNum">     304 </span>            :   /// time-varies-fastest, Goldberg modal data and the start and end index in
+<span class="lineNum">     305 </span>            :   /// the member `time_buffer_` covered by the newly updated `buffers`.
+<span class="lineNum">     306 </span><span class="lineCov">          1 :   double update_buffers_for_time(</span>
+<span class="lineNum">     307 </span>            :       gsl::not_null&lt;Variables&lt;detail::reduced_cce_input_tags&gt;*&gt; buffers,
+<span class="lineNum">     308 </span>            :       gsl::not_null&lt;size_t*&gt; time_span_start,
+<span class="lineNum">     309 </span>            :       gsl::not_null&lt;size_t*&gt; time_span_end, double time,
+<span class="lineNum">     310 </span>            :       size_t computation_l_max, size_t interpolator_length,
+<span class="lineNum">     311 </span>            :       size_t buffer_depth) const noexcept override;
+<span class="lineNum">     312 </span>            : 
+<span class="lineNum">     313 </span><span class="lineNoCov">          0 :   std::unique_ptr&lt;ReducedWorldtubeBufferUpdater&gt; get_clone() const</span>
+<span class="lineNum">     314 </span>            :       noexcept override {
+<span class="lineNum">     315 </span>            :     return std::make_unique&lt;ReducedSpecWorldtubeH5BufferUpdater&gt;(filename_);
+<span class="lineNum">     316 </span>            :   }
+<span class="lineNum">     317 </span>            : 
+<span class="lineNum">     318 </span>            :   /// The time can only be supported in the buffer update if it is between the
+<span class="lineNum">     319 </span>            :   /// first and last time of the input file.
+<span class="lineNum">     320 </span><span class="lineCov">          1 :   bool time_is_outside_range(const double time) const noexcept override {</span>
+<span class="lineNum">     321 </span>            :     return time &lt; time_buffer_[0] or
+<span class="lineNum">     322 </span>            :            time &gt; time_buffer_[time_buffer_.size() - 1];
+<span class="lineNum">     323 </span>            :   }
+<span class="lineNum">     324 </span>            : 
+<span class="lineNum">     325 </span>            :   /// retrieves the l_max of the input file
+<span class="lineNum">     326 </span><span class="lineCov">          1 :   size_t get_l_max() const noexcept override { return l_max_; }</span>
+<span class="lineNum">     327 </span>            : 
+<span class="lineNum">     328 </span>            :   /// retrieves the extraction radius encoded in the filename
+<span class="lineNum">     329 </span><span class="lineCov">          1 :   double get_extraction_radius() const noexcept override {</span>
+<span class="lineNum">     330 </span>            :     return extraction_radius_;
+<span class="lineNum">     331 </span>            :   }
+<span class="lineNum">     332 </span>            : 
+<span class="lineNum">     333 </span>            :   /// The time buffer is supplied by non-const reference to allow views to
+<span class="lineNum">     334 </span>            :   /// easily point into the buffer.
+<span class="lineNum">     335 </span>            :   ///
+<span class="lineNum">     336 </span>            :   /// \warning Altering this buffer outside of the constructor of this class
+<span class="lineNum">     337 </span>            :   /// results in undefined behavior! This should be supplied by const reference
+<span class="lineNum">     338 </span>            :   /// once there is a convenient method of producing a const view of a vector
+<span class="lineNum">     339 </span>            :   /// type.
+<span class="lineNum">     340 </span><span class="lineCov">          1 :   DataVector&amp; get_time_buffer() noexcept override { return time_buffer_; }</span>
+<span class="lineNum">     341 </span>            : 
+<span class="lineNum">     342 </span>            :   /// Serialization for Charm++.
+<span class="lineNum">     343 </span><span class="lineCov">          1 :   void pup(PUP::er&amp; p) noexcept override;</span>
+<span class="lineNum">     344 </span>            : 
+<span class="lineNum">     345 </span>            :  private:
+<span class="lineNum">     346 </span><span class="lineNoCov">          0 :   void update_buffer(gsl::not_null&lt;ComplexModalVector*&gt; buffer_to_update,</span>
+<span class="lineNum">     347 </span>            :                      const h5::Dat&amp; read_data, size_t computation_l_max,
+<span class="lineNum">     348 </span>            :                      size_t time_span_start, size_t time_span_end,
+<span class="lineNum">     349 </span>            :                      bool is_real) const noexcept;
+<span class="lineNum">     350 </span>            : 
+<span class="lineNum">     351 </span><span class="lineNoCov">          0 :   double extraction_radius_ = 1.0;</span>
+<span class="lineNum">     352 </span><span class="lineNoCov">          0 :   size_t l_max_ = 0;</span>
+<span class="lineNum">     353 </span>            : 
+<span class="lineNum">     354 </span><span class="lineNoCov">          0 :   h5::H5File&lt;h5::AccessType::ReadOnly&gt; cce_data_file_;</span>
+<span class="lineNum">     355 </span><span class="lineNoCov">          0 :   std::string filename_;</span>
+<span class="lineNum">     356 </span>            : 
+<span class="lineNum">     357 </span>            :   tuples::tagged_tuple_from_typelist&lt;db::wrap_tags_in&lt;
+<span class="lineNum">     358 </span>            :       Tags::detail::InputDataSet, detail::reduced_cce_input_tags&gt;&gt;
+<span class="lineNum">     359 </span><span class="lineNoCov">          0 :       dataset_names_;</span>
+<span class="lineNum">     360 </span>            : 
+<span class="lineNum">     361 </span>            :   // stores all the times in the input file
+<span class="lineNum">     362 </span><span class="lineNoCov">          0 :   DataVector time_buffer_;</span>
+<span class="lineNum">     363 </span>            : };
+<span class="lineNum">     364 </span>            : 
+<span class="lineNum">     365 </span>            : /*!
+<span class="lineNum">     366 </span>            :  * \brief Manages the cached buffer data associated with a CCE worldtube and
+<span class="lineNum">     367 </span>            :  * interpolates to requested time points to provide worldtube boundary data to
+<span class="lineNum">     368 </span>            :  * the main evolution routines.
+<span class="lineNum">     369 </span>            :  *
+<span class="lineNum">     370 </span>            :  * \details The maintained buffer will be maintained at a length that is set by
+<span class="lineNum">     371 </span>            :  * the `Interpolator` and the `buffer_depth` also passed to the constructor. A
+<span class="lineNum">     372 </span>            :  * longer depth will ensure that the buffer updater is called less frequently,
+<span class="lineNum">     373 </span>            :  * which is useful for slow updaters (e.g. those that perform file access).
+<span class="lineNum">     374 </span>            :  * The main functionality is provided by the
+<span class="lineNum">     375 </span>            :  * `WorldtubeDataManager::populate_hypersurface_boundary_data()` member
+<span class="lineNum">     376 </span>            :  * function that handles buffer updating and boundary computation.
+<span class="lineNum">     377 </span>            :  */
+<span class="lineNum">     378 </span><span class="lineCov">          1 : class WorldtubeDataManager {</span>
+<span class="lineNum">     379 </span>            :  public:
+<span class="lineNum">     380 </span>            :   // charm needs an empty constructor.
+<span class="lineNum">     381 </span><span class="lineNoCov">          0 :   WorldtubeDataManager() noexcept = default;</span>
+<span class="lineNum">     382 </span>            : 
+<span class="lineNum">     383 </span><span class="lineNoCov">          0 :   WorldtubeDataManager(</span>
+<span class="lineNum">     384 </span>            :       std::unique_ptr&lt;WorldtubeBufferUpdater&gt; buffer_updater,
+<span class="lineNum">     385 </span>            :       const size_t l_max, const size_t buffer_depth,
+<span class="lineNum">     386 </span>            :       std::unique_ptr&lt;intrp::SpanInterpolator&gt; interpolator) noexcept
+<span class="lineNum">     387 </span>            :       : buffer_updater_{std::move(buffer_updater)},
+<span class="lineNum">     388 </span>            :         l_max_{l_max},
+<span class="lineNum">     389 </span>            :         interpolated_coefficients_{
+<span class="lineNum">     390 </span>            :             Spectral::Swsh::size_of_libsharp_coefficient_vector(l_max)},
+<span class="lineNum">     391 </span>            :         buffer_depth_{buffer_depth},
+<span class="lineNum">     392 </span>            :         interpolator_{std::move(interpolator)} {
+<span class="lineNum">     393 </span>            :     if (UNLIKELY(
+<span class="lineNum">     394 </span>            :             buffer_updater_-&gt;get_time_buffer().size() &lt;
+<span class="lineNum">     395 </span>            :             2 * interpolator_-&gt;required_number_of_points_before_and_after() +
+<span class="lineNum">     396 </span>            :                 buffer_depth)) {
+<span class="lineNum">     397 </span>            :       ERROR(
+<span class="lineNum">     398 </span>            :           &quot;The specified buffer updater doesn't have enough time points to &quot;
+<span class="lineNum">     399 </span>            :           &quot;supply the requested interpolation buffer. This almost certainly &quot;
+<span class="lineNum">     400 </span>            :           &quot;indicates that the corresponding file hasn't been created properly, &quot;
+<span class="lineNum">     401 </span>            :           &quot;but might indicate that the `buffer_depth` template parameter is &quot;
+<span class="lineNum">     402 </span>            :           &quot;too large or the specified Interpolator requests too many points&quot;);
+<span class="lineNum">     403 </span>            :     }
+<span class="lineNum">     404 </span>            : 
+<span class="lineNum">     405 </span>            :     const size_t size_of_buffer =
+<span class="lineNum">     406 </span>            :         square(l_max + 1) *
+<span class="lineNum">     407 </span>            :         (buffer_depth +
+<span class="lineNum">     408 </span>            :          2 * interpolator_-&gt;required_number_of_points_before_and_after());
+<span class="lineNum">     409 </span>            :     coefficients_buffers_ = Variables&lt;detail::cce_input_tags&gt;{size_of_buffer};
+<span class="lineNum">     410 </span>            :   }
+<span class="lineNum">     411 </span>            : 
+<span class="lineNum">     412 </span>            :   /*!
+<span class="lineNum">     413 </span>            :    * \brief Update the `boundary_data_box` entries for all tags in
+<span class="lineNum">     414 </span>            :    * `Tags::characteristic_worldtube_boundary_tags` to the boundary data at
+<span class="lineNum">     415 </span>            :    * `time`.
+<span class="lineNum">     416 </span>            :    *
+<span class="lineNum">     417 </span>            :    * \details First, if the stored buffer requires updating, it will be updated
+<span class="lineNum">     418 </span>            :    * via the `buffer_updater_` supplied in the constructor. Then, each of the
+<span class="lineNum">     419 </span>            :    * spatial metric, shift, lapse, and each of their radial and time derivatives
+<span class="lineNum">     420 </span>            :    * are interpolated across buffer points to the requested time value (via the
+<span class="lineNum">     421 </span>            :    * `Interpolator` provided in the constructor). Finally, that data is supplied
+<span class="lineNum">     422 </span>            :    * to the `create_bondi_boundary_data()`, which updates the
+<span class="lineNum">     423 </span>            :    * `boundary_data_box` with the Bondi spin-weighted scalars determined from
+<span class="lineNum">     424 </span>            :    * the interpolated Cartesian data.
+<span class="lineNum">     425 </span>            :    *
+<span class="lineNum">     426 </span>            :    * Returns `true` if the time can be supplied from the `buffer_updater_`, and
+<span class="lineNum">     427 </span>            :    * `false` otherwise. No tags are updated if `false` is returned.
+<span class="lineNum">     428 </span>            :    */
+<span class="lineNum">     429 </span>            :   template &lt;typename TagList&gt;
+<span class="lineNum">     430 </span><span class="lineCov">          1 :   bool populate_hypersurface_boundary_data(</span>
+<span class="lineNum">     431 </span>            :       const gsl::not_null&lt;db::DataBox&lt;TagList&gt;*&gt; boundary_data_box,
+<span class="lineNum">     432 </span>            :       const double time) const noexcept {
+<span class="lineNum">     433 </span>            :     if (buffer_updater_-&gt;time_is_outside_range(time)) {
+<span class="lineNum">     434 </span>            :       return false;
+<span class="lineNum">     435 </span>            :     }
+<span class="lineNum">     436 </span>            :     buffer_updater_-&gt;update_buffers_for_time(
+<span class="lineNum">     437 </span>            :         make_not_null(&amp;coefficients_buffers_), make_not_null(&amp;time_span_start_),
+<span class="lineNum">     438 </span>            :         make_not_null(&amp;time_span_end_), time, l_max_,
+<span class="lineNum">     439 </span>            :         interpolator_-&gt;required_number_of_points_before_and_after(),
+<span class="lineNum">     440 </span>            :         buffer_depth_);
+<span class="lineNum">     441 </span>            :     const auto interpolation_time_span = detail::create_span_for_time_value(
+<span class="lineNum">     442 </span>            :         time, 0, interpolator_-&gt;required_number_of_points_before_and_after(),
+<span class="lineNum">     443 </span>            :         time_span_start_, time_span_end_, buffer_updater_-&gt;get_time_buffer());
+<span class="lineNum">     444 </span>            : 
+<span class="lineNum">     445 </span>            :     // search through and find the two interpolation points the time point is
+<span class="lineNum">     446 </span>            :     // between. If we can, put the range for the interpolation centered on the
+<span class="lineNum">     447 </span>            :     // desired point. If that can't be done (near the start or the end of the
+<span class="lineNum">     448 </span>            :     // simulation), make the range terminated at the start or end of the cached
+<span class="lineNum">     449 </span>            :     // data and extending for the desired range in the other direction.
+<span class="lineNum">     450 </span>            :     const size_t buffer_span_size = time_span_end_ - time_span_start_;
+<span class="lineNum">     451 </span>            :     const size_t interpolation_span_size =
+<span class="lineNum">     452 </span>            :         interpolation_time_span.second - interpolation_time_span.first;
+<span class="lineNum">     453 </span>            : 
+<span class="lineNum">     454 </span>            :     const DataVector time_points{buffer_updater_-&gt;get_time_buffer().data() +
+<span class="lineNum">     455 </span>            :                                      interpolation_time_span.first,
+<span class="lineNum">     456 </span>            :                                  interpolation_span_size};
+<span class="lineNum">     457 </span>            : 
+<span class="lineNum">     458 </span>            :     auto interpolate_from_column = [
+<span class="lineNum">     459 </span>            :       &amp;time, &amp;time_points, &amp;buffer_span_size, &amp;interpolation_time_span,
+<span class="lineNum">     460 </span>            :       &amp;interpolation_span_size,
+<span class="lineNum">     461 </span>            :       this
+<span class="lineNum">     462 </span>            :     ](auto data, const size_t column) noexcept {
+<span class="lineNum">     463 </span>            :       auto interp_val = interpolator_-&gt;interpolate(
+<span class="lineNum">     464 </span>            :           gsl::span&lt;const double&gt;(time_points.data(), time_points.size()),
+<span class="lineNum">     465 </span>            :           gsl::span&lt;const std::complex&lt;double&gt;&gt;(
+<span class="lineNum">     466 </span>            :               data + column * buffer_span_size +
+<span class="lineNum">     467 </span>            :                   (interpolation_time_span.first - time_span_start_),
+<span class="lineNum">     468 </span>            :               interpolation_span_size),
+<span class="lineNum">     469 </span>            :           time);
+<span class="lineNum">     470 </span>            :       return interp_val;
+<span class="lineNum">     471 </span>            :     };
+<span class="lineNum">     472 </span>            : 
+<span class="lineNum">     473 </span>            :     // the ComplexModalVectors should be provided from the buffer_updater_ in
+<span class="lineNum">     474 </span>            :     // 'Goldberg' format, so we iterate over modes and convert to libsharp
+<span class="lineNum">     475 </span>            :     // format.
+<span class="lineNum">     476 </span>            : 
+<span class="lineNum">     477 </span>            :     // we'll just use this buffer to reference into the actual data to satisfy
+<span class="lineNum">     478 </span>            :     // the swsh interface requirement that the spin-weight be labelled with
+<span class="lineNum">     479 </span>            :     // `SpinWeighted`
+<span class="lineNum">     480 </span>            :     SpinWeighted&lt;ComplexModalVector, 0&gt; spin_weighted_buffer;
+<span class="lineNum">     481 </span>            :     for (const auto&amp; libsharp_mode :
+<span class="lineNum">     482 </span>            :          Spectral::Swsh::cached_coefficients_metadata(l_max_)) {
+<span class="lineNum">     483 </span>            :       for (size_t i = 0; i &lt; 3; ++i) {
+<span class="lineNum">     484 </span>            :         for (size_t j = i; j &lt; 3; ++j) {
+<span class="lineNum">     485 </span>            :           tmpl::for_each&lt;
+<span class="lineNum">     486 </span>            :               tmpl::list&lt;Tags::detail::SpatialMetric,
+<span class="lineNum">     487 </span>            :                          Tags::detail::Dr&lt;Tags::detail::SpatialMetric&gt;,
+<span class="lineNum">     488 </span>            :                          ::Tags::dt&lt;Tags::detail::SpatialMetric&gt;&gt;&gt;([
+<span class="lineNum">     489 </span>            :             this, &amp;i, &amp;j, &amp;libsharp_mode, &amp;interpolate_from_column, &amp;
+<span class="lineNum">     490 </span>            :             spin_weighted_buffer
+<span class="lineNum">     491 </span>            :           ](auto tag_v) noexcept {
+<span class="lineNum">     492 </span>            :             using tag = typename decltype(tag_v)::type;
+<span class="lineNum">     493 </span>            :             spin_weighted_buffer.set_data_ref(
+<span class="lineNum">     494 </span>            :                 get&lt;tag&gt;(interpolated_coefficients_).get(i, j).data(),
+<span class="lineNum">     495 </span>            :                 Spectral::Swsh::size_of_libsharp_coefficient_vector(l_max_));
+<span class="lineNum">     496 </span>            :             Spectral::Swsh::goldberg_modes_to_libsharp_modes_single_pair(
+<span class="lineNum">     497 </span>            :                 libsharp_mode, make_not_null(&amp;spin_weighted_buffer), 0,
+<span class="lineNum">     498 </span>            :                 interpolate_from_column(
+<span class="lineNum">     499 </span>            :                     get&lt;tag&gt;(coefficients_buffers_).get(i, j).data(),
+<span class="lineNum">     500 </span>            :                     Spectral::Swsh::goldberg_mode_index(
+<span class="lineNum">     501 </span>            :                         l_max_, libsharp_mode.l,
+<span class="lineNum">     502 </span>            :                         static_cast&lt;int&gt;(libsharp_mode.m))),
+<span class="lineNum">     503 </span>            :                 interpolate_from_column(
+<span class="lineNum">     504 </span>            :                     get&lt;tag&gt;(coefficients_buffers_).get(i, j).data(),
+<span class="lineNum">     505 </span>            :                     Spectral::Swsh::goldberg_mode_index(
+<span class="lineNum">     506 </span>            :                         l_max_, libsharp_mode.l,
+<span class="lineNum">     507 </span>            :                         -static_cast&lt;int&gt;(libsharp_mode.m))));
+<span class="lineNum">     508 </span>            :           });
+<span class="lineNum">     509 </span>            :         }
+<span class="lineNum">     510 </span>            :         tmpl::for_each&lt;tmpl::list&lt;Tags::detail::Shift,
+<span class="lineNum">     511 </span>            :                                   Tags::detail::Dr&lt;Tags::detail::Shift&gt;,
+<span class="lineNum">     512 </span>            :                                   ::Tags::dt&lt;Tags::detail::Shift&gt;&gt;&gt;([
+<span class="lineNum">     513 </span>            :           this, &amp;i, &amp;libsharp_mode, &amp;interpolate_from_column, &amp;
+<span class="lineNum">     514 </span>            :           spin_weighted_buffer
+<span class="lineNum">     515 </span>            :         ](auto tag_v) noexcept {
+<span class="lineNum">     516 </span>            :           using tag = typename decltype(tag_v)::type;
+<span class="lineNum">     517 </span>            :           spin_weighted_buffer.set_data_ref(
+<span class="lineNum">     518 </span>            :               get&lt;tag&gt;(interpolated_coefficients_).get(i).data(),
+<span class="lineNum">     519 </span>            :               Spectral::Swsh::size_of_libsharp_coefficient_vector(l_max_));
+<span class="lineNum">     520 </span>            :           Spectral::Swsh::goldberg_modes_to_libsharp_modes_single_pair(
+<span class="lineNum">     521 </span>            :               libsharp_mode, make_not_null(&amp;spin_weighted_buffer), 0,
+<span class="lineNum">     522 </span>            :               interpolate_from_column(
+<span class="lineNum">     523 </span>            :                   get&lt;tag&gt;(coefficients_buffers_).get(i).data(),
+<span class="lineNum">     524 </span>            :                   Spectral::Swsh::goldberg_mode_index(
+<span class="lineNum">     525 </span>            :                       l_max_, libsharp_mode.l,
+<span class="lineNum">     526 </span>            :                       static_cast&lt;int&gt;(libsharp_mode.m))),
+<span class="lineNum">     527 </span>            :               interpolate_from_column(
+<span class="lineNum">     528 </span>            :                   get&lt;tag&gt;(coefficients_buffers_).get(i).data(),
+<span class="lineNum">     529 </span>            :                   Spectral::Swsh::goldberg_mode_index(
+<span class="lineNum">     530 </span>            :                       l_max_, libsharp_mode.l,
+<span class="lineNum">     531 </span>            :                       -static_cast&lt;int&gt;(libsharp_mode.m))));
+<span class="lineNum">     532 </span>            :         });
+<span class="lineNum">     533 </span>            :       }
+<span class="lineNum">     534 </span>            :       tmpl::for_each&lt;
+<span class="lineNum">     535 </span>            :           tmpl::list&lt;Tags::detail::Lapse, Tags::detail::Dr&lt;Tags::detail::Lapse&gt;,
+<span class="lineNum">     536 </span>            :                      ::Tags::dt&lt;Tags::detail::Lapse&gt;&gt;&gt;([
+<span class="lineNum">     537 </span>            :         this, &amp;libsharp_mode, &amp;interpolate_from_column, &amp;spin_weighted_buffer
+<span class="lineNum">     538 </span>            :       ](auto tag_v) noexcept {
+<span class="lineNum">     539 </span>            :         using tag = typename decltype(tag_v)::type;
+<span class="lineNum">     540 </span>            :         spin_weighted_buffer.set_data_ref(
+<span class="lineNum">     541 </span>            :             get(get&lt;tag&gt;(interpolated_coefficients_)).data(),
+<span class="lineNum">     542 </span>            :             Spectral::Swsh::size_of_libsharp_coefficient_vector(l_max_));
+<span class="lineNum">     543 </span>            :         Spectral::Swsh::goldberg_modes_to_libsharp_modes_single_pair(
+<span class="lineNum">     544 </span>            :             libsharp_mode, make_not_null(&amp;spin_weighted_buffer), 0,
+<span class="lineNum">     545 </span>            :             interpolate_from_column(get(get&lt;tag&gt;(coefficients_buffers_)).data(),
+<span class="lineNum">     546 </span>            :                                     Spectral::Swsh::goldberg_mode_index(
+<span class="lineNum">     547 </span>            :                                         l_max_, libsharp_mode.l,
+<span class="lineNum">     548 </span>            :                                         static_cast&lt;int&gt;(libsharp_mode.m))),
+<span class="lineNum">     549 </span>            :             interpolate_from_column(get(get&lt;tag&gt;(coefficients_buffers_)).data(),
+<span class="lineNum">     550 </span>            :                                     Spectral::Swsh::goldberg_mode_index(
+<span class="lineNum">     551 </span>            :                                         l_max_, libsharp_mode.l,
+<span class="lineNum">     552 </span>            :                                         -static_cast&lt;int&gt;(libsharp_mode.m))));
+<span class="lineNum">     553 </span>            :       });
+<span class="lineNum">     554 </span>            :     }
+<span class="lineNum">     555 </span>            :     // At this point, we have a collection of 9 tensors of libsharp
+<span class="lineNum">     556 </span>            :     // coefficients. This is what the boundary data calculation utility takes
+<span class="lineNum">     557 </span>            :     // as an input, so we now hand off the control flow to the boundary and
+<span class="lineNum">     558 </span>            :     // gauge transform utility
+<span class="lineNum">     559 </span>            :     if (buffer_updater_-&gt;radial_derivatives_need_renormalization()) {
+<span class="lineNum">     560 </span>            :       create_bondi_boundary_data_from_unnormalized_spec_modes(
+<span class="lineNum">     561 </span>            :           boundary_data_box,
+<span class="lineNum">     562 </span>            :           get&lt;Tags::detail::SpatialMetric&gt;(interpolated_coefficients_),
+<span class="lineNum">     563 </span>            :           get&lt;::Tags::dt&lt;Tags::detail::SpatialMetric&gt;&gt;(
+<span class="lineNum">     564 </span>            :               interpolated_coefficients_),
+<span class="lineNum">     565 </span>            :           get&lt;Tags::detail::Dr&lt;Tags::detail::SpatialMetric&gt;&gt;(
+<span class="lineNum">     566 </span>            :               interpolated_coefficients_),
+<span class="lineNum">     567 </span>            :           get&lt;Tags::detail::Shift&gt;(interpolated_coefficients_),
+<span class="lineNum">     568 </span>            :           get&lt;::Tags::dt&lt;Tags::detail::Shift&gt;&gt;(interpolated_coefficients_),
+<span class="lineNum">     569 </span>            :           get&lt;Tags::detail::Dr&lt;Tags::detail::Shift&gt;&gt;(
+<span class="lineNum">     570 </span>            :               interpolated_coefficients_),
+<span class="lineNum">     571 </span>            :           get&lt;Tags::detail::Lapse&gt;(interpolated_coefficients_),
+<span class="lineNum">     572 </span>            :           get&lt;::Tags::dt&lt;Tags::detail::Lapse&gt;&gt;(interpolated_coefficients_),
+<span class="lineNum">     573 </span>            :           get&lt;Tags::detail::Dr&lt;Tags::detail::Lapse&gt;&gt;(
+<span class="lineNum">     574 </span>            :               interpolated_coefficients_),
+<span class="lineNum">     575 </span>            :           buffer_updater_-&gt;get_extraction_radius(), l_max_);
+<span class="lineNum">     576 </span>            :     } else {
+<span class="lineNum">     577 </span>            :       create_bondi_boundary_data(
+<span class="lineNum">     578 </span>            :           boundary_data_box,
+<span class="lineNum">     579 </span>            :           get&lt;Tags::detail::SpatialMetric&gt;(interpolated_coefficients_),
+<span class="lineNum">     580 </span>            :           get&lt;::Tags::dt&lt;Tags::detail::SpatialMetric&gt;&gt;(
+<span class="lineNum">     581 </span>            :               interpolated_coefficients_),
+<span class="lineNum">     582 </span>            :           get&lt;Tags::detail::Dr&lt;Tags::detail::SpatialMetric&gt;&gt;(
+<span class="lineNum">     583 </span>            :               interpolated_coefficients_),
+<span class="lineNum">     584 </span>            :           get&lt;Tags::detail::Shift&gt;(interpolated_coefficients_),
+<span class="lineNum">     585 </span>            :           get&lt;::Tags::dt&lt;Tags::detail::Shift&gt;&gt;(interpolated_coefficients_),
+<span class="lineNum">     586 </span>            :           get&lt;Tags::detail::Dr&lt;Tags::detail::Shift&gt;&gt;(
+<span class="lineNum">     587 </span>            :               interpolated_coefficients_),
+<span class="lineNum">     588 </span>            :           get&lt;Tags::detail::Lapse&gt;(interpolated_coefficients_),
+<span class="lineNum">     589 </span>            :           get&lt;::Tags::dt&lt;Tags::detail::Lapse&gt;&gt;(interpolated_coefficients_),
+<span class="lineNum">     590 </span>            :           get&lt;Tags::detail::Dr&lt;Tags::detail::Lapse&gt;&gt;(
+<span class="lineNum">     591 </span>            :               interpolated_coefficients_),
+<span class="lineNum">     592 </span>            :           buffer_updater_-&gt;get_extraction_radius(), l_max_);
+<span class="lineNum">     593 </span>            :     }
+<span class="lineNum">     594 </span>            :     return true;
+<span class="lineNum">     595 </span>            :   }
+<span class="lineNum">     596 </span>            : 
+<span class="lineNum">     597 </span>            :   /// retrieves the l_max that will be supplied to the \ref DataBoxGroup in
+<span class="lineNum">     598 </span>            :   /// `populate_hypersurface_boundary_data()`
+<span class="lineNum">     599 </span><span class="lineCov">          1 :   size_t get_l_max() const noexcept { return l_max_; }</span>
+<span class="lineNum">     600 </span>            : 
+<span class="lineNum">     601 </span>            :   /// retrieves the current time span associated with the `buffer_updater_` for
+<span class="lineNum">     602 </span>            :   /// diagnostics
+<span class="lineNum">     603 </span><span class="lineCov">          1 :   std::pair&lt;size_t, size_t&gt; get_time_span() const noexcept {</span>
+<span class="lineNum">     604 </span>            :     return std::make_pair(time_span_start_, time_span_end_);
+<span class="lineNum">     605 </span>            :   }
+<span class="lineNum">     606 </span>            : 
+<span class="lineNum">     607 </span>            :   /// Serialization for Charm++.
+<span class="lineNum">     608 </span><span class="lineCov">          1 :   void pup(PUP::er&amp; p) noexcept {  // NOLINT</span>
+<span class="lineNum">     609 </span>            :     p | buffer_updater_;
+<span class="lineNum">     610 </span>            :     p | time_span_start_;
+<span class="lineNum">     611 </span>            :     p | time_span_end_;
+<span class="lineNum">     612 </span>            :     p | l_max_;
+<span class="lineNum">     613 </span>            :     p | buffer_depth_;
+<span class="lineNum">     614 </span>            :     p | interpolator_;
+<span class="lineNum">     615 </span>            :     if (p.isUnpacking()) {
+<span class="lineNum">     616 </span>            :       time_span_start_ = 0;
+<span class="lineNum">     617 </span>            :       time_span_end_ = 0;
+<span class="lineNum">     618 </span>            :       const size_t size_of_buffer =
+<span class="lineNum">     619 </span>            :           square(l_max_ + 1) *
+<span class="lineNum">     620 </span>            :           (buffer_depth_ +
+<span class="lineNum">     621 </span>            :            2 * interpolator_-&gt;required_number_of_points_before_and_after());
+<span class="lineNum">     622 </span>            :       coefficients_buffers_ = Variables&lt;detail::cce_input_tags&gt;{size_of_buffer};
+<span class="lineNum">     623 </span>            :       interpolated_coefficients_ = Variables&lt;detail::cce_input_tags&gt;{
+<span class="lineNum">     624 </span>            :           Spectral::Swsh::size_of_libsharp_coefficient_vector(l_max_)};
+<span class="lineNum">     625 </span>            :     }
+<span class="lineNum">     626 </span>            :   }
+<span class="lineNum">     627 </span>            : 
+<span class="lineNum">     628 </span>            :  private:
+<span class="lineNum">     629 </span><span class="lineNoCov">          0 :   std::unique_ptr&lt;WorldtubeBufferUpdater&gt; buffer_updater_;</span>
+<span class="lineNum">     630 </span><span class="lineNoCov">          0 :   mutable size_t time_span_start_ = 0;</span>
+<span class="lineNum">     631 </span><span class="lineNoCov">          0 :   mutable size_t time_span_end_ = 0;</span>
+<span class="lineNum">     632 </span><span class="lineNoCov">          0 :   size_t l_max_ = 0;</span>
+<span class="lineNum">     633 </span>            : 
+<span class="lineNum">     634 </span>            :   // These buffers are just kept around to avoid allocations; they're
+<span class="lineNum">     635 </span>            :   // updated every time a time is requested
+<span class="lineNum">     636 </span><span class="lineNoCov">          0 :   mutable Variables&lt;detail::cce_input_tags&gt; interpolated_coefficients_;</span>
+<span class="lineNum">     637 </span>            : 
+<span class="lineNum">     638 </span>            :   // note: buffers store data in a 'time-varies-fastest' manner
+<span class="lineNum">     639 </span><span class="lineNoCov">          0 :   mutable Variables&lt;detail::cce_input_tags&gt; coefficients_buffers_;</span>
+<span class="lineNum">     640 </span>            : 
+<span class="lineNum">     641 </span><span class="lineNoCov">          0 :   size_t buffer_depth_ = 0;</span>
+<span class="lineNum">     642 </span>            : 
+<span class="lineNum">     643 </span><span class="lineNoCov">          0 :   std::unique_ptr&lt;intrp::SpanInterpolator&gt; interpolator_;</span>
+<span class="lineNum">     644 </span>            : };
+<span class="lineNum">     645 </span>            : 
+<span class="lineNum">     646 </span>            : /*!
+<span class="lineNum">     647 </span>            :  * \brief Manages the 'reduced' cached buffer dataset associated with a CCE
+<span class="lineNum">     648 </span>            :  * worldtube and interpolates to requested time points to provide worldtube
+<span class="lineNum">     649 </span>            :  * boundary data to the main evolution routines.
+<span class="lineNum">     650 </span>            :  *
+<span class="lineNum">     651 </span>            :  * \details The maintained buffer will be kept at a length that is set by
+<span class="lineNum">     652 </span>            :  * the `Interpolator` and the `buffer_depth` also passed to the constructor. A
+<span class="lineNum">     653 </span>            :  * longer depth will ensure that the buffer updater is called less frequently,
+<span class="lineNum">     654 </span>            :  * which is useful for slow updaters (e.g. those that perform file access).
+<span class="lineNum">     655 </span>            :  * The main functionality is provided by the
+<span class="lineNum">     656 </span>            :  * `WorldtubeDataManager::populate_hypersurface_boundary_data()` member
+<span class="lineNum">     657 </span>            :  * function that handles buffer updating and boundary computation. This version
+<span class="lineNum">     658 </span>            :  * of the data manager handles the 9 scalars of
+<span class="lineNum">     659 </span>            :  * `detail::reduced_cce_input_tags`, rather than direct metric components
+<span class="lineNum">     660 </span>            :  * handled by `WorldtubeDataManager`. The set of 9 scalars is a far leaner
+<span class="lineNum">     661 </span>            :  * (factor of ~4) data storage format.
+<span class="lineNum">     662 </span>            :  */
+<span class="lineNum">     663 </span><span class="lineCov">          1 : class ReducedWorldtubeDataManager {</span>
+<span class="lineNum">     664 </span>            :  public:
+<span class="lineNum">     665 </span>            :   // charm needs an empty constructor.
+<span class="lineNum">     666 </span><span class="lineNoCov">          0 :   ReducedWorldtubeDataManager() = default;</span>
+<span class="lineNum">     667 </span>            : 
+<span class="lineNum">     668 </span><span class="lineNoCov">          0 :   ReducedWorldtubeDataManager(</span>
+<span class="lineNum">     669 </span>            :       std::unique_ptr&lt;ReducedWorldtubeBufferUpdater&gt; buffer_updater,
+<span class="lineNum">     670 </span>            :       size_t l_max, size_t buffer_depth,
+<span class="lineNum">     671 </span>            :       std::unique_ptr&lt;intrp::SpanInterpolator&gt; interpolator) noexcept;
+<span class="lineNum">     672 </span>            : 
+<span class="lineNum">     673 </span>            :   /*!
+<span class="lineNum">     674 </span>            :    * \brief Update the `boundary_data_box` entries for all tags in
+<span class="lineNum">     675 </span>            :    * `Tags::characteristic_worldtube_boundary_tags` to the boundary data at
+<span class="lineNum">     676 </span>            :    * `time`.
+<span class="lineNum">     677 </span>            :    *
+<span class="lineNum">     678 </span>            :    * \details First, if the stored buffer requires updating, it will be updated
+<span class="lineNum">     679 </span>            :    * via the `buffer_updater_` supplied in the constructor. Then, each of the
+<span class="lineNum">     680 </span>            :    * 9 spin-weighted scalars in `detail::reduced_cce_input_tags`
+<span class="lineNum">     681 </span>            :    * are interpolated across buffer points to the requested time value (via the
+<span class="lineNum">     682 </span>            :    * `Interpolator` provided in the constructor). Finally, the remaining two
+<span class="lineNum">     683 </span>            :    * scalars not directly supplied in the input file are calculated in-line and
+<span class="lineNum">     684 </span>            :    * put in the \ref DataBoxGroup.
+<span class="lineNum">     685 </span>            :    *
+<span class="lineNum">     686 </span>            :    * Returns `true` if the time can be supplied from the `buffer_updater_`, and
+<span class="lineNum">     687 </span>            :    * `false` otherwise. No tags are updated if `false` is returned.
+<span class="lineNum">     688 </span>            :    */
+<span class="lineNum">     689 </span>            :   template &lt;typename TagList&gt;
+<span class="lineNum">     690 </span><span class="lineCov">          1 :   bool populate_hypersurface_boundary_data(</span>
+<span class="lineNum">     691 </span>            :       gsl::not_null&lt;db::DataBox&lt;TagList&gt;*&gt; boundary_data_box, double time) const
+<span class="lineNum">     692 </span>            :       noexcept;
+<span class="lineNum">     693 </span>            : 
+<span class="lineNum">     694 </span>            :   /// retrieves the l_max that will be supplied to the \ref DataBoxGroup in
+<span class="lineNum">     695 </span>            :   /// `populate_hypersurface_boundary_data()`
+<span class="lineNum">     696 </span><span class="lineCov">          1 :   size_t get_l_max() const noexcept { return l_max_; }</span>
+<span class="lineNum">     697 </span>            : 
+<span class="lineNum">     698 </span>            :   /// retrieves the current time span associated with the `buffer_updater_` for
+<span class="lineNum">     699 </span>            :   /// diagnostics
+<span class="lineNum">     700 </span><span class="lineCov">          1 :   std::pair&lt;size_t, size_t&gt; get_time_span() const noexcept {</span>
+<span class="lineNum">     701 </span>            :     return std::make_pair(time_span_start_, time_span_end_);
+<span class="lineNum">     702 </span>            :   }
+<span class="lineNum">     703 </span>            : 
+<span class="lineNum">     704 </span>            :   /// Serialization for Charm++.
+<span class="lineNum">     705 </span><span class="lineCov">          1 :   void pup(PUP::er&amp; p) noexcept;  // NOLINT</span>
+<span class="lineNum">     706 </span>            : 
+<span class="lineNum">     707 </span>            :  private:
+<span class="lineNum">     708 </span><span class="lineNoCov">          0 :   std::unique_ptr&lt;ReducedWorldtubeBufferUpdater&gt; buffer_updater_;</span>
+<span class="lineNum">     709 </span><span class="lineNoCov">          0 :   mutable size_t time_span_start_ = 0;</span>
+<span class="lineNum">     710 </span><span class="lineNoCov">          0 :   mutable size_t time_span_end_ = 0;</span>
+<span class="lineNum">     711 </span><span class="lineNoCov">          0 :   size_t l_max_ = 0;</span>
+<span class="lineNum">     712 </span>            : 
+<span class="lineNum">     713 </span>            :   // These buffers are just kept around to avoid allocations; they're
+<span class="lineNum">     714 </span>            :   // updated every time a time is requested
+<span class="lineNum">     715 </span><span class="lineNoCov">          0 :   mutable Variables&lt;detail::reduced_cce_input_tags&gt; interpolated_coefficients_;</span>
+<span class="lineNum">     716 </span>            : 
+<span class="lineNum">     717 </span>            :   // note: buffers store data in an 'time-varies-fastest' manner
+<span class="lineNum">     718 </span><span class="lineNoCov">          0 :   mutable Variables&lt;detail::reduced_cce_input_tags&gt; coefficients_buffers_;</span>
+<span class="lineNum">     719 </span>            : 
+<span class="lineNum">     720 </span><span class="lineNoCov">          0 :   size_t buffer_depth_ = 0;</span>
+<span class="lineNum">     721 </span>            : 
+<span class="lineNum">     722 </span><span class="lineNoCov">          0 :   std::unique_ptr&lt;intrp::SpanInterpolator&gt; interpolator_;</span>
+<span class="lineNum">     723 </span>            : };
+<span class="lineNum">     724 </span>            : 
+<span class="lineNum">     725 </span>            : template &lt;typename TagList&gt;
+<span class="lineNum">     726 </span><span class="lineNoCov">          0 : bool ReducedWorldtubeDataManager::populate_hypersurface_boundary_data(</span>
+<span class="lineNum">     727 </span>            :     const gsl::not_null&lt;db::DataBox&lt;TagList&gt;*&gt; boundary_data_box,
+<span class="lineNum">     728 </span>            :     const double time) const noexcept {
+<span class="lineNum">     729 </span>            :   if (buffer_updater_-&gt;time_is_outside_range(time)) {
+<span class="lineNum">     730 </span>            :     return false;
+<span class="lineNum">     731 </span>            :   }
+<span class="lineNum">     732 </span>            :   buffer_updater_-&gt;update_buffers_for_time(
+<span class="lineNum">     733 </span>            :       make_not_null(&amp;coefficients_buffers_), make_not_null(&amp;time_span_start_),
+<span class="lineNum">     734 </span>            :       make_not_null(&amp;time_span_end_), time, l_max_,
+<span class="lineNum">     735 </span>            :       interpolator_-&gt;required_number_of_points_before_and_after(),
+<span class="lineNum">     736 </span>            :       buffer_depth_);
+<span class="lineNum">     737 </span>            :   auto interpolation_time_span = detail::create_span_for_time_value(
+<span class="lineNum">     738 </span>            :       time, 0, interpolator_-&gt;required_number_of_points_before_and_after(),
+<span class="lineNum">     739 </span>            :       time_span_start_, time_span_end_, buffer_updater_-&gt;get_time_buffer());
+<span class="lineNum">     740 </span>            : 
+<span class="lineNum">     741 </span>            :   // search through and find the two interpolation points the time point is
+<span class="lineNum">     742 </span>            :   // between. If we can, put the range for the interpolation centered on the
+<span class="lineNum">     743 </span>            :   // desired point. If that can't be done (near the start or the end of the
+<span class="lineNum">     744 </span>            :   // simulation), make the range terminated at the start or end of the cached
+<span class="lineNum">     745 </span>            :   // data and extending for the desired range in the other direction.
+<span class="lineNum">     746 </span>            :   const size_t buffer_span_size = time_span_end_ - time_span_start_;
+<span class="lineNum">     747 </span>            :   const size_t interpolation_span_size =
+<span class="lineNum">     748 </span>            :       interpolation_time_span.second - interpolation_time_span.first;
+<span class="lineNum">     749 </span>            : 
+<span class="lineNum">     750 </span>            :   DataVector time_points{
+<span class="lineNum">     751 </span>            :       buffer_updater_-&gt;get_time_buffer().data() + interpolation_time_span.first,
+<span class="lineNum">     752 </span>            :       interpolation_span_size};
+<span class="lineNum">     753 </span>            : 
+<span class="lineNum">     754 </span>            :   auto interpolate_from_column =
+<span class="lineNum">     755 </span>            :       [&amp;time, &amp;time_points, &amp;buffer_span_size, &amp;interpolation_time_span,
+<span class="lineNum">     756 </span>            :        &amp;interpolation_span_size, this](auto data, size_t column) {
+<span class="lineNum">     757 </span>            :         const auto interp_val = interpolator_-&gt;interpolate(
+<span class="lineNum">     758 </span>            :             gsl::span&lt;const double&gt;(time_points.data(), time_points.size()),
+<span class="lineNum">     759 </span>            :             gsl::span&lt;const std::complex&lt;double&gt;&gt;(
+<span class="lineNum">     760 </span>            :                 data + column * (buffer_span_size) +
+<span class="lineNum">     761 </span>            :                     (interpolation_time_span.first - time_span_start_),
+<span class="lineNum">     762 </span>            :                 interpolation_span_size),
+<span class="lineNum">     763 </span>            :             time);
+<span class="lineNum">     764 </span>            :         return interp_val;
+<span class="lineNum">     765 </span>            :       };
+<span class="lineNum">     766 </span>            : 
+<span class="lineNum">     767 </span>            :   // the ComplexModalVectors should be provided from the buffer_updater_ in
+<span class="lineNum">     768 </span>            :   // 'Goldberg' format, so we iterate over modes and convert to libsharp
+<span class="lineNum">     769 </span>            :   // format.
+<span class="lineNum">     770 </span>            :   for (const auto&amp; libsharp_mode :
+<span class="lineNum">     771 </span>            :        Spectral::Swsh::cached_coefficients_metadata(l_max_)) {
+<span class="lineNum">     772 </span>            :     tmpl::for_each&lt;detail::reduced_cce_input_tags&gt;([
+<span class="lineNum">     773 </span>            :       this, &amp;libsharp_mode, &amp;interpolate_from_column
+<span class="lineNum">     774 </span>            :     ](auto tag_v) noexcept {
+<span class="lineNum">     775 </span>            :       using tag = typename decltype(tag_v)::type;
+<span class="lineNum">     776 </span>            :       Spectral::Swsh::goldberg_modes_to_libsharp_modes_single_pair(
+<span class="lineNum">     777 </span>            :           libsharp_mode,
+<span class="lineNum">     778 </span>            :           make_not_null(&amp;get(get&lt;tag&gt;(interpolated_coefficients_))), 0,
+<span class="lineNum">     779 </span>            :           interpolate_from_column(
+<span class="lineNum">     780 </span>            :               get(get&lt;tag&gt;(coefficients_buffers_)).data().data(),
+<span class="lineNum">     781 </span>            :               Spectral::Swsh::goldberg_mode_index(
+<span class="lineNum">     782 </span>            :                   l_max_, libsharp_mode.l, static_cast&lt;int&gt;(libsharp_mode.m))),
+<span class="lineNum">     783 </span>            :           interpolate_from_column(
+<span class="lineNum">     784 </span>            :               get(get&lt;tag&gt;(coefficients_buffers_)).data().data(),
+<span class="lineNum">     785 </span>            :               Spectral::Swsh::goldberg_mode_index(
+<span class="lineNum">     786 </span>            :                   l_max_, libsharp_mode.l,
+<span class="lineNum">     787 </span>            :                   -static_cast&lt;int&gt;(libsharp_mode.m))));
+<span class="lineNum">     788 </span>            :     });
+<span class="lineNum">     789 </span>            :   }
+<span class="lineNum">     790 </span>            :   // just inverse transform the 'direct' tags
+<span class="lineNum">     791 </span>            :   tmpl::for_each&lt;tmpl::transform&lt;detail::reduced_cce_input_tags,
+<span class="lineNum">     792 </span>            :                                  tmpl::bind&lt;db::remove_tag_prefix, tmpl::_1&gt;&gt;&gt;(
+<span class="lineNum">     793 </span>            :       [this, &amp;boundary_data_box](auto tag_v) {
+<span class="lineNum">     794 </span>            :         using tag = typename decltype(tag_v)::type;
+<span class="lineNum">     795 </span>            :         db::mutate&lt;Tags::BoundaryValue&lt;tag&gt;&gt;(
+<span class="lineNum">     796 </span>            :             boundary_data_box,
+<span class="lineNum">     797 </span>            :             [this](
+<span class="lineNum">     798 </span>            :                 const gsl::not_null&lt;
+<span class="lineNum">     799 </span>            :                     db::item_type&lt;Cce::Tags::BoundaryValue&lt;tag&gt;&gt;*&gt;
+<span class="lineNum">     800 </span>            :                     boundary_value,
+<span class="lineNum">     801 </span>            :                 const db::item_type&lt;Spectral::Swsh::Tags::SwshTransform&lt;tag&gt;&gt;&amp;
+<span class="lineNum">     802 </span>            :                     modal_boundary_value) noexcept {
+<span class="lineNum">     803 </span>            :               Spectral::Swsh::inverse_swsh_transform(
+<span class="lineNum">     804 </span>            :                   l_max_, 1, make_not_null(&amp;get(*boundary_value)),
+<span class="lineNum">     805 </span>            :                   get(modal_boundary_value));
+<span class="lineNum">     806 </span>            :             },
+<span class="lineNum">     807 </span>            :             get&lt;Spectral::Swsh::Tags::SwshTransform&lt;tag&gt;&gt;(
+<span class="lineNum">     808 </span>            :                 interpolated_coefficients_));
+<span class="lineNum">     809 </span>            :       });
+<span class="lineNum">     810 </span>            : 
+<span class="lineNum">     811 </span>            :   db::mutate&lt;Tags::BoundaryValue&lt;Tags::DuRDividedByR&gt;&gt;(
+<span class="lineNum">     812 </span>            :       boundary_data_box,
+<span class="lineNum">     813 </span>            :       [](const gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;*&gt;
+<span class="lineNum">     814 </span>            :              du_r_divided_by_r,
+<span class="lineNum">     815 </span>            :          const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; du_r,
+<span class="lineNum">     816 </span>            :          const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; r) noexcept {
+<span class="lineNum">     817 </span>            :         get(*du_r_divided_by_r) = get(du_r) / get(r);
+<span class="lineNum">     818 </span>            :       },
+<span class="lineNum">     819 </span>            :       db::get&lt;Tags::BoundaryValue&lt;Tags::Du&lt;Tags::BondiR&gt;&gt;&gt;(*boundary_data_box),
+<span class="lineNum">     820 </span>            :       db::get&lt;Tags::BoundaryValue&lt;Tags::BondiR&gt;&gt;(*boundary_data_box));
+<span class="lineNum">     821 </span>            : 
+<span class="lineNum">     822 </span>            :   // there's only a couple of tags desired by the core computation that aren't
+<span class="lineNum">     823 </span>            :   // stored in the 'reduced' format, so we perform the remaining computation
+<span class="lineNum">     824 </span>            :   // in-line here.
+<span class="lineNum">     825 </span>            : 
+<span class="lineNum">     826 </span>            :   db::mutate&lt;Tags::BoundaryValue&lt;Tags::BondiH&gt;&gt;(
+<span class="lineNum">     827 </span>            :       boundary_data_box,
+<span class="lineNum">     828 </span>            :       [](const gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;*&gt; h,
+<span class="lineNum">     829 </span>            :          const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;&amp; du_j,
+<span class="lineNum">     830 </span>            :          const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;&amp; dr_j,
+<span class="lineNum">     831 </span>            :          const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; r,
+<span class="lineNum">     832 </span>            :          const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp;
+<span class="lineNum">     833 </span>            :              du_r_divided_by_r) noexcept {
+<span class="lineNum">     834 </span>            :         get(*h) = get(du_j) + get(r) * get(du_r_divided_by_r) * get(dr_j);
+<span class="lineNum">     835 </span>            :       },
+<span class="lineNum">     836 </span>            :       db::get&lt;Tags::BoundaryValue&lt;Tags::Du&lt;Tags::BondiJ&gt;&gt;&gt;(*boundary_data_box),
+<span class="lineNum">     837 </span>            :       db::get&lt;Tags::BoundaryValue&lt;Tags::Dr&lt;Tags::BondiJ&gt;&gt;&gt;(*boundary_data_box),
+<span class="lineNum">     838 </span>            :       db::get&lt;Tags::BoundaryValue&lt;Tags::BondiR&gt;&gt;(*boundary_data_box),
+<span class="lineNum">     839 </span>            :       db::get&lt;Tags::BoundaryValue&lt;Tags::DuRDividedByR&gt;&gt;(*boundary_data_box));
+<span class="lineNum">     840 </span>            : 
+<span class="lineNum">     841 </span>            :   // \partial_r U:
+<span class="lineNum">     842 </span>            :   db::mutate&lt;Tags::BoundaryValue&lt;Tags::Dr&lt;Tags::BondiU&gt;&gt;&gt;(
+<span class="lineNum">     843 </span>            :       boundary_data_box,
+<span class="lineNum">     844 </span>            :       [](const gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 1&gt;&gt;*&gt; dr_u,
+<span class="lineNum">     845 </span>            :          const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; beta,
+<span class="lineNum">     846 </span>            :          const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; r,
+<span class="lineNum">     847 </span>            :          const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 1&gt;&gt;&amp; q,
+<span class="lineNum">     848 </span>            :          const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;&amp; j) noexcept {
+<span class="lineNum">     849 </span>            :         // allocation
+<span class="lineNum">     850 </span>            :         SpinWeighted&lt;ComplexDataVector, 0&gt; k;
+<span class="lineNum">     851 </span>            :         k.data() = sqrt(1.0 + get(j).data() * conj(get(j).data()));
+<span class="lineNum">     852 </span>            :         get(*dr_u).data() =
+<span class="lineNum">     853 </span>            :             exp(2.0 * get(beta).data()) / square(get(r).data()) *
+<span class="lineNum">     854 </span>            :             (k.data() * get(q).data() - get(j).data() * conj(get(q).data()));
+<span class="lineNum">     855 </span>            :       },
+<span class="lineNum">     856 </span>            :       db::get&lt;Tags::BoundaryValue&lt;Tags::BondiBeta&gt;&gt;(*boundary_data_box),
+<span class="lineNum">     857 </span>            :       db::get&lt;Tags::BoundaryValue&lt;Tags::BondiR&gt;&gt;(*boundary_data_box),
+<span class="lineNum">     858 </span>            :       db::get&lt;Tags::BoundaryValue&lt;Tags::BondiQ&gt;&gt;(*boundary_data_box),
+<span class="lineNum">     859 </span>            :       db::get&lt;Tags::BoundaryValue&lt;Tags::BondiJ&gt;&gt;(*boundary_data_box));
+<span class="lineNum">     860 </span>            :   return true;
+<span class="lineNum">     861 </span>            : }
+<span class="lineNum">     862 </span>            : }  // namespace Cce
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

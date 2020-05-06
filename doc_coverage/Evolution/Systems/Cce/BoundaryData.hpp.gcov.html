@@ -1,0 +1,1268 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - Evolution/Systems/Cce/BoundaryData.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../index.html">top level</a> - <a href="index.html">Evolution/Systems/Cce</a> - BoundaryData.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">24</td>
+            <td class="headerCovTableEntry">26</td>
+            <td class="headerCovTableEntryHi">92.3 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #pragma once
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;cstddef&gt;
+<span class="lineNum">       7 </span>            : 
+<span class="lineNum">       8 </span>            : #include &quot;DataStructures/DataBox/DataBox.hpp&quot;
+<span class="lineNum">       9 </span>            : #include &quot;DataStructures/DataBox/PrefixHelpers.hpp&quot;
+<span class="lineNum">      10 </span>            : #include &quot;DataStructures/DataBox/Prefixes.hpp&quot;
+<span class="lineNum">      11 </span>            : #include &quot;DataStructures/DataVector.hpp&quot;
+<span class="lineNum">      12 </span>            : #include &quot;DataStructures/SpinWeighted.hpp&quot;
+<span class="lineNum">      13 </span>            : #include &quot;DataStructures/Tensor/EagerMath/DeterminantAndInverse.hpp&quot;
+<span class="lineNum">      14 </span>            : #include &quot;DataStructures/Tensor/TypeAliases.hpp&quot;
+<span class="lineNum">      15 </span>            : #include &quot;Evolution/Systems/Cce/BoundaryDataTags.hpp&quot;
+<span class="lineNum">      16 </span>            : #include &quot;Evolution/Systems/Cce/Tags.hpp&quot;
+<span class="lineNum">      17 </span>            : #include &quot;NumericalAlgorithms/Spectral/SwshCollocation.hpp&quot;
+<span class="lineNum">      18 </span>            : #include &quot;NumericalAlgorithms/Spectral/SwshDerivatives.hpp&quot;
+<span class="lineNum">      19 </span>            : #include &quot;PointwiseFunctions/GeneralRelativity/ComputeGhQuantities.hpp&quot;
+<span class="lineNum">      20 </span>            : #include &quot;PointwiseFunctions/GeneralRelativity/ComputeSpacetimeQuantities.hpp&quot;
+<span class="lineNum">      21 </span>            : 
+<span class="lineNum">      22 </span>            : /// \cond
+<span class="lineNum">      23 </span>            : class DataVector;
+<span class="lineNum">      24 </span>            : class ComplexDataVector;
+<span class="lineNum">      25 </span>            : /// \endcond
+<span class="lineNum">      26 </span>            : 
+<span class="lineNum">      27 </span>            : namespace Cce {
+<span class="lineNum">      28 </span>            : 
+<span class="lineNum">      29 </span>            : /*!
+<span class="lineNum">      30 </span>            :  * \brief Constructs the collocation values for \f$\cos(\phi)\f$,
+<span class="lineNum">      31 </span>            :  * \f$\cos(\theta)\f$, \f$\sin(\phi)\f$, and \f$\sin(\theta)\f$, returned by
+<span class="lineNum">      32 </span>            :  * `not_null` pointer in that order.
+<span class="lineNum">      33 </span>            :  *
+<span class="lineNum">      34 </span>            :  * \details These are needed for coordinate transformations from the input
+<span class="lineNum">      35 </span>            :  * Cartesian-like coordinates.
+<span class="lineNum">      36 </span>            :  */
+<span class="lineNum">      37 </span><span class="lineCov">          1 : void trigonometric_functions_on_swsh_collocation(</span>
+<span class="lineNum">      38 </span>            :     gsl::not_null&lt;Scalar&lt;DataVector&gt;*&gt; cos_phi,
+<span class="lineNum">      39 </span>            :     gsl::not_null&lt;Scalar&lt;DataVector&gt;*&gt; cos_theta,
+<span class="lineNum">      40 </span>            :     gsl::not_null&lt;Scalar&lt;DataVector&gt;*&gt; sin_phi,
+<span class="lineNum">      41 </span>            :     gsl::not_null&lt;Scalar&lt;DataVector&gt;*&gt; sin_theta, size_t l_max) noexcept;
+<span class="lineNum">      42 </span>            : 
+<span class="lineNum">      43 </span>            : /*!
+<span class="lineNum">      44 </span>            :  * \brief Creates both the Jacobian and inverse Jacobian between Cartesian and
+<span class="lineNum">      45 </span>            :  * spherical coordinates, and the coordinates themselves
+<span class="lineNum">      46 </span>            :  *
+<span class="lineNum">      47 </span>            :  * \details The `cartesian_to_spherical_jacobian` is
+<span class="lineNum">      48 </span>            :  * \f$dx^i/d\tilde{x}^{\tilde j}\f$,
+<span class="lineNum">      49 </span>            :  * where the Cartesian components are in order \f$x^i = \{x, y, z\}\f$
+<span class="lineNum">      50 </span>            :  * and the spherical coordinates are
+<span class="lineNum">      51 </span>            :  * \f$\tilde{x}^{\tilde j} = \{r, \theta, \phi\}\f$.
+<span class="lineNum">      52 </span>            :  * The Cartesian coordinates given are the standard unit sphere coordinates:
+<span class="lineNum">      53 </span>            :  *
+<span class="lineNum">      54 </span>            :  * \f{align*}{
+<span class="lineNum">      55 </span>            :  *  x &amp;= \cos(\phi) \sin(\theta)\\
+<span class="lineNum">      56 </span>            :  *  y &amp;= \sin(\phi) \sin(\theta)\\
+<span class="lineNum">      57 </span>            :  *  z &amp;= \cos(\theta)
+<span class="lineNum">      58 </span>            :  * \f}
+<span class="lineNum">      59 </span>            :  *
+<span class="lineNum">      60 </span>            :  * \note These Jacobians are adjusted to improve regularity near the pole, in
+<span class="lineNum">      61 </span>            :  * particular the \f$\partial \phi / \partial x^i\f$ components have been scaled
+<span class="lineNum">      62 </span>            :  * by \f$\sin \theta\f$ (omitting a \f$1/\sin(\theta)\f$) and the
+<span class="lineNum">      63 </span>            :  * \f$\partial x^i/\partial \phi\f$ components have been scaled by
+<span class="lineNum">      64 </span>            :  * \f$1/\sin(\theta)\f$ (omitting a \f$\sin(\theta)\f$). The reason is that in
+<span class="lineNum">      65 </span>            :  * most careful calculations, these problematic sin factors can actually be
+<span class="lineNum">      66 </span>            :  * omitted because they cancel. In cases where they are actually required, they
+<span class="lineNum">      67 </span>            :  * must be put in by hand.
+<span class="lineNum">      68 </span>            :  */
+<span class="lineNum">      69 </span><span class="lineCov">          1 : void cartesian_to_spherical_coordinates_and_jacobians(</span>
+<span class="lineNum">      70 </span>            :     gsl::not_null&lt;tnsr::I&lt;DataVector, 3&gt;*&gt; unit_cartesian_coords,
+<span class="lineNum">      71 </span>            :     gsl::not_null&lt;SphericaliCartesianJ*&gt; cartesian_to_spherical_jacobian,
+<span class="lineNum">      72 </span>            :     gsl::not_null&lt;CartesianiSphericalJ*&gt;
+<span class="lineNum">      73 </span>            :         inverse_cartesian_to_spherical_jacobian,
+<span class="lineNum">      74 </span>            :     const Scalar&lt;DataVector&gt;&amp; cos_phi, const Scalar&lt;DataVector&gt;&amp; cos_theta,
+<span class="lineNum">      75 </span>            :     const Scalar&lt;DataVector&gt;&amp; sin_phi, const Scalar&lt;DataVector&gt;&amp; sin_theta,
+<span class="lineNum">      76 </span>            :     double extraction_radius) noexcept;
+<span class="lineNum">      77 </span>            : 
+<span class="lineNum">      78 </span>            : /*
+<span class="lineNum">      79 </span>            :  * \brief Compute \f$g_{i j}\f$, \f$g^{i j}\f$, \f$\partial_i g_{j k}\f$, and
+<span class="lineNum">      80 </span>            :  * \f$\partial_t g_{i j}\f$ from input libsharp-compatible modal spatial
+<span class="lineNum">      81 </span>            :  * metric quantities.
+<span class="lineNum">      82 </span>            :  *
+<span class="lineNum">      83 </span>            :  * \details This function interpolates the modes of
+<span class="lineNum">      84 </span>            :  * input \f$g_{ij}\f$, \f$\partial_r g_{i j}\f$, and \f$\partial_r g_{i j}\f$ to
+<span class="lineNum">      85 </span>            :  * the libsharp-compatible grid. This function then applies the necessary
+<span class="lineNum">      86 </span>            :  * jacobian factors and angular derivatives to determine the full \f$\partial_i
+<span class="lineNum">      87 </span>            :  * g_{j k}\f$.
+<span class="lineNum">      88 </span>            :  */
+<span class="lineNum">      89 </span><span class="lineNoCov">          0 : void cartesian_spatial_metric_and_derivatives_from_modes(</span>
+<span class="lineNum">      90 </span>            :     gsl::not_null&lt;tnsr::ii&lt;DataVector, 3&gt;*&gt; cartesian_spatial_metric,
+<span class="lineNum">      91 </span>            :     gsl::not_null&lt;tnsr::II&lt;DataVector, 3&gt;*&gt; inverse_cartesian_spatial_metric,
+<span class="lineNum">      92 </span>            :     gsl::not_null&lt;tnsr::ijj&lt;DataVector, 3&gt;*&gt; d_cartesian_spatial_metric,
+<span class="lineNum">      93 </span>            :     gsl::not_null&lt;tnsr::ii&lt;DataVector, 3&gt;*&gt; dt_cartesian_spatial_metric,
+<span class="lineNum">      94 </span>            :     gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexModalVector, 0&gt;&gt;*&gt;
+<span class="lineNum">      95 </span>            :         interpolation_modal_buffer,
+<span class="lineNum">      96 </span>            :     gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;*&gt;
+<span class="lineNum">      97 </span>            :         interpolation_buffer,
+<span class="lineNum">      98 </span>            :     gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 1&gt;&gt;*&gt; eth_buffer,
+<span class="lineNum">      99 </span>            :     const tnsr::ii&lt;ComplexModalVector, 3&gt;&amp; spatial_metric_coefficients,
+<span class="lineNum">     100 </span>            :     const tnsr::ii&lt;ComplexModalVector, 3&gt;&amp; dr_spatial_metric_coefficients,
+<span class="lineNum">     101 </span>            :     const tnsr::ii&lt;ComplexModalVector, 3&gt;&amp; dt_spatial_metric_coefficients,
+<span class="lineNum">     102 </span>            :     const CartesianiSphericalJ&amp; inverse_cartesian_to_spherical_jacobian,
+<span class="lineNum">     103 </span>            :     size_t l_max) noexcept;
+<span class="lineNum">     104 </span>            : 
+<span class="lineNum">     105 </span>            : /*!
+<span class="lineNum">     106 </span>            :  * \brief Compute \f$\beta^{i}\f$, \f$\partial_i \beta^{j}\f$, and
+<span class="lineNum">     107 </span>            :  * \f$\partial_t \beta^i\f$ from input libsharp-compatible modal spatial
+<span class="lineNum">     108 </span>            :  * metric quantities.
+<span class="lineNum">     109 </span>            :  *
+<span class="lineNum">     110 </span>            :  * \details This function interpolates the modes of
+<span class="lineNum">     111 </span>            :  * input \f$\beta^i\f$, \f$\partial_r \beta^i\f$, and \f$\partial_r \beta^i\f$
+<span class="lineNum">     112 </span>            :  * to the libsharp-compatible grid. This function then applies the necessary
+<span class="lineNum">     113 </span>            :  * jacobian factors and angular derivatives to determine the full \f$\partial_i
+<span class="lineNum">     114 </span>            :  * \beta^i\f$.
+<span class="lineNum">     115 </span>            :  */
+<span class="lineNum">     116 </span><span class="lineCov">          1 : void cartesian_shift_and_derivatives_from_modes(</span>
+<span class="lineNum">     117 </span>            :     gsl::not_null&lt;tnsr::I&lt;DataVector, 3&gt;*&gt; cartesian_shift,
+<span class="lineNum">     118 </span>            :     gsl::not_null&lt;tnsr::iJ&lt;DataVector, 3&gt;*&gt; d_cartesian_shift,
+<span class="lineNum">     119 </span>            :     gsl::not_null&lt;tnsr::I&lt;DataVector, 3&gt;*&gt; dt_cartesian_shift,
+<span class="lineNum">     120 </span>            :     gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexModalVector, 0&gt;&gt;*&gt;
+<span class="lineNum">     121 </span>            :         interpolation_modal_buffer,
+<span class="lineNum">     122 </span>            :     gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;*&gt;
+<span class="lineNum">     123 </span>            :         interpolation_buffer,
+<span class="lineNum">     124 </span>            :     gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 1&gt;&gt;*&gt; eth_buffer,
+<span class="lineNum">     125 </span>            :     const tnsr::I&lt;ComplexModalVector, 3&gt;&amp; shift_coefficients,
+<span class="lineNum">     126 </span>            :     const tnsr::I&lt;ComplexModalVector, 3&gt;&amp; dr_shift_coefficients,
+<span class="lineNum">     127 </span>            :     const tnsr::I&lt;ComplexModalVector, 3&gt;&amp; dt_shift_coefficients,
+<span class="lineNum">     128 </span>            :     const CartesianiSphericalJ&amp; inverse_cartesian_to_spherical_jacobian,
+<span class="lineNum">     129 </span>            :     size_t l_max) noexcept;
+<span class="lineNum">     130 </span>            : 
+<span class="lineNum">     131 </span>            : /*!
+<span class="lineNum">     132 </span>            :  * \brief Compute \f$\alpha\f$, \f$\partial_i \alpha\f$, and
+<span class="lineNum">     133 </span>            :  * \f$\partial_t \beta^i\f$ from input libsharp-compatible modal spatial
+<span class="lineNum">     134 </span>            :  * metric quantities.
+<span class="lineNum">     135 </span>            :  *
+<span class="lineNum">     136 </span>            :  * \details This function interpolates the modes of input \f$\alpha\f$,
+<span class="lineNum">     137 </span>            :  * \f$\partial_r \alpha\f$, and \f$\partial_r \alpha\f$ to the
+<span class="lineNum">     138 </span>            :  * libsharp-compatible grid. This function then applies the necessary jacobian
+<span class="lineNum">     139 </span>            :  * factors and angular derivatives to determine the full \f$\partial_i
+<span class="lineNum">     140 </span>            :  * \alpha\f$.
+<span class="lineNum">     141 </span>            :  */
+<span class="lineNum">     142 </span><span class="lineCov">          1 : void cartesian_lapse_and_derivatives_from_modes(</span>
+<span class="lineNum">     143 </span>            :     gsl::not_null&lt;Scalar&lt;DataVector&gt;*&gt; cartesian_lapse,
+<span class="lineNum">     144 </span>            :     gsl::not_null&lt;tnsr::i&lt;DataVector, 3&gt;*&gt; d_cartesian_lapse,
+<span class="lineNum">     145 </span>            :     gsl::not_null&lt;Scalar&lt;DataVector&gt;*&gt; dt_cartesian_lapse,
+<span class="lineNum">     146 </span>            :     gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexModalVector, 0&gt;&gt;*&gt;
+<span class="lineNum">     147 </span>            :         interpolation_modal_buffer,
+<span class="lineNum">     148 </span>            :     gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;*&gt;
+<span class="lineNum">     149 </span>            :         interpolation_buffer,
+<span class="lineNum">     150 </span>            :     gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 1&gt;&gt;*&gt; eth_buffer,
+<span class="lineNum">     151 </span>            :     const Scalar&lt;ComplexModalVector&gt;&amp; lapse_coefficients,
+<span class="lineNum">     152 </span>            :     const Scalar&lt;ComplexModalVector&gt;&amp; dr_lapse_coefficients,
+<span class="lineNum">     153 </span>            :     const Scalar&lt;ComplexModalVector&gt;&amp; dt_lapse_coefficients,
+<span class="lineNum">     154 </span>            :     const CartesianiSphericalJ&amp; inverse_cartesian_to_spherical_jacobian,
+<span class="lineNum">     155 </span>            :     size_t l_max) noexcept;
+<span class="lineNum">     156 </span>            : 
+<span class="lineNum">     157 </span>            : /*!
+<span class="lineNum">     158 </span>            :  * \brief Computes the spacetime metric and its first derivative in the
+<span class="lineNum">     159 </span>            :  * intermediate radial null coordinates
+<span class="lineNum">     160 </span>            :  *
+<span class="lineNum">     161 </span>            :  * \details These components are obtained by the steps in
+<span class="lineNum">     162 </span>            :  * Section II-A of \cite Barkett2019uae, which is based on the computation from
+<span class="lineNum">     163 </span>            :  * Section 4.3 of \cite Bishop1998uk. The most direct comparison is to be made
+<span class="lineNum">     164 </span>            :  * with equation (31) of \cite Barkett2019uae, which gives the null metric
+<span class="lineNum">     165 </span>            :  * components explicitly. The time derivative is then (using notation from
+<span class="lineNum">     166 </span>            :  * equation (31)  of \cite Barkett2019uae):
+<span class="lineNum">     167 </span>            :  *
+<span class="lineNum">     168 </span>            :  * \f{align}{
+<span class="lineNum">     169 </span>            :  * \partial_{\bar u} g_{\bar u \bar \lambda} =
+<span class="lineNum">     170 </span>            :  * \partial_{\bar u} g_{\bar \lambda \bar \lambda} =
+<span class="lineNum">     171 </span>            :  * \partial_{\bar u} g_{\bar \lambda \bar A} &amp;= 0 \\
+<span class="lineNum">     172 </span>            :  * \partial_{\bar u} g_{\bar u \bar u} &amp;=
+<span class="lineNum">     173 </span>            :  * \partial_{\breve t} g_{\breve t \breve t} \\
+<span class="lineNum">     174 </span>            :  * \partial_{\bar u} g_{\bar u \bar A} &amp;=
+<span class="lineNum">     175 </span>            :  * \frac{\partial \breve x^{\breve i}}{\partial \bar x^{\bar A}}\\
+<span class="lineNum">     176 </span>            :  * g_{\breve i \breve t}
+<span class="lineNum">     177 </span>            :  * \partial_{\bar u} g_{\bar A \bar B}
+<span class="lineNum">     178 </span>            :  * &amp;= \frac{\partial \breve x^{\breve i}}{\partial \bar x^{\bar A}}
+<span class="lineNum">     179 </span>            :  * \frac{\partial \breve x^{\breve j}}{\partial \bar x^{\bar B}}
+<span class="lineNum">     180 </span>            :  * g_{\breve i \breve j}
+<span class="lineNum">     181 </span>            :  * \f}
+<span class="lineNum">     182 </span>            :  */
+<span class="lineNum">     183 </span><span class="lineCov">          1 : void null_metric_and_derivative(</span>
+<span class="lineNum">     184 </span>            :     gsl::not_null&lt;tnsr::aa&lt;DataVector, 3, Frame::RadialNull&gt;*&gt; du_null_metric,
+<span class="lineNum">     185 </span>            :     gsl::not_null&lt;tnsr::aa&lt;DataVector, 3, Frame::RadialNull&gt;*&gt; null_metric,
+<span class="lineNum">     186 </span>            :     const SphericaliCartesianJ&amp; cartesian_to_spherical_jacobian,
+<span class="lineNum">     187 </span>            :     const tnsr::aa&lt;DataVector, 3&gt;&amp; dt_spacetime_metric,
+<span class="lineNum">     188 </span>            :     const tnsr::aa&lt;DataVector, 3&gt;&amp; spacetime_metric) noexcept;
+<span class="lineNum">     189 </span>            : 
+<span class="lineNum">     190 </span>            : /*!
+<span class="lineNum">     191 </span>            :  * \brief Computes the spatial unit normal vector \f$s^i\f$ to the spherical
+<span class="lineNum">     192 </span>            :  * worldtube surface and its first time derivative.
+<span class="lineNum">     193 </span>            :  *
+<span class="lineNum">     194 </span>            :  * \details Refer to equation (20) of \cite Barkett2019uae for the expression of
+<span class="lineNum">     195 </span>            :  * the spatial unit normal vector, and equation (23) of \cite Barkett2019uae for
+<span class="lineNum">     196 </span>            :  * the first time derivative. Refer to \cite Bishop1998uk for more exposition
+<span class="lineNum">     197 </span>            :  * about the overall construction of the coordinate transformations used for the
+<span class="lineNum">     198 </span>            :  * intermediate null coordinates.
+<span class="lineNum">     199 </span>            :  */
+<span class="lineNum">     200 </span><span class="lineCov">          1 : void worldtube_normal_and_derivatives(</span>
+<span class="lineNum">     201 </span>            :     gsl::not_null&lt;tnsr::I&lt;DataVector, 3&gt;*&gt; worldtube_normal,
+<span class="lineNum">     202 </span>            :     gsl::not_null&lt;tnsr::I&lt;DataVector, 3&gt;*&gt; dt_worldtube_normal,
+<span class="lineNum">     203 </span>            :     const Scalar&lt;DataVector&gt;&amp; cos_phi, const Scalar&lt;DataVector&gt;&amp; cos_theta,
+<span class="lineNum">     204 </span>            :     const tnsr::aa&lt;DataVector, 3&gt;&amp; spacetime_metric,
+<span class="lineNum">     205 </span>            :     const tnsr::aa&lt;DataVector, 3&gt;&amp; dt_spacetime_metric,
+<span class="lineNum">     206 </span>            :     const Scalar&lt;DataVector&gt;&amp; sin_phi, const Scalar&lt;DataVector&gt;&amp; sin_theta,
+<span class="lineNum">     207 </span>            :     const tnsr::II&lt;DataVector, 3&gt;&amp; inverse_spatial_metric) noexcept;
+<span class="lineNum">     208 </span>            : 
+<span class="lineNum">     209 </span>            : /*!
+<span class="lineNum">     210 </span>            :  * \brief Computes the null 4-vector \f$l^\mu\f$ on the worldtube surface that
+<span class="lineNum">     211 </span>            :  * is to be used as the CCE hypersurface generator, and the first time
+<span class="lineNum">     212 </span>            :  * derivative \f$\partial_u l^\mu\f$.
+<span class="lineNum">     213 </span>            :  *
+<span class="lineNum">     214 </span>            :  * \details For mathematical description of our choice of the null generator,
+<span class="lineNum">     215 </span>            :  * refer to equation (22) of \cite Barkett2019uae, and for the first time
+<span class="lineNum">     216 </span>            :  * derivative see (25) of \cite Barkett2019uae.  Refer to \cite Bishop1998uk for
+<span class="lineNum">     217 </span>            :  * more exposition about the overall construction of the coordinate
+<span class="lineNum">     218 </span>            :  * transformations used for the intermediate null coordinates.
+<span class="lineNum">     219 </span>            :  */
+<span class="lineNum">     220 </span><span class="lineCov">          1 : void null_vector_l_and_derivatives(</span>
+<span class="lineNum">     221 </span>            :     gsl::not_null&lt;tnsr::A&lt;DataVector, 3&gt;*&gt; du_null_l,
+<span class="lineNum">     222 </span>            :     gsl::not_null&lt;tnsr::A&lt;DataVector, 3&gt;*&gt; null_l,
+<span class="lineNum">     223 </span>            :     const tnsr::I&lt;DataVector, 3&gt;&amp; dt_worldtube_normal,
+<span class="lineNum">     224 </span>            :     const Scalar&lt;DataVector&gt;&amp; dt_lapse,
+<span class="lineNum">     225 </span>            :     const tnsr::aa&lt;DataVector, 3&gt;&amp; dt_spacetime_metric,
+<span class="lineNum">     226 </span>            :     const tnsr::I&lt;DataVector, 3&gt;&amp; dt_shift, const Scalar&lt;DataVector&gt;&amp; lapse,
+<span class="lineNum">     227 </span>            :     const tnsr::aa&lt;DataVector, 3&gt;&amp; spacetime_metric,
+<span class="lineNum">     228 </span>            :     const tnsr::I&lt;DataVector, 3&gt;&amp; shift,
+<span class="lineNum">     229 </span>            :     const tnsr::I&lt;DataVector, 3&gt;&amp; worldtube_normal) noexcept;
+<span class="lineNum">     230 </span>            : 
+<span class="lineNum">     231 </span>            : /*!
+<span class="lineNum">     232 </span>            :  * \brief Computes the partial derivative of the spacetime metric and inverse
+<span class="lineNum">     233 </span>            :  * spacetime metric in the intermediate null radial coordinates with respect to
+<span class="lineNum">     234 </span>            :  * the null generator \f$l^\mu\f$
+<span class="lineNum">     235 </span>            :  *
+<span class="lineNum">     236 </span>            :  * \details For full expressions of the \f$l^\mu \partial_\mu g_{a b}\f$ and
+<span class="lineNum">     237 </span>            :  * \f$l^\mu \partial_\mu g^{a b}\f$ computed in this function, see equation (31)
+<span class="lineNum">     238 </span>            :  * and (32) of \cite Barkett2019uae.  Refer to \cite Bishop1998uk for more
+<span class="lineNum">     239 </span>            :  * exposition about the overall construction of the coordinate transformations
+<span class="lineNum">     240 </span>            :  * used for the intermediate null coordinates.
+<span class="lineNum">     241 </span>            :  */
+<span class="lineNum">     242 </span><span class="lineCov">          1 : void dlambda_null_metric_and_inverse(</span>
+<span class="lineNum">     243 </span>            :     gsl::not_null&lt;tnsr::aa&lt;DataVector, 3, Frame::RadialNull&gt;*&gt;
+<span class="lineNum">     244 </span>            :         dlambda_null_metric,
+<span class="lineNum">     245 </span>            :     gsl::not_null&lt;tnsr::AA&lt;DataVector, 3, Frame::RadialNull&gt;*&gt;
+<span class="lineNum">     246 </span>            :         dlambda_inverse_null_metric,
+<span class="lineNum">     247 </span>            :     const AngulariCartesianA&amp; angular_d_null_l,
+<span class="lineNum">     248 </span>            :     const SphericaliCartesianJ&amp; cartesian_to_spherical_jacobian,
+<span class="lineNum">     249 </span>            :     const tnsr::iaa&lt;DataVector, 3&gt;&amp; phi,
+<span class="lineNum">     250 </span>            :     const tnsr::aa&lt;DataVector, 3&gt;&amp; dt_spacetime_metric,
+<span class="lineNum">     251 </span>            :     const tnsr::A&lt;DataVector, 3&gt;&amp; du_null_l,
+<span class="lineNum">     252 </span>            :     const tnsr::AA&lt;DataVector, 3, Frame::RadialNull&gt;&amp; inverse_null_metric,
+<span class="lineNum">     253 </span>            :     const tnsr::A&lt;DataVector, 3&gt;&amp; null_l,
+<span class="lineNum">     254 </span>            :     const tnsr::aa&lt;DataVector, 3&gt;&amp; spacetime_metric) noexcept;
+<span class="lineNum">     255 </span>            : 
+<span class="lineNum">     256 </span>            : /*!
+<span class="lineNum">     257 </span>            :  * \brief Computes the Bondi radius of the worldtube.
+<span class="lineNum">     258 </span>            :  *
+<span class="lineNum">     259 </span>            :  * \details Note that unlike the Cauchy coordinate radius, the Bondi radius is
+<span class="lineNum">     260 </span>            :  * not constant over the worldtube. Instead, it is obtained by the determinant
+<span class="lineNum">     261 </span>            :  * of the angular part of the metric in the intermediate null coordinates (see
+<span class="lineNum">     262 </span>            :  * \cite Barkett2019uae).
+<span class="lineNum">     263 </span>            :  *
+<span class="lineNum">     264 </span>            :  * \f[
+<span class="lineNum">     265 </span>            :  *  r = \left(\frac{\det g_{A B}}{ q_{A B}}\right)^{1/4},
+<span class="lineNum">     266 </span>            :  * \f]
+<span class="lineNum">     267 </span>            :  *
+<span class="lineNum">     268 </span>            :  * where \f$q_{A B}\f$ is the unit sphere metric.
+<span class="lineNum">     269 </span>            :  */
+<span class="lineNum">     270 </span><span class="lineCov">          1 : void bondi_r(</span>
+<span class="lineNum">     271 </span>            :     gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;*&gt; bondi_r,
+<span class="lineNum">     272 </span>            :     const tnsr::aa&lt;DataVector, 3, Frame::RadialNull&gt;&amp; null_metric) noexcept;
+<span class="lineNum">     273 </span>            : 
+<span class="lineNum">     274 </span>            : /*!
+<span class="lineNum">     275 </span>            :  * \brief Computes the full 4-dimensional partial of the Bondi radius with
+<span class="lineNum">     276 </span>            :  * respect to the intermediate null coordinates.
+<span class="lineNum">     277 </span>            :  *
+<span class="lineNum">     278 </span>            :  * \details The expression evaluated is obtained from differentiating the
+<span class="lineNum">     279 </span>            :  * determinant equation for `bondi_r`, from (35) of \cite Barkett2019uae :
+<span class="lineNum">     280 </span>            :  *
+<span class="lineNum">     281 </span>            :  * \f[
+<span class="lineNum">     282 </span>            :  * \partial_\alpha r = \frac{r}{4} \left(g^{A B} \partial_\alpha g_{A B}
+<span class="lineNum">     283 </span>            :  * - \frac{\partial_\alpha \det q_{A B}}{\det q_{A B}}\right)
+<span class="lineNum">     284 </span>            :  * \f]
+<span class="lineNum">     285 </span>            :  *
+<span class="lineNum">     286 </span>            :  * Note that for the angular derivatives, we just numerically differentiate
+<span class="lineNum">     287 </span>            :  * using the utilities in `Spectral::Swsh::angular_derivative()`. For the time
+<span class="lineNum">     288 </span>            :  * and radial derivatives, the second term in the above equation vanishes.
+<span class="lineNum">     289 </span>            :  */
+<span class="lineNum">     290 </span><span class="lineCov">          1 : void d_bondi_r(</span>
+<span class="lineNum">     291 </span>            :     gsl::not_null&lt;tnsr::a&lt;DataVector, 3, Frame::RadialNull&gt;*&gt; d_bondi_r,
+<span class="lineNum">     292 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; bondi_r,
+<span class="lineNum">     293 </span>            :     const tnsr::aa&lt;DataVector, 3, Frame::RadialNull&gt;&amp; dlambda_null_metric,
+<span class="lineNum">     294 </span>            :     const tnsr::aa&lt;DataVector, 3, Frame::RadialNull&gt;&amp; du_null_metric,
+<span class="lineNum">     295 </span>            :     const tnsr::AA&lt;DataVector, 3, Frame::RadialNull&gt;&amp; inverse_null_metric,
+<span class="lineNum">     296 </span>            :     size_t l_max) noexcept;
+<span class="lineNum">     297 </span>            : 
+<span class="lineNum">     298 </span>            : /*!
+<span class="lineNum">     299 </span>            :  * \brief Compute the complex angular dyads used to define the spin-weighted
+<span class="lineNum">     300 </span>            :  * scalars in the CCE system.
+<span class="lineNum">     301 </span>            :  *
+<span class="lineNum">     302 </span>            :  * \details We use the typically chosen angular dyads in CCE
+<span class="lineNum">     303 </span>            :  * \cite Barkett2019uae \cite Bishop1997ik :
+<span class="lineNum">     304 </span>            :  *
+<span class="lineNum">     305 </span>            :  * \f{align*}{
+<span class="lineNum">     306 </span>            :  * q_A &amp;= \{-1, -i \sin(\theta)\}\\
+<span class="lineNum">     307 </span>            :  * q^A &amp;= \left\{-1, -i \frac{1}{\sin \theta}\right\}
+<span class="lineNum">     308 </span>            :  * \f}
+<span class="lineNum">     309 </span>            :  *
+<span class="lineNum">     310 </span>            :  * However, to maintain regularity and for compatibility with the more regular
+<span class="lineNum">     311 </span>            :  * Jacobians from `Cce::cartesian_to_spherical_coordinates_and_jacobians()`, in
+<span class="lineNum">     312 </span>            :  * the code we omit the factors of \f$\sin \theta\f$ from the above equations.
+<span class="lineNum">     313 </span>            :  */
+<span class="lineNum">     314 </span><span class="lineCov">          1 : void dyads(</span>
+<span class="lineNum">     315 </span>            :     gsl::not_null&lt;tnsr::i&lt;ComplexDataVector, 2, Frame::RadialNull&gt;*&gt; down_dyad,
+<span class="lineNum">     316 </span>            :     gsl::not_null&lt;tnsr::I&lt;ComplexDataVector, 2, Frame::RadialNull&gt;*&gt;
+<span class="lineNum">     317 </span>            :         up_dyad) noexcept;
+<span class="lineNum">     318 </span>            : 
+<span class="lineNum">     319 </span>            : /*!
+<span class="lineNum">     320 </span>            :  * \brief Compute the \f$\beta\f$ (lapse) function for the CCE Bondi-like
+<span class="lineNum">     321 </span>            :  * metric.
+<span class="lineNum">     322 </span>            :  *
+<span class="lineNum">     323 </span>            :  * \details The Bondi-like metric has \f$g^{u r} = - e^{2 \beta}\f$, and the
+<span class="lineNum">     324 </span>            :  * value of \f$\beta\f$ is obtained from the intermediate null metric by (see
+<span class="lineNum">     325 </span>            :  * equation (51) of \cite Barkett2019uae) using:
+<span class="lineNum">     326 </span>            :  *
+<span class="lineNum">     327 </span>            :  * \f[
+<span class="lineNum">     328 </span>            :  * \beta = -\frac{1}{2} \ln \partial_{\lambda} r
+<span class="lineNum">     329 </span>            :  * \f]
+<span class="lineNum">     330 </span>            :  */
+<span class="lineNum">     331 </span><span class="lineCov">          1 : void beta_worldtube_data(</span>
+<span class="lineNum">     332 </span>            :     gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;*&gt; beta,
+<span class="lineNum">     333 </span>            :     const tnsr::a&lt;DataVector, 3, Frame::RadialNull&gt;&amp; d_bondi_r) noexcept;
+<span class="lineNum">     334 </span>            : 
+<span class="lineNum">     335 </span>            : /*!
+<span class="lineNum">     336 </span>            :  * \brief Compute the \f$U\f$ (shift) function for the CCE Bondi-like metric.
+<span class="lineNum">     337 </span>            :  *
+<span class="lineNum">     338 </span>            :  * \details The Bondi-like metric has \f$g^{r A} = -e^{-2 \beta} U^A\f$, and the
+<span class="lineNum">     339 </span>            :  * spin-weighted vector \f$U = U^A q_A\f$. The value of \f$U^A\f$ can be
+<span class="lineNum">     340 </span>            :  * computed from the intermediate null metric quantities (see equation (54) of
+<span class="lineNum">     341 </span>            :  * \cite Barkett2019uae) using:
+<span class="lineNum">     342 </span>            :  *
+<span class="lineNum">     343 </span>            :  * \f[
+<span class="lineNum">     344 </span>            :  * U = -(\partial_\lambda r g^{\lambda A} + \partial_B r g^{A B}) q_A
+<span class="lineNum">     345 </span>            :  * / \partial_\lambda r \f]
+<span class="lineNum">     346 </span>            :  *
+<span class="lineNum">     347 </span>            :  */
+<span class="lineNum">     348 </span><span class="lineCov">          1 : void bondi_u_worldtube_data(</span>
+<span class="lineNum">     349 </span>            :     gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 1&gt;&gt;*&gt; bondi_u,
+<span class="lineNum">     350 </span>            :     const tnsr::i&lt;ComplexDataVector, 2, Frame::RadialNull&gt;&amp; dyad,
+<span class="lineNum">     351 </span>            :     const tnsr::a&lt;DataVector, 3, Frame::RadialNull&gt;&amp; d_bondi_r,
+<span class="lineNum">     352 </span>            :     const tnsr::AA&lt;DataVector, 3, Frame::RadialNull&gt;&amp;
+<span class="lineNum">     353 </span>            :         inverse_null_metric) noexcept;
+<span class="lineNum">     354 </span>            : 
+<span class="lineNum">     355 </span>            : /*!
+<span class="lineNum">     356 </span>            :  * \brief Compute the \f$W\f$ (mass aspect) function for the CCE Bondi-like
+<span class="lineNum">     357 </span>            :  * metric.
+<span class="lineNum">     358 </span>            :  *
+<span class="lineNum">     359 </span>            :  * \details The Bondi-like metric has \f$g^{rr} = e^{-2 \beta}(1 + r W)\f$. The
+<span class="lineNum">     360 </span>            :  * value of \f$W\f$ can be computed from the null metric quantities (see
+<span class="lineNum">     361 </span>            :  * equation (55) of \cite Barkett2019uae) using:
+<span class="lineNum">     362 </span>            :  *
+<span class="lineNum">     363 </span>            :  * \f[
+<span class="lineNum">     364 </span>            :  * W = \frac{1}{r} \left(-1
+<span class="lineNum">     365 </span>            :  * + \frac{g^{\lambda \lambda} (\partial_\lambda r)^2
+<span class="lineNum">     366 </span>            :  * + 2 \partial_\lambda r \left(\partial_A r g^{\lambda A}
+<span class="lineNum">     367 </span>            :  * - \partial_u r\right) + \partial_A r \partial_B r g^{A B}}
+<span class="lineNum">     368 </span>            :  * {\partial_\lambda r}\right) \f]
+<span class="lineNum">     369 </span>            :  */
+<span class="lineNum">     370 </span><span class="lineCov">          1 : void bondi_w_worldtube_data(</span>
+<span class="lineNum">     371 </span>            :     gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;*&gt; bondi_w,
+<span class="lineNum">     372 </span>            :     const tnsr::a&lt;DataVector, 3, Frame::RadialNull&gt;&amp; d_bondi_r,
+<span class="lineNum">     373 </span>            :     const tnsr::AA&lt;DataVector, 3, Frame::RadialNull&gt;&amp; inverse_null_metric,
+<span class="lineNum">     374 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; bondi_r) noexcept;
+<span class="lineNum">     375 </span>            : 
+<span class="lineNum">     376 </span>            : /*!
+<span class="lineNum">     377 </span>            :  * \brief Compute the \f$J\f$ (intuitively similar to the transverse-traceless
+<span class="lineNum">     378 </span>            :  * part of the angular metric) function for the CCE Bondi-like metric.
+<span class="lineNum">     379 </span>            :  *
+<span class="lineNum">     380 </span>            :  * \details The Bondi-like metric has \f$J = \frac{1}{2 r^2} q^A q^B g_{A B}\f$.
+<span class="lineNum">     381 </span>            :  * This expression holds both for the right-hand side in the Bondi coordinates
+<span class="lineNum">     382 </span>            :  * and for the right-hand side in the intermediate null coordinates (see
+<span class="lineNum">     383 </span>            :  * equation (45) of \cite Barkett2019uae).
+<span class="lineNum">     384 </span>            :  */
+<span class="lineNum">     385 </span><span class="lineCov">          1 : void bondi_j_worldtube_data(</span>
+<span class="lineNum">     386 </span>            :     gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;*&gt; bondi_j,
+<span class="lineNum">     387 </span>            :     const tnsr::aa&lt;DataVector, 3, Frame::RadialNull&gt;&amp; null_metric,
+<span class="lineNum">     388 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; bondi_r,
+<span class="lineNum">     389 </span>            :     const tnsr::I&lt;ComplexDataVector, 2, Frame::RadialNull&gt;&amp; dyad) noexcept;
+<span class="lineNum">     390 </span>            : 
+<span class="lineNum">     391 </span>            : /*!
+<span class="lineNum">     392 </span>            :  * \brief Compute the radial derivative of the angular metric spin-weighted
+<span class="lineNum">     393 </span>            :  * scalar \f$\partial_r J\f$ in the CCE Bondi-like metric.
+<span class="lineNum">     394 </span>            :  *
+<span class="lineNum">     395 </span>            :  * \details The radial derivative of the angular spin-weighted scalar \f$J\f$
+<span class="lineNum">     396 </span>            :  * can be computed from the null metric components by (c.f. equation (47) of
+<span class="lineNum">     397 </span>            :  * \cite Barkett2019uae):
+<span class="lineNum">     398 </span>            :  *
+<span class="lineNum">     399 </span>            :  * \f[
+<span class="lineNum">     400 </span>            :  * \partial_r J = \frac{\partial_\lambda J}{\partial_\lambda r} =
+<span class="lineNum">     401 </span>            :  *  \frac{q^A q^B \partial_\lambda g_{A B} / (2 r^2)
+<span class="lineNum">     402 </span>            :  * - 2 \partial_\lambda r J / r}{\partial_\lambda r}
+<span class="lineNum">     403 </span>            :  * \f]
+<span class="lineNum">     404 </span>            :  */
+<span class="lineNum">     405 </span><span class="lineCov">          1 : void dr_bondi_j(</span>
+<span class="lineNum">     406 </span>            :     gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;*&gt; dr_bondi_j,
+<span class="lineNum">     407 </span>            :     gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;*&gt;
+<span class="lineNum">     408 </span>            :         denominator_buffer,
+<span class="lineNum">     409 </span>            :     const tnsr::aa&lt;DataVector, 3, Frame::RadialNull&gt;&amp; dlambda_null_metric,
+<span class="lineNum">     410 </span>            :     const tnsr::a&lt;DataVector, 3, Frame::RadialNull&gt;&amp; d_bondi_r,
+<span class="lineNum">     411 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;&amp; bondi_j,
+<span class="lineNum">     412 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; bondi_r,
+<span class="lineNum">     413 </span>            :     const tnsr::I&lt;ComplexDataVector, 2, Frame::RadialNull&gt;&amp; dyad) noexcept;
+<span class="lineNum">     414 </span>            : 
+<span class="lineNum">     415 </span>            : /*!
+<span class="lineNum">     416 </span>            :  * \brief Compute the second derivative of the Bondi radius with respect to the
+<span class="lineNum">     417 </span>            :  * intermediate null coordinate radius \f$\partial_\lambda^2 r\f$.
+<span class="lineNum">     418 </span>            :  *
+<span class="lineNum">     419 </span>            :  * \details To determine this second derivative quantity without resorting to
+<span class="lineNum">     420 </span>            :  * depending on second-derivative metric inputs, we need to take advantage of
+<span class="lineNum">     421 </span>            :  * one of the Einstein field equations. Combining equations (53) and (52) of
+<span class="lineNum">     422 </span>            :  * \cite Barkett2019uae, we have:
+<span class="lineNum">     423 </span>            :  *
+<span class="lineNum">     424 </span>            :  * \f[
+<span class="lineNum">     425 </span>            :  * \partial_\lambda^2 r = \frac{-r}{4} \left(
+<span class="lineNum">     426 </span>            :  * \partial_\lambda J \partial_\lambda \bar J - (\partial_\lambda K)^2\right)
+<span class="lineNum">     427 </span>            :  * \f],
+<span class="lineNum">     428 </span>            :  *
+<span class="lineNum">     429 </span>            :  * where the first derivative of \f$K\f$ can be obtained from \f$K = \sqrt{1 + J
+<span class="lineNum">     430 </span>            :  * \bar J}\f$ and the first derivative of \f$J\f$ can be obtained from (47) of
+<span class="lineNum">     431 </span>            :  * \cite Barkett2019uae
+<span class="lineNum">     432 </span>            :  */
+<span class="lineNum">     433 </span><span class="lineCov">          1 : void d2lambda_bondi_r(</span>
+<span class="lineNum">     434 </span>            :     gsl::not_null&lt;Scalar&lt;DataVector&gt;*&gt; d2lambda_bondi_r,
+<span class="lineNum">     435 </span>            :     const tnsr::a&lt;DataVector, 3, Frame::RadialNull&gt;&amp; d_bondi_r,
+<span class="lineNum">     436 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;&amp; dr_bondi_j,
+<span class="lineNum">     437 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;&amp; bondi_j,
+<span class="lineNum">     438 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; bondi_r) noexcept;
+<span class="lineNum">     439 </span>            : 
+<span class="lineNum">     440 </span>            : /*!
+<span class="lineNum">     441 </span>            :  * \brief Compute the Bondi metric contribution \f$Q\f$ (radial derivative of
+<span class="lineNum">     442 </span>            :  * shift).
+<span class="lineNum">     443 </span>            :  *
+<span class="lineNum">     444 </span>            :  * \details The definition of \f$Q\f$ in terms of the Bondi metric components is
+<span class="lineNum">     445 </span>            :  *
+<span class="lineNum">     446 </span>            :  * \f[
+<span class="lineNum">     447 </span>            :  *  Q = q^A e^{-2 \beta} g_{A B} \partial_r U^B.
+<span class="lineNum">     448 </span>            :  * \f]
+<span class="lineNum">     449 </span>            :  *
+<span class="lineNum">     450 </span>            :  * $Q$ can be derived from the intermediate null metric quantities via (see
+<span class="lineNum">     451 </span>            :  * equations (56) and (57) of \cite Barkett2019uae)
+<span class="lineNum">     452 </span>            :  *
+<span class="lineNum">     453 </span>            :  * \f[
+<span class="lineNum">     454 </span>            :  * \partial_\lambda U = - \left(\partial_\lambda g^{\lambda A}
+<span class="lineNum">     455 </span>            :  * + \frac{\partial_A \partial_\lambda r}{\partial_\lambda r} g^{A B}
+<span class="lineNum">     456 </span>            :  * + \frac{\partial_B r}{\partial_\lambda r} \partial_\lambda g^{A B}\right) q_A
+<span class="lineNum">     457 </span>            :  * + 2 \partial_\lambda \beta (U + g^{\lambda A} q_A)
+<span class="lineNum">     458 </span>            :  * \f]
+<span class="lineNum">     459 </span>            :  *
+<span class="lineNum">     460 </span>            :  * and
+<span class="lineNum">     461 </span>            :  *
+<span class="lineNum">     462 </span>            :  * \f[
+<span class="lineNum">     463 </span>            :  * Q = r^2 (J \partial_\lambda \bar U + K \partial_\lambda U)
+<span class="lineNum">     464 </span>            :  * \f]
+<span class="lineNum">     465 </span>            :  *
+<span class="lineNum">     466 </span>            :  * also provided is \f$\partial_r U\f$, which is separately useful to cache for
+<span class="lineNum">     467 </span>            :  * other intermediate steps in the CCE computation.
+<span class="lineNum">     468 </span>            :  */
+<span class="lineNum">     469 </span><span class="lineCov">          1 : void bondi_q_worldtube_data(</span>
+<span class="lineNum">     470 </span>            :     gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 1&gt;&gt;*&gt; bondi_q,
+<span class="lineNum">     471 </span>            :     gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 1&gt;&gt;*&gt; dr_bondi_u,
+<span class="lineNum">     472 </span>            :     const Scalar&lt;DataVector&gt;&amp; d2lambda_r,
+<span class="lineNum">     473 </span>            :     const tnsr::AA&lt;DataVector, 3, Frame::RadialNull&gt;&amp;
+<span class="lineNum">     474 </span>            :         dlambda_inverse_null_metric,
+<span class="lineNum">     475 </span>            :     const tnsr::a&lt;DataVector, 3, Frame::RadialNull&gt;&amp; d_bondi_r,
+<span class="lineNum">     476 </span>            :     const tnsr::i&lt;ComplexDataVector, 2, Frame::RadialNull&gt;&amp; dyad,
+<span class="lineNum">     477 </span>            :     const tnsr::i&lt;DataVector, 2, Frame::RadialNull&gt;&amp; angular_d_dlambda_r,
+<span class="lineNum">     478 </span>            :     const tnsr::AA&lt;DataVector, 3, Frame::RadialNull&gt;&amp; inverse_null_metric,
+<span class="lineNum">     479 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;&amp; bondi_j,
+<span class="lineNum">     480 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; bondi_r,
+<span class="lineNum">     481 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 1&gt;&gt;&amp; bondi_u) noexcept;
+<span class="lineNum">     482 </span>            : 
+<span class="lineNum">     483 </span>            : /*!
+<span class="lineNum">     484 </span>            :  * \brief Compute the Bondi metric contribution \f$(\partial_u J)_{y} \equiv
+<span class="lineNum">     485 </span>            :  * H\f$ (the retarded time derivative evaluated at fixed $y$ coordinate) on the
+<span class="lineNum">     486 </span>            :  * worldtube boundary.
+<span class="lineNum">     487 </span>            :  *
+<span class="lineNum">     488 </span>            :  * \details The numerical time derivative (along the worldtube, rather than
+<span class="lineNum">     489 </span>            :  * along the surface of constant Bondi \f$r\f$) is computed by (see equation
+<span class="lineNum">     490 </span>            :  * (48) of \cite Barkett2019uae)
+<span class="lineNum">     491 </span>            :  *
+<span class="lineNum">     492 </span>            :  * \f[
+<span class="lineNum">     493 </span>            :  * (\partial_u J)_y = \frac{1}{2 r^2} q^A q^B \partial_u g_{A B}
+<span class="lineNum">     494 </span>            :  * - \frac{2 \partial_u r}{r} J
+<span class="lineNum">     495 </span>            :  * \f]
+<span class="lineNum">     496 </span>            :  *
+<span class="lineNum">     497 </span>            :  * \note There is the regrettable notation difference with the primary reference
+<span class="lineNum">     498 </span>            :  * for these formulas \cite Barkett2019uae in that we denote with \f$H\f$ the
+<span class="lineNum">     499 </span>            :  * time derivative at constant numerical radius, where \cite Barkett2019uae uses
+<span class="lineNum">     500 </span>            :  * \f$H\f$ to denote the time derivative at constant Bondi radius.
+<span class="lineNum">     501 </span>            :  */
+<span class="lineNum">     502 </span><span class="lineCov">          1 : void bondi_h_worldtube_data(</span>
+<span class="lineNum">     503 </span>            :     gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;*&gt; bondi_h,
+<span class="lineNum">     504 </span>            :     const tnsr::a&lt;DataVector, 3, Frame::RadialNull&gt;&amp; d_bondi_r,
+<span class="lineNum">     505 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;&amp; bondi_j,
+<span class="lineNum">     506 </span>            :     const tnsr::aa&lt;DataVector, 3, Frame::RadialNull&gt;&amp; du_null_metric,
+<span class="lineNum">     507 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; bondi_r,
+<span class="lineNum">     508 </span>            :     const tnsr::I&lt;ComplexDataVector, 2, Frame::RadialNull&gt;&amp; dyad) noexcept;
+<span class="lineNum">     509 </span>            : 
+<span class="lineNum">     510 </span>            : /*!
+<span class="lineNum">     511 </span>            :  * \brief Compute the Bondi metric contribution \f$(\partial_u J)_r\f$ (the
+<span class="lineNum">     512 </span>            :  * retarded time derivative at fixed coordinate $r$) on the worldtube boundary.
+<span class="lineNum">     513 </span>            :  *
+<span class="lineNum">     514 </span>            :  * \details The numerical time derivative (along the surface of constant r, not
+<span class="lineNum">     515 </span>            :  * along the worldtube) is computed by (see equation (50) of
+<span class="lineNum">     516 </span>            :  * \cite Barkett2019uae)
+<span class="lineNum">     517 </span>            :  *
+<span class="lineNum">     518 </span>            :  * \f[
+<span class="lineNum">     519 </span>            :  * \partial_u J = \frac{1}{2 r^2} q^A q^B \left(\partial_u g_{A B}
+<span class="lineNum">     520 </span>            :  * - \frac{ \partial_u r}{ \partial_\lambda r} \partial_\lambda g_{A B}\right)
+<span class="lineNum">     521 </span>            :  * \f]
+<span class="lineNum">     522 </span>            :  *
+<span class="lineNum">     523 </span>            :  * \note There is the regrettable notation difference with the primary reference
+<span class="lineNum">     524 </span>            :  * for these formulas \cite Barkett2019uae in that we denote with \f$H\f$ the
+<span class="lineNum">     525 </span>            :  * time derivative at constant numerical radius, where \cite Barkett2019uae uses
+<span class="lineNum">     526 </span>            :  * \f$H\f$ to denote the time derivative at constant Bondi radius.
+<span class="lineNum">     527 </span>            :  */
+<span class="lineNum">     528 </span><span class="lineCov">          1 : void du_j_worldtube_data(</span>
+<span class="lineNum">     529 </span>            :     gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;*&gt; du_bondi_j,
+<span class="lineNum">     530 </span>            :     const tnsr::a&lt;DataVector, 3, Frame::RadialNull&gt;&amp; d_bondi_r,
+<span class="lineNum">     531 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;&amp; bondi_j,
+<span class="lineNum">     532 </span>            :     const tnsr::aa&lt;DataVector, 3, Frame::RadialNull&gt;&amp; du_null_metric,
+<span class="lineNum">     533 </span>            :     const tnsr::aa&lt;DataVector, 3, Frame::RadialNull&gt;&amp; dlambda_null_metric,
+<span class="lineNum">     534 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; bondi_r,
+<span class="lineNum">     535 </span>            :     const tnsr::I&lt;ComplexDataVector, 2, Frame::RadialNull&gt;&amp; dyad) noexcept;
+<span class="lineNum">     536 </span>            : 
+<span class="lineNum">     537 </span><span class="lineCov">          1 : namespace Tags {</span>
+<span class="lineNum">     538 </span>            : /// The collection of tags mutated by `create_bondi_boundary_data`
+<span class="lineNum">     539 </span>            : template &lt;template &lt;typename&gt; class BoundaryPrefix&gt;
+<span class="lineNum">     540 </span><span class="lineCov">          1 : using characteristic_worldtube_boundary_tags = db::wrap_tags_in&lt;</span>
+<span class="lineNum">     541 </span>            :     BoundaryPrefix,
+<span class="lineNum">     542 </span>            :     tmpl::list&lt;Tags::BondiBeta, Tags::BondiU, Tags::Dr&lt;Tags::BondiU&gt;,
+<span class="lineNum">     543 </span>            :                Tags::BondiQ, Tags::BondiW, Tags::BondiJ, Tags::Dr&lt;Tags::BondiJ&gt;,
+<span class="lineNum">     544 </span>            :                Tags::BondiH, Tags::Du&lt;Tags::BondiJ&gt;, Tags::BondiR,
+<span class="lineNum">     545 </span>            :                Tags::Du&lt;Tags::BondiR&gt;, Tags::DuRDividedByR&gt;&gt;;
+<span class="lineNum">     546 </span>            : }  // namespace Tags
+<span class="lineNum">     547 </span>            : 
+<span class="lineNum">     548 </span>            : namespace detail {
+<span class="lineNum">     549 </span>            : // the common step between the modal input and the Generalized harmonic input
+<span class="lineNum">     550 </span>            : // that performs the final gauge processing to Bondi scalars and places them in
+<span class="lineNum">     551 </span>            : // the DataBox.
+<span class="lineNum">     552 </span>            : template &lt;typename DataBoxTagList, typename BufferTagList,
+<span class="lineNum">     553 </span>            :           typename ComplexBufferTagList&gt;
+<span class="lineNum">     554 </span>            : void create_bondi_boundary_data(
+<span class="lineNum">     555 </span>            :     const gsl::not_null&lt;db::DataBox&lt;DataBoxTagList&gt;*&gt; bondi_boundary_data,
+<span class="lineNum">     556 </span>            :     const gsl::not_null&lt;Variables&lt;BufferTagList&gt;*&gt; computation_variables,
+<span class="lineNum">     557 </span>            :     const gsl::not_null&lt;Variables&lt;ComplexBufferTagList&gt;*&gt; derivative_buffers,
+<span class="lineNum">     558 </span>            :     const tnsr::aa&lt;DataVector, 3&gt;&amp; dt_spacetime_metric,
+<span class="lineNum">     559 </span>            :     const tnsr::iaa&lt;DataVector, 3&gt;&amp; phi,
+<span class="lineNum">     560 </span>            :     const tnsr::aa&lt;DataVector, 3&gt;&amp; spacetime_metric,
+<span class="lineNum">     561 </span>            :     const tnsr::A&lt;DataVector, 3&gt;&amp; null_l,
+<span class="lineNum">     562 </span>            :     const tnsr::A&lt;DataVector, 3&gt;&amp; du_null_l,
+<span class="lineNum">     563 </span>            :     const SphericaliCartesianJ&amp; cartesian_to_spherical_jacobian,
+<span class="lineNum">     564 </span>            :     const size_t l_max, const double extraction_radius) noexcept {
+<span class="lineNum">     565 </span>            :   const size_t size = Spectral::Swsh::number_of_swsh_collocation_points(l_max);
+<span class="lineNum">     566 </span>            : 
+<span class="lineNum">     567 </span>            :   // unfortunately, because the dyads are not themselves spin-weighted, they
+<span class="lineNum">     568 </span>            :   // need a separate Variables
+<span class="lineNum">     569 </span>            :   Variables&lt;tmpl::list&lt;Tags::detail::DownDyad, Tags::detail::UpDyad&gt;&gt;
+<span class="lineNum">     570 </span>            :       dyad_variables{size};
+<span class="lineNum">     571 </span>            : 
+<span class="lineNum">     572 </span>            :   auto&amp; null_metric =
+<span class="lineNum">     573 </span>            :       get&lt;gr::Tags::SpacetimeMetric&lt;3, Frame::RadialNull, DataVector&gt;&gt;(
+<span class="lineNum">     574 </span>            :           *computation_variables);
+<span class="lineNum">     575 </span>            :   auto&amp; du_null_metric = get&lt;
+<span class="lineNum">     576 </span>            :       ::Tags::dt&lt;gr::Tags::SpacetimeMetric&lt;3, Frame::RadialNull, DataVector&gt;&gt;&gt;(
+<span class="lineNum">     577 </span>            :       *computation_variables);
+<span class="lineNum">     578 </span>            :   null_metric_and_derivative(
+<span class="lineNum">     579 </span>            :       make_not_null(&amp;du_null_metric), make_not_null(&amp;null_metric),
+<span class="lineNum">     580 </span>            :       cartesian_to_spherical_jacobian, dt_spacetime_metric, spacetime_metric);
+<span class="lineNum">     581 </span>            : 
+<span class="lineNum">     582 </span>            :   auto&amp; inverse_null_metric =
+<span class="lineNum">     583 </span>            :       get&lt;gr::Tags::InverseSpacetimeMetric&lt;3, Frame::RadialNull, DataVector&gt;&gt;(
+<span class="lineNum">     584 </span>            :           *computation_variables);
+<span class="lineNum">     585 </span>            : 
+<span class="lineNum">     586 </span>            :   // the below scaling process is used to reduce accumulation of numerical
+<span class="lineNum">     587 </span>            :   // error in the determinant evaluation
+<span class="lineNum">     588 </span>            : 
+<span class="lineNum">     589 </span>            :   // buffer reuse because the scaled null metric is only needed until the
+<span class="lineNum">     590 </span>            :   // `determinant_and_inverse` call
+<span class="lineNum">     591 </span>            :   auto&amp; scaled_null_metric =
+<span class="lineNum">     592 </span>            :       get&lt;gr::Tags::InverseSpacetimeMetric&lt;3, Frame::RadialNull, DataVector&gt;&gt;(
+<span class="lineNum">     593 </span>            :           *computation_variables);
+<span class="lineNum">     594 </span>            :   for (size_t i = 0; i &lt; 4; ++i) {
+<span class="lineNum">     595 </span>            :     for (size_t j = i; j &lt; 4; ++j) {
+<span class="lineNum">     596 </span>            :       if (i &gt; 1 and j &gt; 1) {
+<span class="lineNum">     597 </span>            :         scaled_null_metric.get(i, j) =
+<span class="lineNum">     598 </span>            :             null_metric.get(i, j) / square(extraction_radius);
+<span class="lineNum">     599 </span>            :       } else if (i &gt; 1 or j &gt; 1) {
+<span class="lineNum">     600 </span>            :         scaled_null_metric.get(i, j) =
+<span class="lineNum">     601 </span>            :             null_metric.get(i, j) / extraction_radius;
+<span class="lineNum">     602 </span>            :       } else {
+<span class="lineNum">     603 </span>            :         scaled_null_metric.get(i, j) = null_metric.get(i, j);
+<span class="lineNum">     604 </span>            :       }
+<span class="lineNum">     605 </span>            :     }
+<span class="lineNum">     606 </span>            :   }
+<span class="lineNum">     607 </span>            :   // Allocation
+<span class="lineNum">     608 </span>            :   const auto scaled_inverse_null_metric =
+<span class="lineNum">     609 </span>            :       determinant_and_inverse(scaled_null_metric).second;
+<span class="lineNum">     610 </span>            :   for (size_t i = 0; i &lt; 4; ++i) {
+<span class="lineNum">     611 </span>            :     for (size_t j = i; j &lt; 4; ++j) {
+<span class="lineNum">     612 </span>            :       if (i &gt; 1 and j &gt; 1) {
+<span class="lineNum">     613 </span>            :         inverse_null_metric.get(i, j) =
+<span class="lineNum">     614 </span>            :             scaled_inverse_null_metric.get(i, j) / square(extraction_radius);
+<span class="lineNum">     615 </span>            :       } else if (i &gt; 1 or j &gt; 1) {
+<span class="lineNum">     616 </span>            :         inverse_null_metric.get(i, j) =
+<span class="lineNum">     617 </span>            :             scaled_inverse_null_metric.get(i, j) / extraction_radius;
+<span class="lineNum">     618 </span>            :       } else {
+<span class="lineNum">     619 </span>            :         inverse_null_metric.get(i, j) = scaled_inverse_null_metric.get(i, j);
+<span class="lineNum">     620 </span>            :       }
+<span class="lineNum">     621 </span>            :     }
+<span class="lineNum">     622 </span>            :   }
+<span class="lineNum">     623 </span>            : 
+<span class="lineNum">     624 </span>            :   auto&amp; angular_d_null_l =
+<span class="lineNum">     625 </span>            :       get&lt;Tags::detail::AngularDNullL&gt;(*computation_variables);
+<span class="lineNum">     626 </span>            :   auto&amp; buffer_for_derivatives =
+<span class="lineNum">     627 </span>            :       get(get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;0, ComplexDataVector&gt;,
+<span class="lineNum">     628 </span>            :                                    std::integral_constant&lt;int, 0&gt;&gt;&gt;(
+<span class="lineNum">     629 </span>            :           *derivative_buffers));
+<span class="lineNum">     630 </span>            :   auto&amp; eth_buffer =
+<span class="lineNum">     631 </span>            :       get(get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;0, ComplexDataVector&gt;,
+<span class="lineNum">     632 </span>            :                                    std::integral_constant&lt;int, 1&gt;&gt;&gt;(
+<span class="lineNum">     633 </span>            :           *derivative_buffers));
+<span class="lineNum">     634 </span>            :   for (size_t a = 0; a &lt; 4; ++a) {
+<span class="lineNum">     635 </span>            :     buffer_for_derivatives.data() =
+<span class="lineNum">     636 </span>            :         std::complex&lt;double&gt;(1.0, 0.0) * null_l.get(a);
+<span class="lineNum">     637 </span>            :     Spectral::Swsh::angular_derivatives&lt;tmpl::list&lt;Spectral::Swsh::Tags::Eth&gt;&gt;(
+<span class="lineNum">     638 </span>            :         l_max, 1, make_not_null(&amp;eth_buffer), buffer_for_derivatives);
+<span class="lineNum">     639 </span>            :     angular_d_null_l.get(0, a) = -real(eth_buffer.data());
+<span class="lineNum">     640 </span>            :     angular_d_null_l.get(1, a) = -imag(eth_buffer.data());
+<span class="lineNum">     641 </span>            :   }
+<span class="lineNum">     642 </span>            : 
+<span class="lineNum">     643 </span>            :   auto&amp; dlambda_null_metric = get&lt;Tags::detail::DLambda&lt;
+<span class="lineNum">     644 </span>            :       gr::Tags::SpacetimeMetric&lt;3, Frame::RadialNull, DataVector&gt;&gt;&gt;(
+<span class="lineNum">     645 </span>            :       *computation_variables);
+<span class="lineNum">     646 </span>            :   auto&amp; dlambda_inverse_null_metric = get&lt;Tags::detail::DLambda&lt;
+<span class="lineNum">     647 </span>            :       gr::Tags::InverseSpacetimeMetric&lt;3, Frame::RadialNull, DataVector&gt;&gt;&gt;(
+<span class="lineNum">     648 </span>            :       *computation_variables);
+<span class="lineNum">     649 </span>            :   dlambda_null_metric_and_inverse(
+<span class="lineNum">     650 </span>            :       make_not_null(&amp;dlambda_null_metric),
+<span class="lineNum">     651 </span>            :       make_not_null(&amp;dlambda_inverse_null_metric), angular_d_null_l,
+<span class="lineNum">     652 </span>            :       cartesian_to_spherical_jacobian, phi, dt_spacetime_metric, du_null_l,
+<span class="lineNum">     653 </span>            :       inverse_null_metric, null_l, spacetime_metric);
+<span class="lineNum">     654 </span>            : 
+<span class="lineNum">     655 </span>            :   auto&amp; r = db::get&lt;Tags::BoundaryValue&lt;Tags::BondiR&gt;&gt;(*bondi_boundary_data);
+<span class="lineNum">     656 </span>            :   db::mutate&lt;Tags::BoundaryValue&lt;Tags::BondiR&gt;&gt;(bondi_boundary_data, bondi_r,
+<span class="lineNum">     657 </span>            :                                                 null_metric);
+<span class="lineNum">     658 </span>            : 
+<span class="lineNum">     659 </span>            :   auto&amp; d_r =
+<span class="lineNum">     660 </span>            :       get&lt;::Tags::spacetime_deriv&lt;Tags::detail::RealBondiR, tmpl::size_t&lt;3&gt;,
+<span class="lineNum">     661 </span>            :                                   Frame::RadialNull&gt;&gt;(*computation_variables);
+<span class="lineNum">     662 </span>            :   d_bondi_r(make_not_null(&amp;d_r), r, dlambda_null_metric, du_null_metric,
+<span class="lineNum">     663 </span>            :             inverse_null_metric, l_max);
+<span class="lineNum">     664 </span>            :   db::mutate&lt;Tags::BoundaryValue&lt;Tags::DuRDividedByR&gt;,
+<span class="lineNum">     665 </span>            :              Tags::BoundaryValue&lt;Tags::Du&lt;Tags::BondiR&gt;&gt;&gt;(
+<span class="lineNum">     666 </span>            :       bondi_boundary_data,
+<span class="lineNum">     667 </span>            :       [&amp;d_r, &amp;
+<span class="lineNum">     668 </span>            :        r ](const gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;*&gt;
+<span class="lineNum">     669 </span>            :                du_r_divided_by_r,
+<span class="lineNum">     670 </span>            :            const gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;*&gt;
+<span class="lineNum">     671 </span>            :                du_r) noexcept {
+<span class="lineNum">     672 </span>            :         get(*du_r_divided_by_r).data() =
+<span class="lineNum">     673 </span>            :             std::complex&lt;double&gt;{1.0, 0.0} * get&lt;0&gt;(d_r) / get(r).data();
+<span class="lineNum">     674 </span>            :         get(*du_r).data() = std::complex&lt;double&gt;{1.0, 0.0} * get&lt;0&gt;(d_r);
+<span class="lineNum">     675 </span>            :       });
+<span class="lineNum">     676 </span>            : 
+<span class="lineNum">     677 </span>            :   auto&amp; down_dyad = get&lt;Tags::detail::DownDyad&gt;(dyad_variables);
+<span class="lineNum">     678 </span>            :   auto&amp; up_dyad = get&lt;Tags::detail::UpDyad&gt;(dyad_variables);
+<span class="lineNum">     679 </span>            :   dyads(make_not_null(&amp;down_dyad), make_not_null(&amp;up_dyad));
+<span class="lineNum">     680 </span>            : 
+<span class="lineNum">     681 </span>            :   db::mutate&lt;Tags::BoundaryValue&lt;Tags::BondiBeta&gt;&gt;(bondi_boundary_data,
+<span class="lineNum">     682 </span>            :                                                    beta_worldtube_data, d_r);
+<span class="lineNum">     683 </span>            : 
+<span class="lineNum">     684 </span>            :   auto&amp; bondi_u =
+<span class="lineNum">     685 </span>            :       db::get&lt;Tags::BoundaryValue&lt;Tags::BondiU&gt;&gt;(*bondi_boundary_data);
+<span class="lineNum">     686 </span>            :   db::mutate&lt;Tags::BoundaryValue&lt;Tags::BondiU&gt;&gt;(
+<span class="lineNum">     687 </span>            :       bondi_boundary_data, bondi_u_worldtube_data, down_dyad, d_r,
+<span class="lineNum">     688 </span>            :       inverse_null_metric);
+<span class="lineNum">     689 </span>            : 
+<span class="lineNum">     690 </span>            :   db::mutate&lt;Tags::BoundaryValue&lt;Tags::BondiW&gt;&gt;(
+<span class="lineNum">     691 </span>            :       bondi_boundary_data, bondi_w_worldtube_data, d_r, inverse_null_metric, r);
+<span class="lineNum">     692 </span>            : 
+<span class="lineNum">     693 </span>            :   auto&amp; bondi_j =
+<span class="lineNum">     694 </span>            :       db::get&lt;Tags::BoundaryValue&lt;Tags::BondiJ&gt;&gt;(*bondi_boundary_data);
+<span class="lineNum">     695 </span>            :   db::mutate&lt;Tags::BoundaryValue&lt;Tags::BondiJ&gt;&gt;(
+<span class="lineNum">     696 </span>            :       bondi_boundary_data, bondi_j_worldtube_data, null_metric, r, up_dyad);
+<span class="lineNum">     697 </span>            : 
+<span class="lineNum">     698 </span>            :   auto&amp; dr_j = db::get&lt;Tags::BoundaryValue&lt;Tags::Dr&lt;Tags::BondiJ&gt;&gt;&gt;(
+<span class="lineNum">     699 </span>            :       *bondi_boundary_data);
+<span class="lineNum">     700 </span>            :   auto&amp; denominator_buffer =
+<span class="lineNum">     701 </span>            :       get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;0, ComplexDataVector&gt;,
+<span class="lineNum">     702 </span>            :                                std::integral_constant&lt;int, 0&gt;&gt;&gt;(
+<span class="lineNum">     703 </span>            :           *derivative_buffers);
+<span class="lineNum">     704 </span>            :   db::mutate&lt;Tags::BoundaryValue&lt;Tags::Dr&lt;Tags::BondiJ&gt;&gt;&gt;(
+<span class="lineNum">     705 </span>            :       bondi_boundary_data, dr_bondi_j, make_not_null(&amp;denominator_buffer),
+<span class="lineNum">     706 </span>            :       dlambda_null_metric, d_r, bondi_j, r, up_dyad);
+<span class="lineNum">     707 </span>            : 
+<span class="lineNum">     708 </span>            :   auto&amp; d2lambda_r = get&lt;
+<span class="lineNum">     709 </span>            :       Tags::detail::DLambda&lt;Tags::detail::DLambda&lt;Tags::detail::RealBondiR&gt;&gt;&gt;(
+<span class="lineNum">     710 </span>            :       *computation_variables);
+<span class="lineNum">     711 </span>            :   d2lambda_bondi_r(make_not_null(&amp;d2lambda_r), d_r, dr_j, bondi_j, r);
+<span class="lineNum">     712 </span>            : 
+<span class="lineNum">     713 </span>            :   auto&amp; angular_d_dlambda_r =
+<span class="lineNum">     714 </span>            :       get&lt;::Tags::deriv&lt;Tags::detail::DLambda&lt;Tags::detail::RealBondiR&gt;,
+<span class="lineNum">     715 </span>            :                         tmpl::size_t&lt;2&gt;, Frame::RadialNull&gt;&gt;(
+<span class="lineNum">     716 </span>            :           *computation_variables);
+<span class="lineNum">     717 </span>            :   buffer_for_derivatives.data() = std::complex&lt;double&gt;(1.0, 0.0) * get&lt;1&gt;(d_r);
+<span class="lineNum">     718 </span>            :   Spectral::Swsh::angular_derivatives&lt;tmpl::list&lt;Spectral::Swsh::Tags::Eth&gt;&gt;(
+<span class="lineNum">     719 </span>            :       l_max, 1, make_not_null(&amp;eth_buffer), buffer_for_derivatives);
+<span class="lineNum">     720 </span>            :   angular_d_dlambda_r.get(0) = -real(eth_buffer.data());
+<span class="lineNum">     721 </span>            :   angular_d_dlambda_r.get(1) = -imag(eth_buffer.data());
+<span class="lineNum">     722 </span>            : 
+<span class="lineNum">     723 </span>            :   db::mutate&lt;Tags::BoundaryValue&lt;Tags::BondiQ&gt;,
+<span class="lineNum">     724 </span>            :              Tags::BoundaryValue&lt;Tags::Dr&lt;Tags::BondiU&gt;&gt;&gt;(
+<span class="lineNum">     725 </span>            :       bondi_boundary_data, bondi_q_worldtube_data, d2lambda_r,
+<span class="lineNum">     726 </span>            :       dlambda_inverse_null_metric, d_r, down_dyad, angular_d_dlambda_r,
+<span class="lineNum">     727 </span>            :       inverse_null_metric, bondi_j, r, bondi_u);
+<span class="lineNum">     728 </span>            : 
+<span class="lineNum">     729 </span>            :   db::mutate&lt;Tags::BoundaryValue&lt;Tags::BondiH&gt;&gt;(
+<span class="lineNum">     730 </span>            :       bondi_boundary_data, bondi_h_worldtube_data, d_r, bondi_j, du_null_metric,
+<span class="lineNum">     731 </span>            :       r, up_dyad);
+<span class="lineNum">     732 </span>            : 
+<span class="lineNum">     733 </span>            :   db::mutate&lt;Tags::BoundaryValue&lt;Tags::Du&lt;Tags::BondiJ&gt;&gt;&gt;(
+<span class="lineNum">     734 </span>            :       bondi_boundary_data, du_j_worldtube_data, d_r, bondi_j, du_null_metric,
+<span class="lineNum">     735 </span>            :       dlambda_null_metric, r, up_dyad);
+<span class="lineNum">     736 </span>            : }
+<span class="lineNum">     737 </span>            : }  // namespace detail
+<span class="lineNum">     738 </span>            : 
+<span class="lineNum">     739 </span>            : /*!
+<span class="lineNum">     740 </span>            :  * \brief Process the worldtube data from generalized harmonic quantities
+<span class="lineNum">     741 </span>            :  *  to desired Bondi quantities, placing the result in the passed
+<span class="lineNum">     742 </span>            :  * \ref DataBoxGroup.
+<span class="lineNum">     743 </span>            :  *
+<span class="lineNum">     744 </span>            :  * \details
+<span class="lineNum">     745 </span>            :  * The mathematics are a bit complicated for all of the coordinate
+<span class="lineNum">     746 </span>            :  * transformations that are necessary to obtain the Bondi gauge quantities.
+<span class="lineNum">     747 </span>            :  * For full mathematical details, see the documentation for functions in
+<span class="lineNum">     748 </span>            :  * `BoundaryData.hpp` and \cite Barkett2019uae \cite Bishop1998uk.
+<span class="lineNum">     749 </span>            :  *
+<span class="lineNum">     750 </span>            :  * This function takes as input the full set of Generalized harmonic metric data
+<span class="lineNum">     751 </span>            :  * on a two-dimensional surface of constant \f$r\f$ and \f$t\f$ in numerical
+<span class="lineNum">     752 </span>            :  * coordinates.
+<span class="lineNum">     753 </span>            :  *
+<span class="lineNum">     754 </span>            :  * Sufficient tags to provide full worldtube boundary data at a particular
+<span class="lineNum">     755 </span>            :  * time are set in `bondi_boundary_data`. In particular, the set of tags in
+<span class="lineNum">     756 </span>            :  * `Tags::characteristic_worldtube_boundary_tags` in the provided \ref
+<span class="lineNum">     757 </span>            :  * DataBoxGroup are assigned to the worldtube boundary values associated with
+<span class="lineNum">     758 </span>            :  * the input metric components.
+<span class="lineNum">     759 </span>            :  *
+<span class="lineNum">     760 </span>            :  * The majority of the mathematical transformations are implemented as a set of
+<span class="lineNum">     761 </span>            :  * individual cascaded functions below. The details of the manipulations that
+<span class="lineNum">     762 </span>            :  * are performed to the input data may be found in the individual functions
+<span class="lineNum">     763 </span>            :  * themselves, which are called in the following order:
+<span class="lineNum">     764 </span>            :  * - `trigonometric_functions_on_swsh_collocation()`
+<span class="lineNum">     765 </span>            :  * - `gr::shift()`
+<span class="lineNum">     766 </span>            :  * - `gr::lapse()`
+<span class="lineNum">     767 </span>            :  * - `worldtube_normal_and_derivatives()`
+<span class="lineNum">     768 </span>            :  * - `gr::spacetime_normal_vector()`
+<span class="lineNum">     769 </span>            :  * - `GeneralizedHarmonic::time_deriv_of_lapse()`
+<span class="lineNum">     770 </span>            :  * - `GeneralizedHarmonic::time_deriv_of_shift()`
+<span class="lineNum">     771 </span>            :  * - `null_vector_l_and_derivatives()`
+<span class="lineNum">     772 </span>            :  * - `cartesian_to_spherical_coordinates_and_jacobians()`
+<span class="lineNum">     773 </span>            :  * - `null_metric_and_derivative()`
+<span class="lineNum">     774 </span>            :  * - `dlambda_null_metric_and_inverse()`
+<span class="lineNum">     775 </span>            :  * - `bondi_r()`
+<span class="lineNum">     776 </span>            :  * - `d_bondi_r()`
+<span class="lineNum">     777 </span>            :  * - `dyads()`
+<span class="lineNum">     778 </span>            :  * - `beta_worldtube_data()`
+<span class="lineNum">     779 </span>            :  * - `bondi_u_worldtube_data()`
+<span class="lineNum">     780 </span>            :  * - `bondi_w_worldtube_data()`
+<span class="lineNum">     781 </span>            :  * - `bondi_j_worldtube_data()`
+<span class="lineNum">     782 </span>            :  * - `dr_bondi_j()`
+<span class="lineNum">     783 </span>            :  * - `d2lambda_bondi_r()`
+<span class="lineNum">     784 </span>            :  * - `bondi_q_worldtube_data()`
+<span class="lineNum">     785 </span>            :  * - `bondi_h_worldtube_data()`
+<span class="lineNum">     786 </span>            :  * - `du_j_worldtube_data()`
+<span class="lineNum">     787 </span>            :  */
+<span class="lineNum">     788 </span>            : template &lt;typename DataBoxTagList&gt;
+<span class="lineNum">     789 </span><span class="lineCov">          1 : void create_bondi_boundary_data(</span>
+<span class="lineNum">     790 </span>            :     const gsl::not_null&lt;db::DataBox&lt;DataBoxTagList&gt;*&gt; bondi_boundary_data,
+<span class="lineNum">     791 </span>            :     const tnsr::iaa&lt;DataVector, 3&gt;&amp; phi, const tnsr::aa&lt;DataVector, 3&gt;&amp; pi,
+<span class="lineNum">     792 </span>            :     const tnsr::aa&lt;DataVector, 3&gt;&amp; spacetime_metric,
+<span class="lineNum">     793 </span>            :     const double extraction_radius, const size_t l_max) noexcept {
+<span class="lineNum">     794 </span>            :   const size_t size = Spectral::Swsh::number_of_swsh_collocation_points(l_max);
+<span class="lineNum">     795 </span>            :   // Most allocations required for the full boundary computation are merged into
+<span class="lineNum">     796 </span>            :   // a single, large Variables allocation. There remain a handful of cases in
+<span class="lineNum">     797 </span>            :   // the computational functions called where an intermediate quantity that is
+<span class="lineNum">     798 </span>            :   // not re-used is allocated rather than taking a buffer. These cases are
+<span class="lineNum">     799 </span>            :   // marked with code comments 'Allocation'; In the future, if allocations are
+<span class="lineNum">     800 </span>            :   // identified as a point to optimize, those buffers may be allocated here and
+<span class="lineNum">     801 </span>            :   // passed as function arguments
+<span class="lineNum">     802 </span>            :   Variables&lt;tmpl::list&lt;
+<span class="lineNum">     803 </span>            :       Tags::detail::CosPhi, Tags::detail::CosTheta, Tags::detail::SinPhi,
+<span class="lineNum">     804 </span>            :       Tags::detail::SinTheta, Tags::detail::CartesianCoordinates,
+<span class="lineNum">     805 </span>            :       Tags::detail::CartesianToSphericalJacobian,
+<span class="lineNum">     806 </span>            :       Tags::detail::InverseCartesianToSphericalJacobian,
+<span class="lineNum">     807 </span>            :       gr::Tags::SpatialMetric&lt;3, ::Frame::Inertial, DataVector&gt;,
+<span class="lineNum">     808 </span>            :       gr::Tags::InverseSpatialMetric&lt;3, ::Frame::Inertial, DataVector&gt;,
+<span class="lineNum">     809 </span>            :       gr::Tags::Shift&lt;3, ::Frame::Inertial, DataVector&gt;,
+<span class="lineNum">     810 </span>            :       ::Tags::dt&lt;gr::Tags::Shift&lt;3, ::Frame::Inertial, DataVector&gt;&gt;,
+<span class="lineNum">     811 </span>            :       gr::Tags::Lapse&lt;DataVector&gt;, ::Tags::dt&lt;gr::Tags::Lapse&lt;DataVector&gt;&gt;,
+<span class="lineNum">     812 </span>            :       ::Tags::dt&lt;gr::Tags::SpacetimeMetric&lt;3, ::Frame::Inertial, DataVector&gt;&gt;,
+<span class="lineNum">     813 </span>            :       Tags::detail::WorldtubeNormal, ::Tags::dt&lt;Tags::detail::WorldtubeNormal&gt;,
+<span class="lineNum">     814 </span>            :       gr::Tags::SpacetimeNormalVector&lt;3, ::Frame::Inertial, DataVector&gt;,
+<span class="lineNum">     815 </span>            :       Tags::detail::NullL, ::Tags::dt&lt;Tags::detail::NullL&gt;,
+<span class="lineNum">     816 </span>            :       // for the detail function called at the end
+<span class="lineNum">     817 </span>            :       gr::Tags::SpacetimeMetric&lt;3, Frame::RadialNull, DataVector&gt;,
+<span class="lineNum">     818 </span>            :       ::Tags::dt&lt;gr::Tags::SpacetimeMetric&lt;3, Frame::RadialNull, DataVector&gt;&gt;,
+<span class="lineNum">     819 </span>            :       gr::Tags::InverseSpacetimeMetric&lt;3, Frame::RadialNull, DataVector&gt;,
+<span class="lineNum">     820 </span>            :       Tags::detail::AngularDNullL,
+<span class="lineNum">     821 </span>            :       Tags::detail::DLambda&lt;
+<span class="lineNum">     822 </span>            :           gr::Tags::SpacetimeMetric&lt;3, Frame::RadialNull, DataVector&gt;&gt;,
+<span class="lineNum">     823 </span>            :       Tags::detail::DLambda&lt;
+<span class="lineNum">     824 </span>            :           gr::Tags::InverseSpacetimeMetric&lt;3, Frame::RadialNull, DataVector&gt;&gt;,
+<span class="lineNum">     825 </span>            :       ::Tags::spacetime_deriv&lt;Tags::detail::RealBondiR, tmpl::size_t&lt;3&gt;,
+<span class="lineNum">     826 </span>            :                               Frame::RadialNull&gt;,
+<span class="lineNum">     827 </span>            :       Tags::detail::DLambda&lt;Tags::detail::DLambda&lt;Tags::detail::RealBondiR&gt;&gt;,
+<span class="lineNum">     828 </span>            :       ::Tags::deriv&lt;Tags::detail::DLambda&lt;Tags::detail::RealBondiR&gt;,
+<span class="lineNum">     829 </span>            :                     tmpl::size_t&lt;2&gt;, Frame::RadialNull&gt;&gt;&gt;
+<span class="lineNum">     830 </span>            :       computation_variables{size};
+<span class="lineNum">     831 </span>            : 
+<span class="lineNum">     832 </span>            :   Variables&lt;
+<span class="lineNum">     833 </span>            :       tmpl::list&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;0, ComplexDataVector&gt;,
+<span class="lineNum">     834 </span>            :                                       std::integral_constant&lt;int, 0&gt;&gt;,
+<span class="lineNum">     835 </span>            :                  ::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;0, ComplexDataVector&gt;,
+<span class="lineNum">     836 </span>            :                                       std::integral_constant&lt;int, 1&gt;&gt;&gt;&gt;
+<span class="lineNum">     837 </span>            :       derivative_buffers{size};
+<span class="lineNum">     838 </span>            : 
+<span class="lineNum">     839 </span>            :   auto&amp; cos_phi = get&lt;Tags::detail::CosPhi&gt;(computation_variables);
+<span class="lineNum">     840 </span>            :   auto&amp; cos_theta = get&lt;Tags::detail::CosTheta&gt;(computation_variables);
+<span class="lineNum">     841 </span>            :   auto&amp; sin_phi = get&lt;Tags::detail::SinPhi&gt;(computation_variables);
+<span class="lineNum">     842 </span>            :   auto&amp; sin_theta = get&lt;Tags::detail::SinTheta&gt;(computation_variables);
+<span class="lineNum">     843 </span>            :   trigonometric_functions_on_swsh_collocation(
+<span class="lineNum">     844 </span>            :       make_not_null(&amp;cos_phi), make_not_null(&amp;cos_theta),
+<span class="lineNum">     845 </span>            :       make_not_null(&amp;sin_phi), make_not_null(&amp;sin_theta), l_max);
+<span class="lineNum">     846 </span>            : 
+<span class="lineNum">     847 </span>            :   // NOTE: to handle the singular values of polar coordinates, the phi
+<span class="lineNum">     848 </span>            :   // components of all tensors are scaled according to their sin(theta)
+<span class="lineNum">     849 </span>            :   // prefactors.
+<span class="lineNum">     850 </span>            :   // so, any down-index component get&lt;2&gt;(A) represents 1/sin(theta) A_\phi,
+<span class="lineNum">     851 </span>            :   // and any up-index component get&lt;2&gt;(A) represents sin(theta) A^\phi.
+<span class="lineNum">     852 </span>            :   // This holds for Jacobians, and so direct application of the Jacobians
+<span class="lineNum">     853 </span>            :   // brings the factors through.
+<span class="lineNum">     854 </span>            :   auto&amp; cartesian_coords =
+<span class="lineNum">     855 </span>            :       get&lt;Tags::detail::CartesianCoordinates&gt;(computation_variables);
+<span class="lineNum">     856 </span>            :   auto&amp; cartesian_to_spherical_jacobian =
+<span class="lineNum">     857 </span>            :       get&lt;Tags::detail::CartesianToSphericalJacobian&gt;(computation_variables);
+<span class="lineNum">     858 </span>            :   auto&amp; inverse_cartesian_to_spherical_jacobian =
+<span class="lineNum">     859 </span>            :       get&lt;Tags::detail::InverseCartesianToSphericalJacobian&gt;(
+<span class="lineNum">     860 </span>            :           computation_variables);
+<span class="lineNum">     861 </span>            :   cartesian_to_spherical_coordinates_and_jacobians(
+<span class="lineNum">     862 </span>            :       make_not_null(&amp;cartesian_coords),
+<span class="lineNum">     863 </span>            :       make_not_null(&amp;cartesian_to_spherical_jacobian),
+<span class="lineNum">     864 </span>            :       make_not_null(&amp;inverse_cartesian_to_spherical_jacobian), cos_phi,
+<span class="lineNum">     865 </span>            :       cos_theta, sin_phi, sin_theta, extraction_radius);
+<span class="lineNum">     866 </span>            : 
+<span class="lineNum">     867 </span>            :   auto&amp; spatial_metric =
+<span class="lineNum">     868 </span>            :       get&lt;gr::Tags::SpatialMetric&lt;3, ::Frame::Inertial, DataVector&gt;&gt;(
+<span class="lineNum">     869 </span>            :           computation_variables);
+<span class="lineNum">     870 </span>            :   gr::spatial_metric(make_not_null(&amp;spatial_metric), spacetime_metric);
+<span class="lineNum">     871 </span>            : 
+<span class="lineNum">     872 </span>            :   auto&amp; inverse_spatial_metric =
+<span class="lineNum">     873 </span>            :       get&lt;gr::Tags::InverseSpatialMetric&lt;3, ::Frame::Inertial, DataVector&gt;&gt;(
+<span class="lineNum">     874 </span>            :           computation_variables);
+<span class="lineNum">     875 </span>            :   // Allocation
+<span class="lineNum">     876 </span>            :   inverse_spatial_metric = determinant_and_inverse(spatial_metric).second;
+<span class="lineNum">     877 </span>            : 
+<span class="lineNum">     878 </span>            :   auto&amp; shift = get&lt;gr::Tags::Shift&lt;3, ::Frame::Inertial, DataVector&gt;&gt;(
+<span class="lineNum">     879 </span>            :       computation_variables);
+<span class="lineNum">     880 </span>            :   gr::shift(make_not_null(&amp;shift), spacetime_metric, inverse_spatial_metric);
+<span class="lineNum">     881 </span>            : 
+<span class="lineNum">     882 </span>            :   auto&amp; lapse = get&lt;gr::Tags::Lapse&lt;DataVector&gt;&gt;(computation_variables);
+<span class="lineNum">     883 </span>            :   gr::lapse(make_not_null(&amp;lapse), shift, spacetime_metric);
+<span class="lineNum">     884 </span>            : 
+<span class="lineNum">     885 </span>            :   auto&amp; dt_spacetime_metric = get&lt;
+<span class="lineNum">     886 </span>            :       ::Tags::dt&lt;gr::Tags::SpacetimeMetric&lt;3, ::Frame::Inertial, DataVector&gt;&gt;&gt;(
+<span class="lineNum">     887 </span>            :       computation_variables);
+<span class="lineNum">     888 </span>            : 
+<span class="lineNum">     889 </span>            :   GeneralizedHarmonic::time_derivative_of_spacetime_metric(
+<span class="lineNum">     890 </span>            :       make_not_null(&amp;dt_spacetime_metric), lapse, shift, pi, phi);
+<span class="lineNum">     891 </span>            : 
+<span class="lineNum">     892 </span>            :   auto&amp; dt_worldtube_normal =
+<span class="lineNum">     893 </span>            :       get&lt;::Tags::dt&lt;Tags::detail::WorldtubeNormal&gt;&gt;(computation_variables);
+<span class="lineNum">     894 </span>            :   auto&amp; worldtube_normal =
+<span class="lineNum">     895 </span>            :       get&lt;Tags::detail::WorldtubeNormal&gt;(computation_variables);
+<span class="lineNum">     896 </span>            :   worldtube_normal_and_derivatives(
+<span class="lineNum">     897 </span>            :       make_not_null(&amp;worldtube_normal), make_not_null(&amp;dt_worldtube_normal),
+<span class="lineNum">     898 </span>            :       cos_phi, cos_theta, spacetime_metric, dt_spacetime_metric, sin_phi,
+<span class="lineNum">     899 </span>            :       sin_theta, inverse_spatial_metric);
+<span class="lineNum">     900 </span>            :   auto&amp; spacetime_unit_normal =
+<span class="lineNum">     901 </span>            :       get&lt;gr::Tags::SpacetimeNormalVector&lt;3, ::Frame::Inertial, DataVector&gt;&gt;(
+<span class="lineNum">     902 </span>            :           computation_variables);
+<span class="lineNum">     903 </span>            :   gr::spacetime_normal_vector(make_not_null(&amp;spacetime_unit_normal), lapse,
+<span class="lineNum">     904 </span>            :                               shift);
+<span class="lineNum">     905 </span>            :   auto&amp; dt_lapse =
+<span class="lineNum">     906 </span>            :       get&lt;::Tags::dt&lt;gr::Tags::Lapse&lt;DataVector&gt;&gt;&gt;(computation_variables);
+<span class="lineNum">     907 </span>            :   GeneralizedHarmonic::time_deriv_of_lapse(
+<span class="lineNum">     908 </span>            :       make_not_null(&amp;dt_lapse), lapse, shift, spacetime_unit_normal, phi, pi);
+<span class="lineNum">     909 </span>            :   auto&amp; dt_shift =
+<span class="lineNum">     910 </span>            :       get&lt;::Tags::dt&lt;gr::Tags::Shift&lt;3, ::Frame::Inertial, DataVector&gt;&gt;&gt;(
+<span class="lineNum">     911 </span>            :           computation_variables);
+<span class="lineNum">     912 </span>            :   GeneralizedHarmonic::time_deriv_of_shift(make_not_null(&amp;dt_shift), lapse,
+<span class="lineNum">     913 </span>            :                                            shift, inverse_spatial_metric,
+<span class="lineNum">     914 </span>            :                                            spacetime_unit_normal, phi, pi);
+<span class="lineNum">     915 </span>            : 
+<span class="lineNum">     916 </span>            :   auto&amp; du_null_l = get&lt;::Tags::dt&lt;Tags::detail::NullL&gt;&gt;(computation_variables);
+<span class="lineNum">     917 </span>            :   auto&amp; null_l = get&lt;Tags::detail::NullL&gt;(computation_variables);
+<span class="lineNum">     918 </span>            :   null_vector_l_and_derivatives(make_not_null(&amp;du_null_l),
+<span class="lineNum">     919 </span>            :                                 make_not_null(&amp;null_l), dt_worldtube_normal,
+<span class="lineNum">     920 </span>            :                                 dt_lapse, dt_spacetime_metric, dt_shift, lapse,
+<span class="lineNum">     921 </span>            :                                 spacetime_metric, shift, worldtube_normal);
+<span class="lineNum">     922 </span>            : 
+<span class="lineNum">     923 </span>            :   // pass to the next step that is common between the 'modal' input and 'GH'
+<span class="lineNum">     924 </span>            :   // input strategies
+<span class="lineNum">     925 </span>            :   detail::create_bondi_boundary_data(
+<span class="lineNum">     926 </span>            :       bondi_boundary_data, make_not_null(&amp;computation_variables),
+<span class="lineNum">     927 </span>            :       make_not_null(&amp;derivative_buffers), dt_spacetime_metric, phi,
+<span class="lineNum">     928 </span>            :       spacetime_metric, null_l, du_null_l, cartesian_to_spherical_jacobian,
+<span class="lineNum">     929 </span>            :       l_max, extraction_radius);
+<span class="lineNum">     930 </span>            : }
+<span class="lineNum">     931 </span>            : 
+<span class="lineNum">     932 </span>            : /*!
+<span class="lineNum">     933 </span>            :  * \brief Process the worldtube data from modal metric components and
+<span class="lineNum">     934 </span>            :  * derivatives to desired Bondi quantities, placing the result in the passed
+<span class="lineNum">     935 </span>            :  * \ref DataBoxGroup.
+<span class="lineNum">     936 </span>            :  *
+<span class="lineNum">     937 </span>            :  * \details
+<span class="lineNum">     938 </span>            :  * The mathematics are a bit complicated for all of the coordinate
+<span class="lineNum">     939 </span>            :  * transformations that are necessary to obtain the Bondi gauge quantities.
+<span class="lineNum">     940 </span>            :  * For full mathematical details, see the documentation for functions in
+<span class="lineNum">     941 </span>            :  * `BoundaryData.hpp` and \cite Barkett2019uae \cite Bishop1998uk.
+<span class="lineNum">     942 </span>            :  *
+<span class="lineNum">     943 </span>            :  * This function takes as input the full set of ADM metric data and its radial
+<span class="lineNum">     944 </span>            :  * and time derivatives on a two-dimensional surface of constant \f$r\f$ and
+<span class="lineNum">     945 </span>            :  * \f$t\f$ in numerical coordinates. This data must be provided as spherical
+<span class="lineNum">     946 </span>            :  * harmonic coefficients in the libsharp format. This data is provided in nine
+<span class="lineNum">     947 </span>            :  * `Tensor`s.
+<span class="lineNum">     948 </span>            :  *
+<span class="lineNum">     949 </span>            :  * Sufficient tags to provide full worldtube boundary data at a particular
+<span class="lineNum">     950 </span>            :  * time are set in `bondi_boundary_data`. In particular, the set of tags in
+<span class="lineNum">     951 </span>            :  * `Tags::characteristic_worldtube_boundary_tags` in the provided \ref
+<span class="lineNum">     952 </span>            :  * DataBoxGroup are assigned to the worldtube boundary values associated with
+<span class="lineNum">     953 </span>            :  * the input metric components.
+<span class="lineNum">     954 </span>            :  *
+<span class="lineNum">     955 </span>            :  * The majority of the mathematical transformations are implemented as a set of
+<span class="lineNum">     956 </span>            :  * individual cascaded functions below. The details of the manipulations that
+<span class="lineNum">     957 </span>            :  * are performed to the input data may be found in the individual functions
+<span class="lineNum">     958 </span>            :  * themselves, which are called in the following order:
+<span class="lineNum">     959 </span>            :  * - `trigonometric_functions_on_swsh_collocation()`
+<span class="lineNum">     960 </span>            :  * - `cartesian_to_spherical_coordinates_and_jacobians()`
+<span class="lineNum">     961 </span>            :  * - `cartesian_spatial_metric_and_derivatives_from_modes()`
+<span class="lineNum">     962 </span>            :  * - `cartesian_shift_and_derivatives_from_modes()`
+<span class="lineNum">     963 </span>            :  * - `cartesian_lapse_and_derivatives_from_modes()`
+<span class="lineNum">     964 </span>            :  * - `GeneralizedHarmonic::phi()`
+<span class="lineNum">     965 </span>            :  * - `gr::time_derivative_of_spacetime_metric`
+<span class="lineNum">     966 </span>            :  * - `gr::spacetime_metric`
+<span class="lineNum">     967 </span>            :  * - `generalized_harmonic_quantities()`
+<span class="lineNum">     968 </span>            :  * - `worldtube_normal_and_derivatives()`
+<span class="lineNum">     969 </span>            :  * - `null_vector_l_and_derivatives()`
+<span class="lineNum">     970 </span>            :  * - `null_metric_and_derivative()`
+<span class="lineNum">     971 </span>            :  * - `dlambda_null_metric_and_inverse()`
+<span class="lineNum">     972 </span>            :  * - `bondi_r()`
+<span class="lineNum">     973 </span>            :  * - `d_bondi_r()`
+<span class="lineNum">     974 </span>            :  * - `dyads()`
+<span class="lineNum">     975 </span>            :  * - `beta_worldtube_data()`
+<span class="lineNum">     976 </span>            :  * - `bondi_u_worldtube_data()`
+<span class="lineNum">     977 </span>            :  * - `bondi_w_worldtube_data()`
+<span class="lineNum">     978 </span>            :  * - `bondi_j_worldtube_data()`
+<span class="lineNum">     979 </span>            :  * - `dr_bondi_j()`
+<span class="lineNum">     980 </span>            :  * - `d2lambda_bondi_r()`
+<span class="lineNum">     981 </span>            :  * - `bondi_q_worldtube_data()`
+<span class="lineNum">     982 </span>            :  * - `bondi_h_worldtube_data()`
+<span class="lineNum">     983 </span>            :  * - `du_j_worldtube_data()`
+<span class="lineNum">     984 </span>            :  */
+<span class="lineNum">     985 </span>            : template &lt;typename DataBoxTagList&gt;
+<span class="lineNum">     986 </span><span class="lineCov">          1 : void create_bondi_boundary_data(</span>
+<span class="lineNum">     987 </span>            :     const gsl::not_null&lt;db::DataBox&lt;DataBoxTagList&gt;*&gt; bondi_boundary_data,
+<span class="lineNum">     988 </span>            :     const tnsr::ii&lt;ComplexModalVector, 3&gt;&amp; spatial_metric_coefficients,
+<span class="lineNum">     989 </span>            :     const tnsr::ii&lt;ComplexModalVector, 3&gt;&amp; dt_spatial_metric_coefficients,
+<span class="lineNum">     990 </span>            :     const tnsr::ii&lt;ComplexModalVector, 3&gt;&amp; dr_spatial_metric_coefficients,
+<span class="lineNum">     991 </span>            :     const tnsr::I&lt;ComplexModalVector, 3&gt;&amp; shift_coefficients,
+<span class="lineNum">     992 </span>            :     const tnsr::I&lt;ComplexModalVector, 3&gt;&amp; dt_shift_coefficients,
+<span class="lineNum">     993 </span>            :     const tnsr::I&lt;ComplexModalVector, 3&gt;&amp; dr_shift_coefficients,
+<span class="lineNum">     994 </span>            :     const Scalar&lt;ComplexModalVector&gt;&amp; lapse_coefficients,
+<span class="lineNum">     995 </span>            :     const Scalar&lt;ComplexModalVector&gt;&amp; dt_lapse_coefficients,
+<span class="lineNum">     996 </span>            :     const Scalar&lt;ComplexModalVector&gt;&amp; dr_lapse_coefficients,
+<span class="lineNum">     997 </span>            :     const double extraction_radius, const size_t l_max) noexcept {
+<span class="lineNum">     998 </span>            :   const size_t size = Spectral::Swsh::number_of_swsh_collocation_points(l_max);
+<span class="lineNum">     999 </span>            : 
+<span class="lineNum">    1000 </span>            :   // Most allocations required for the full boundary computation are merged into
+<span class="lineNum">    1001 </span>            :   // a single, large Variables allocation. There remain a handful of cases in
+<span class="lineNum">    1002 </span>            :   // the computational functions called where an intermediate quantity that is
+<span class="lineNum">    1003 </span>            :   // not re-used is allocated rather than taking a buffer. These cases are
+<span class="lineNum">    1004 </span>            :   // marked with code comments 'Allocation'; In the future, if allocations are
+<span class="lineNum">    1005 </span>            :   // identified as a point to optimize, those buffers may be allocated here and
+<span class="lineNum">    1006 </span>            :   // passed as function arguments
+<span class="lineNum">    1007 </span>            :   Variables&lt;tmpl::list&lt;
+<span class="lineNum">    1008 </span>            :       Tags::detail::CosPhi, Tags::detail::CosTheta, Tags::detail::SinPhi,
+<span class="lineNum">    1009 </span>            :       Tags::detail::SinTheta, Tags::detail::CartesianCoordinates,
+<span class="lineNum">    1010 </span>            :       Tags::detail::CartesianToSphericalJacobian,
+<span class="lineNum">    1011 </span>            :       Tags::detail::InverseCartesianToSphericalJacobian,
+<span class="lineNum">    1012 </span>            :       gr::Tags::SpatialMetric&lt;3, ::Frame::Inertial, DataVector&gt;,
+<span class="lineNum">    1013 </span>            :       gr::Tags::InverseSpatialMetric&lt;3, ::Frame::Inertial, DataVector&gt;,
+<span class="lineNum">    1014 </span>            :       ::Tags::deriv&lt;gr::Tags::SpatialMetric&lt;3, ::Frame::Inertial, DataVector&gt;,
+<span class="lineNum">    1015 </span>            :                     tmpl::size_t&lt;3&gt;, ::Frame::Inertial&gt;,
+<span class="lineNum">    1016 </span>            :       ::Tags::dt&lt;gr::Tags::SpatialMetric&lt;3, ::Frame::Inertial, DataVector&gt;&gt;,
+<span class="lineNum">    1017 </span>            :       gr::Tags::Shift&lt;3, ::Frame::Inertial, DataVector&gt;,
+<span class="lineNum">    1018 </span>            :       ::Tags::deriv&lt;gr::Tags::Shift&lt;3, ::Frame::Inertial, DataVector&gt;,
+<span class="lineNum">    1019 </span>            :                     tmpl::size_t&lt;3&gt;, ::Frame::Inertial&gt;,
+<span class="lineNum">    1020 </span>            :       ::Tags::dt&lt;gr::Tags::Shift&lt;3, ::Frame::Inertial, DataVector&gt;&gt;,
+<span class="lineNum">    1021 </span>            :       gr::Tags::Lapse&lt;DataVector&gt;,
+<span class="lineNum">    1022 </span>            :       ::Tags::deriv&lt;gr::Tags::Lapse&lt;DataVector&gt;, tmpl::size_t&lt;3&gt;,
+<span class="lineNum">    1023 </span>            :                     ::Frame::Inertial&gt;,
+<span class="lineNum">    1024 </span>            :       ::Tags::dt&lt;gr::Tags::Lapse&lt;DataVector&gt;&gt;,
+<span class="lineNum">    1025 </span>            :       gr::Tags::SpacetimeMetric&lt;3, ::Frame::Inertial, DataVector&gt;,
+<span class="lineNum">    1026 </span>            :       ::Tags::dt&lt;gr::Tags::SpacetimeMetric&lt;3, ::Frame::Inertial, DataVector&gt;&gt;,
+<span class="lineNum">    1027 </span>            :       GeneralizedHarmonic::Tags::Phi&lt;3, ::Frame::Inertial&gt;,
+<span class="lineNum">    1028 </span>            :       Tags::detail::WorldtubeNormal, ::Tags::dt&lt;Tags::detail::WorldtubeNormal&gt;,
+<span class="lineNum">    1029 </span>            :       Tags::detail::NullL, ::Tags::dt&lt;Tags::detail::NullL&gt;,
+<span class="lineNum">    1030 </span>            :       // for the detail function called at the end
+<span class="lineNum">    1031 </span>            :       gr::Tags::SpacetimeMetric&lt;3, Frame::RadialNull, DataVector&gt;,
+<span class="lineNum">    1032 </span>            :       ::Tags::dt&lt;gr::Tags::SpacetimeMetric&lt;3, Frame::RadialNull, DataVector&gt;&gt;,
+<span class="lineNum">    1033 </span>            :       gr::Tags::InverseSpacetimeMetric&lt;3, Frame::RadialNull, DataVector&gt;,
+<span class="lineNum">    1034 </span>            :       Tags::detail::AngularDNullL,
+<span class="lineNum">    1035 </span>            :       Tags::detail::DLambda&lt;
+<span class="lineNum">    1036 </span>            :           gr::Tags::SpacetimeMetric&lt;3, Frame::RadialNull, DataVector&gt;&gt;,
+<span class="lineNum">    1037 </span>            :       Tags::detail::DLambda&lt;
+<span class="lineNum">    1038 </span>            :           gr::Tags::InverseSpacetimeMetric&lt;3, Frame::RadialNull, DataVector&gt;&gt;,
+<span class="lineNum">    1039 </span>            :       ::Tags::spacetime_deriv&lt;Tags::detail::RealBondiR, tmpl::size_t&lt;3&gt;,
+<span class="lineNum">    1040 </span>            :                               Frame::RadialNull&gt;,
+<span class="lineNum">    1041 </span>            :       Tags::detail::DLambda&lt;Tags::detail::DLambda&lt;Tags::detail::RealBondiR&gt;&gt;,
+<span class="lineNum">    1042 </span>            :       ::Tags::deriv&lt;Tags::detail::DLambda&lt;Tags::detail::RealBondiR&gt;,
+<span class="lineNum">    1043 </span>            :                     tmpl::size_t&lt;2&gt;, Frame::RadialNull&gt;&gt;&gt;
+<span class="lineNum">    1044 </span>            :       computation_variables{size};
+<span class="lineNum">    1045 </span>            : 
+<span class="lineNum">    1046 </span>            :   Variables&lt;
+<span class="lineNum">    1047 </span>            :       tmpl::list&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;0, ComplexDataVector&gt;,
+<span class="lineNum">    1048 </span>            :                                       std::integral_constant&lt;int, 0&gt;&gt;,
+<span class="lineNum">    1049 </span>            :                  ::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;0, ComplexDataVector&gt;,
+<span class="lineNum">    1050 </span>            :                                       std::integral_constant&lt;int, 1&gt;&gt;&gt;&gt;
+<span class="lineNum">    1051 </span>            :       derivative_buffers{size};
+<span class="lineNum">    1052 </span>            :   auto&amp; cos_phi = get&lt;Tags::detail::CosPhi&gt;(computation_variables);
+<span class="lineNum">    1053 </span>            :   auto&amp; cos_theta = get&lt;Tags::detail::CosTheta&gt;(computation_variables);
+<span class="lineNum">    1054 </span>            :   auto&amp; sin_phi = get&lt;Tags::detail::SinPhi&gt;(computation_variables);
+<span class="lineNum">    1055 </span>            :   auto&amp; sin_theta = get&lt;Tags::detail::SinTheta&gt;(computation_variables);
+<span class="lineNum">    1056 </span>            :   trigonometric_functions_on_swsh_collocation(
+<span class="lineNum">    1057 </span>            :       make_not_null(&amp;cos_phi), make_not_null(&amp;cos_theta),
+<span class="lineNum">    1058 </span>            :       make_not_null(&amp;sin_phi), make_not_null(&amp;sin_theta), l_max);
+<span class="lineNum">    1059 </span>            : 
+<span class="lineNum">    1060 </span>            :   // NOTE: to handle the singular values of polar coordinates, the phi
+<span class="lineNum">    1061 </span>            :   // components of all tensors are scaled according to their sin(theta)
+<span class="lineNum">    1062 </span>            :   // prefactors.
+<span class="lineNum">    1063 </span>            :   // so, any down-index component get&lt;2&gt;(A) represents 1/sin(theta) A_\phi,
+<span class="lineNum">    1064 </span>            :   // and any up-index component get&lt;2&gt;(A) represents sin(theta) A^\phi.
+<span class="lineNum">    1065 </span>            :   // This holds for Jacobians, and so direct application of the Jacobians
+<span class="lineNum">    1066 </span>            :   // brings the factors through.
+<span class="lineNum">    1067 </span>            :   auto&amp; cartesian_coords =
+<span class="lineNum">    1068 </span>            :       get&lt;Tags::detail::CartesianCoordinates&gt;(computation_variables);
+<span class="lineNum">    1069 </span>            :   auto&amp; cartesian_to_spherical_jacobian =
+<span class="lineNum">    1070 </span>            :       get&lt;Tags::detail::CartesianToSphericalJacobian&gt;(computation_variables);
+<span class="lineNum">    1071 </span>            :   auto&amp; inverse_cartesian_to_spherical_jacobian =
+<span class="lineNum">    1072 </span>            :       get&lt;Tags::detail::InverseCartesianToSphericalJacobian&gt;(
+<span class="lineNum">    1073 </span>            :           computation_variables);
+<span class="lineNum">    1074 </span>            :   cartesian_to_spherical_coordinates_and_jacobians(
+<span class="lineNum">    1075 </span>            :       make_not_null(&amp;cartesian_coords),
+<span class="lineNum">    1076 </span>            :       make_not_null(&amp;cartesian_to_spherical_jacobian),
+<span class="lineNum">    1077 </span>            :       make_not_null(&amp;inverse_cartesian_to_spherical_jacobian), cos_phi,
+<span class="lineNum">    1078 </span>            :       cos_theta, sin_phi, sin_theta, extraction_radius);
+<span class="lineNum">    1079 </span>            : 
+<span class="lineNum">    1080 </span>            :   auto&amp; cartesian_spatial_metric =
+<span class="lineNum">    1081 </span>            :       get&lt;gr::Tags::SpatialMetric&lt;3, ::Frame::Inertial, DataVector&gt;&gt;(
+<span class="lineNum">    1082 </span>            :           computation_variables);
+<span class="lineNum">    1083 </span>            :   auto&amp; inverse_spatial_metric =
+<span class="lineNum">    1084 </span>            :       get&lt;gr::Tags::InverseSpatialMetric&lt;3, ::Frame::Inertial, DataVector&gt;&gt;(
+<span class="lineNum">    1085 </span>            :           computation_variables);
+<span class="lineNum">    1086 </span>            :   auto&amp; d_cartesian_spatial_metric = get&lt;
+<span class="lineNum">    1087 </span>            :       ::Tags::deriv&lt;gr::Tags::SpatialMetric&lt;3, ::Frame::Inertial, DataVector&gt;,
+<span class="lineNum">    1088 </span>            :                     tmpl::size_t&lt;3&gt;, ::Frame::Inertial&gt;&gt;(computation_variables);
+<span class="lineNum">    1089 </span>            :   auto&amp; dt_cartesian_spatial_metric = get&lt;
+<span class="lineNum">    1090 </span>            :       ::Tags::dt&lt;gr::Tags::SpatialMetric&lt;3, ::Frame::Inertial, DataVector&gt;&gt;&gt;(
+<span class="lineNum">    1091 </span>            :       computation_variables);
+<span class="lineNum">    1092 </span>            :   auto&amp; interpolation_buffer =
+<span class="lineNum">    1093 </span>            :       get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;0, ComplexDataVector&gt;,
+<span class="lineNum">    1094 </span>            :                                std::integral_constant&lt;int, 0&gt;&gt;&gt;(
+<span class="lineNum">    1095 </span>            :           derivative_buffers);
+<span class="lineNum">    1096 </span>            :   Scalar&lt;SpinWeighted&lt;ComplexModalVector, 0&gt;&gt; interpolation_modal_buffer{size};
+<span class="lineNum">    1097 </span>            :   auto&amp; eth_buffer =
+<span class="lineNum">    1098 </span>            :       get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;0, ComplexDataVector&gt;,
+<span class="lineNum">    1099 </span>            :                                std::integral_constant&lt;int, 1&gt;&gt;&gt;(
+<span class="lineNum">    1100 </span>            :           derivative_buffers);
+<span class="lineNum">    1101 </span>            :   cartesian_spatial_metric_and_derivatives_from_modes(
+<span class="lineNum">    1102 </span>            :       make_not_null(&amp;cartesian_spatial_metric),
+<span class="lineNum">    1103 </span>            :       make_not_null(&amp;inverse_spatial_metric),
+<span class="lineNum">    1104 </span>            :       make_not_null(&amp;d_cartesian_spatial_metric),
+<span class="lineNum">    1105 </span>            :       make_not_null(&amp;dt_cartesian_spatial_metric),
+<span class="lineNum">    1106 </span>            :       make_not_null(&amp;interpolation_modal_buffer),
+<span class="lineNum">    1107 </span>            :       make_not_null(&amp;interpolation_buffer), make_not_null(&amp;eth_buffer),
+<span class="lineNum">    1108 </span>            :       spatial_metric_coefficients, dr_spatial_metric_coefficients,
+<span class="lineNum">    1109 </span>            :       dt_spatial_metric_coefficients, inverse_cartesian_to_spherical_jacobian,
+<span class="lineNum">    1110 </span>            :       l_max);
+<span class="lineNum">    1111 </span>            : 
+<span class="lineNum">    1112 </span>            :   auto&amp; cartesian_shift =
+<span class="lineNum">    1113 </span>            :       get&lt;gr::Tags::Shift&lt;3, ::Frame::Inertial, DataVector&gt;&gt;(
+<span class="lineNum">    1114 </span>            :           computation_variables);
+<span class="lineNum">    1115 </span>            :   auto&amp; d_cartesian_shift =
+<span class="lineNum">    1116 </span>            :       get&lt;::Tags::deriv&lt;gr::Tags::Shift&lt;3, ::Frame::Inertial, DataVector&gt;,
+<span class="lineNum">    1117 </span>            :                         tmpl::size_t&lt;3&gt;, ::Frame::Inertial&gt;&gt;(
+<span class="lineNum">    1118 </span>            :           computation_variables);
+<span class="lineNum">    1119 </span>            :   auto&amp; dt_cartesian_shift =
+<span class="lineNum">    1120 </span>            :       get&lt;::Tags::dt&lt;gr::Tags::Shift&lt;3, ::Frame::Inertial, DataVector&gt;&gt;&gt;(
+<span class="lineNum">    1121 </span>            :           computation_variables);
+<span class="lineNum">    1122 </span>            : 
+<span class="lineNum">    1123 </span>            :   cartesian_shift_and_derivatives_from_modes(
+<span class="lineNum">    1124 </span>            :       make_not_null(&amp;cartesian_shift), make_not_null(&amp;d_cartesian_shift),
+<span class="lineNum">    1125 </span>            :       make_not_null(&amp;dt_cartesian_shift),
+<span class="lineNum">    1126 </span>            :       make_not_null(&amp;interpolation_modal_buffer),
+<span class="lineNum">    1127 </span>            :       make_not_null(&amp;interpolation_buffer), make_not_null(&amp;eth_buffer),
+<span class="lineNum">    1128 </span>            :       shift_coefficients, dr_shift_coefficients, dt_shift_coefficients,
+<span class="lineNum">    1129 </span>            :       inverse_cartesian_to_spherical_jacobian, l_max);
+<span class="lineNum">    1130 </span>            : 
+<span class="lineNum">    1131 </span>            :   auto&amp; cartesian_lapse =
+<span class="lineNum">    1132 </span>            :       get&lt;gr::Tags::Lapse&lt;DataVector&gt;&gt;(computation_variables);
+<span class="lineNum">    1133 </span>            :   auto&amp; d_cartesian_lapse =
+<span class="lineNum">    1134 </span>            :       get&lt;::Tags::deriv&lt;gr::Tags::Lapse&lt;DataVector&gt;, tmpl::size_t&lt;3&gt;,
+<span class="lineNum">    1135 </span>            :                         ::Frame::Inertial&gt;&gt;(computation_variables);
+<span class="lineNum">    1136 </span>            :   auto&amp; dt_cartesian_lapse =
+<span class="lineNum">    1137 </span>            :       get&lt;::Tags::dt&lt;gr::Tags::Lapse&lt;DataVector&gt;&gt;&gt;(computation_variables);
+<span class="lineNum">    1138 </span>            :   cartesian_lapse_and_derivatives_from_modes(
+<span class="lineNum">    1139 </span>            :       make_not_null(&amp;cartesian_lapse), make_not_null(&amp;d_cartesian_lapse),
+<span class="lineNum">    1140 </span>            :       make_not_null(&amp;dt_cartesian_lapse),
+<span class="lineNum">    1141 </span>            :       make_not_null(&amp;interpolation_modal_buffer),
+<span class="lineNum">    1142 </span>            :       make_not_null(&amp;interpolation_buffer), make_not_null(&amp;eth_buffer),
+<span class="lineNum">    1143 </span>            :       lapse_coefficients, dr_lapse_coefficients, dt_lapse_coefficients,
+<span class="lineNum">    1144 </span>            :       inverse_cartesian_to_spherical_jacobian, l_max);
+<span class="lineNum">    1145 </span>            : 
+<span class="lineNum">    1146 </span>            :   auto&amp; phi = get&lt;GeneralizedHarmonic::Tags::Phi&lt;3, ::Frame::Inertial&gt;&gt;(
+<span class="lineNum">    1147 </span>            :       computation_variables);
+<span class="lineNum">    1148 </span>            :   auto&amp; dt_spacetime_metric = get&lt;
+<span class="lineNum">    1149 </span>            :       ::Tags::dt&lt;gr::Tags::SpacetimeMetric&lt;3, ::Frame::Inertial, DataVector&gt;&gt;&gt;(
+<span class="lineNum">    1150 </span>            :       computation_variables);
+<span class="lineNum">    1151 </span>            :   auto&amp; spacetime_metric =
+<span class="lineNum">    1152 </span>            :       get&lt;gr::Tags::SpacetimeMetric&lt;3, ::Frame::Inertial, DataVector&gt;&gt;(
+<span class="lineNum">    1153 </span>            :           computation_variables);
+<span class="lineNum">    1154 </span>            :   GeneralizedHarmonic::phi(
+<span class="lineNum">    1155 </span>            :       make_not_null(&amp;phi), cartesian_lapse, d_cartesian_lapse, cartesian_shift,
+<span class="lineNum">    1156 </span>            :       d_cartesian_shift, cartesian_spatial_metric, d_cartesian_spatial_metric);
+<span class="lineNum">    1157 </span>            :   gr::time_derivative_of_spacetime_metric(
+<span class="lineNum">    1158 </span>            :       make_not_null(&amp;dt_spacetime_metric), cartesian_lapse, dt_cartesian_lapse,
+<span class="lineNum">    1159 </span>            :       cartesian_shift, dt_cartesian_shift, cartesian_spatial_metric,
+<span class="lineNum">    1160 </span>            :       dt_cartesian_spatial_metric);
+<span class="lineNum">    1161 </span>            :   gr::spacetime_metric(make_not_null(&amp;spacetime_metric), cartesian_lapse,
+<span class="lineNum">    1162 </span>            :                        cartesian_shift, cartesian_spatial_metric);
+<span class="lineNum">    1163 </span>            : 
+<span class="lineNum">    1164 </span>            :   auto&amp; dt_worldtube_normal =
+<span class="lineNum">    1165 </span>            :       get&lt;::Tags::dt&lt;Tags::detail::WorldtubeNormal&gt;&gt;(computation_variables);
+<span class="lineNum">    1166 </span>            :   auto&amp; worldtube_normal =
+<span class="lineNum">    1167 </span>            :       get&lt;Tags::detail::WorldtubeNormal&gt;(computation_variables);
+<span class="lineNum">    1168 </span>            :   worldtube_normal_and_derivatives(
+<span class="lineNum">    1169 </span>            :       make_not_null(&amp;worldtube_normal), make_not_null(&amp;dt_worldtube_normal),
+<span class="lineNum">    1170 </span>            :       cos_phi, cos_theta, spacetime_metric, dt_spacetime_metric, sin_phi,
+<span class="lineNum">    1171 </span>            :       sin_theta, inverse_spatial_metric);
+<span class="lineNum">    1172 </span>            : 
+<span class="lineNum">    1173 </span>            :   auto&amp; du_null_l = get&lt;::Tags::dt&lt;Tags::detail::NullL&gt;&gt;(computation_variables);
+<span class="lineNum">    1174 </span>            :   auto&amp; null_l = get&lt;Tags::detail::NullL&gt;(computation_variables);
+<span class="lineNum">    1175 </span>            :   null_vector_l_and_derivatives(
+<span class="lineNum">    1176 </span>            :       make_not_null(&amp;du_null_l), make_not_null(&amp;null_l), dt_worldtube_normal,
+<span class="lineNum">    1177 </span>            :       dt_cartesian_lapse, dt_spacetime_metric, dt_cartesian_shift,
+<span class="lineNum">    1178 </span>            :       cartesian_lapse, spacetime_metric, cartesian_shift, worldtube_normal);
+<span class="lineNum">    1179 </span>            : 
+<span class="lineNum">    1180 </span>            :   // pass to the next step that is common between the 'modal' input and 'GH'
+<span class="lineNum">    1181 </span>            :   // input strategies
+<span class="lineNum">    1182 </span>            :   detail::create_bondi_boundary_data(
+<span class="lineNum">    1183 </span>            :       bondi_boundary_data, make_not_null(&amp;computation_variables),
+<span class="lineNum">    1184 </span>            :       make_not_null(&amp;derivative_buffers), dt_spacetime_metric, phi,
+<span class="lineNum">    1185 </span>            :       spacetime_metric, null_l, du_null_l, cartesian_to_spherical_jacobian,
+<span class="lineNum">    1186 </span>            :       l_max, extraction_radius);
+<span class="lineNum">    1187 </span>            : }
+<span class="lineNum">    1188 </span>            : }  // namespace Cce
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

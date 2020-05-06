@@ -1,0 +1,380 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - Evolution/Systems/CurvedScalarWave/Equations.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../index.html">top level</a> - <a href="index.html">Evolution/Systems/CurvedScalarWave</a> - Equations.cpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">7</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #include &quot;Evolution/Systems/CurvedScalarWave/Equations.hpp&quot;
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;array&gt;
+<span class="lineNum">       7 </span>            : 
+<span class="lineNum">       8 </span>            : #include &quot;DataStructures/DataBox/PrefixHelpers.hpp&quot;
+<span class="lineNum">       9 </span>            : #include &quot;DataStructures/DataVector.hpp&quot;
+<span class="lineNum">      10 </span>            : #include &quot;DataStructures/Tensor/Tensor.hpp&quot;  // IWYU pragma: keep
+<span class="lineNum">      11 </span>            : #include &quot;DataStructures/Variables.hpp&quot;      // IWYU pragma: keep
+<span class="lineNum">      12 </span>            : #include &quot;Evolution/Systems/CurvedScalarWave/System.hpp&quot;
+<span class="lineNum">      13 </span>            : #include &quot;Utilities/GenerateInstantiations.hpp&quot;
+<span class="lineNum">      14 </span>            : #include &quot;Utilities/Math.hpp&quot;
+<span class="lineNum">      15 </span>            : #include &quot;Utilities/TMPL.hpp&quot;  // IWYU pragma: keep
+<span class="lineNum">      16 </span>            : 
+<span class="lineNum">      17 </span>            : template &lt;typename X, typename Symm, typename IndexList&gt;
+<span class="lineNum">      18 </span><span class="lineNoCov">          0 : class Tensor;</span>
+<span class="lineNum">      19 </span>            : 
+<span class="lineNum">      20 </span>            : namespace CurvedScalarWave {
+<span class="lineNum">      21 </span>            : namespace CurvedScalarWave_detail {
+<span class="lineNum">      22 </span>            : template &lt;typename FieldTag&gt;
+<span class="lineNum">      23 </span>            : db::const_item_type&lt;FieldTag&gt; weight_char_field(
+<span class="lineNum">      24 </span>            :     const db::const_item_type&lt;FieldTag&gt;&amp; char_field_int,
+<span class="lineNum">      25 </span>            :     const DataVector&amp; char_speed_int,
+<span class="lineNum">      26 </span>            :     const db::const_item_type&lt;FieldTag&gt;&amp; char_field_ext,
+<span class="lineNum">      27 </span>            :     const DataVector&amp; char_speed_ext) noexcept {
+<span class="lineNum">      28 </span>            :   const DataVector&amp; char_speed_avg{0.5 * (char_speed_int + char_speed_ext)};
+<span class="lineNum">      29 </span>            :   db::const_item_type&lt;FieldTag&gt; weighted_char_field = char_field_int;
+<span class="lineNum">      30 </span>            :   auto weighted_char_field_it = weighted_char_field.begin();
+<span class="lineNum">      31 </span>            :   for (auto int_it = char_field_int.begin(), ext_it = char_field_ext.begin();
+<span class="lineNum">      32 </span>            :        int_it != char_field_int.end();
+<span class="lineNum">      33 </span>            :        ++int_it, ++ext_it, ++weighted_char_field_it) {
+<span class="lineNum">      34 </span>            :     *weighted_char_field_it *= step_function(char_speed_avg) * char_speed_avg;
+<span class="lineNum">      35 </span>            :     *weighted_char_field_it +=
+<span class="lineNum">      36 </span>            :         step_function(-char_speed_avg) * char_speed_avg * *ext_it;
+<span class="lineNum">      37 </span>            :   }
+<span class="lineNum">      38 </span>            : 
+<span class="lineNum">      39 </span>            :   return weighted_char_field;
+<span class="lineNum">      40 </span>            : }
+<span class="lineNum">      41 </span>            : 
+<span class="lineNum">      42 </span>            : template &lt;size_t Dim&gt;
+<span class="lineNum">      43 </span>            : db::const_item_type&lt;Tags::CharacteristicFields&lt;Dim&gt;&gt; weight_char_fields(
+<span class="lineNum">      44 </span>            :     const db::const_item_type&lt;Tags::CharacteristicFields&lt;Dim&gt;&gt;&amp; char_fields_int,
+<span class="lineNum">      45 </span>            :     const db::const_item_type&lt;Tags::CharacteristicSpeeds&lt;Dim&gt;&gt;&amp; char_speeds_int,
+<span class="lineNum">      46 </span>            :     const db::const_item_type&lt;Tags::CharacteristicFields&lt;Dim&gt;&gt;&amp; char_fields_ext,
+<span class="lineNum">      47 </span>            :     const db::const_item_type&lt;Tags::CharacteristicSpeeds&lt;Dim&gt;&gt;&amp;
+<span class="lineNum">      48 </span>            :         char_speeds_ext) noexcept {
+<span class="lineNum">      49 </span>            :   const auto&amp; v_psi_int = get&lt;Tags::VPsi&gt;(char_fields_int);
+<span class="lineNum">      50 </span>            :   const auto&amp; v_zero_int = get&lt;Tags::VZero&lt;Dim&gt;&gt;(char_fields_int);
+<span class="lineNum">      51 </span>            :   const auto&amp; v_plus_int = get&lt;Tags::VPlus&gt;(char_fields_int);
+<span class="lineNum">      52 </span>            :   const auto&amp; v_minus_int = get&lt;Tags::VMinus&gt;(char_fields_int);
+<span class="lineNum">      53 </span>            : 
+<span class="lineNum">      54 </span>            :   const DataVector&amp; char_speed_v_psi_int{char_speeds_int[0]};
+<span class="lineNum">      55 </span>            :   const DataVector&amp; char_speed_v_zero_int{char_speeds_int[1]};
+<span class="lineNum">      56 </span>            :   const DataVector&amp; char_speed_v_plus_int{char_speeds_int[2]};
+<span class="lineNum">      57 </span>            :   const DataVector&amp; char_speed_v_minus_int{char_speeds_int[3]};
+<span class="lineNum">      58 </span>            : 
+<span class="lineNum">      59 </span>            :   const auto&amp; v_psi_ext = get&lt;Tags::VPsi&gt;(char_fields_ext);
+<span class="lineNum">      60 </span>            :   const auto&amp; v_zero_ext = get&lt;Tags::VZero&lt;Dim&gt;&gt;(char_fields_ext);
+<span class="lineNum">      61 </span>            :   const auto&amp; v_plus_ext = get&lt;Tags::VPlus&gt;(char_fields_ext);
+<span class="lineNum">      62 </span>            :   const auto&amp; v_minus_ext = get&lt;Tags::VMinus&gt;(char_fields_ext);
+<span class="lineNum">      63 </span>            : 
+<span class="lineNum">      64 </span>            :   const DataVector&amp; char_speed_v_psi_ext{char_speeds_ext[0]};
+<span class="lineNum">      65 </span>            :   const DataVector&amp; char_speed_v_zero_ext{char_speeds_ext[1]};
+<span class="lineNum">      66 </span>            :   const DataVector&amp; char_speed_v_plus_ext{char_speeds_ext[2]};
+<span class="lineNum">      67 </span>            :   const DataVector&amp; char_speed_v_minus_ext{char_speeds_ext[3]};
+<span class="lineNum">      68 </span>            : 
+<span class="lineNum">      69 </span>            :   auto weighted_char_fields =
+<span class="lineNum">      70 </span>            :       make_with_value&lt;db::const_item_type&lt;Tags::CharacteristicFields&lt;Dim&gt;&gt;&gt;(
+<span class="lineNum">      71 </span>            :           char_speed_v_psi_int, 0.);
+<span class="lineNum">      72 </span>            : 
+<span class="lineNum">      73 </span>            :   get&lt;Tags::VPsi&gt;(weighted_char_fields) = weight_char_field&lt;Tags::VPsi&gt;(
+<span class="lineNum">      74 </span>            :       v_psi_int, char_speed_v_psi_int, v_psi_ext, char_speed_v_psi_ext);
+<span class="lineNum">      75 </span>            :   get&lt;Tags::VZero&lt;Dim&gt;&gt;(weighted_char_fields) =
+<span class="lineNum">      76 </span>            :       weight_char_field&lt;Tags::VZero&lt;Dim&gt;&gt;(v_zero_int, char_speed_v_zero_int,
+<span class="lineNum">      77 </span>            :                                           v_zero_ext, char_speed_v_zero_ext);
+<span class="lineNum">      78 </span>            :   get&lt;Tags::VPlus&gt;(weighted_char_fields) = weight_char_field&lt;Tags::VPlus&gt;(
+<span class="lineNum">      79 </span>            :       v_plus_int, char_speed_v_plus_int, v_plus_ext, char_speed_v_plus_ext);
+<span class="lineNum">      80 </span>            :   get&lt;Tags::VMinus&gt;(weighted_char_fields) = weight_char_field&lt;Tags::VMinus&gt;(
+<span class="lineNum">      81 </span>            :       v_minus_int, char_speed_v_minus_int, v_minus_ext, char_speed_v_minus_ext);
+<span class="lineNum">      82 </span>            : 
+<span class="lineNum">      83 </span>            :   return weighted_char_fields;
+<span class="lineNum">      84 </span>            : }
+<span class="lineNum">      85 </span>            : }  // namespace CurvedScalarWave_detail
+<span class="lineNum">      86 </span>            : 
+<span class="lineNum">      87 </span>            : /// \cond
+<span class="lineNum">      88 </span>            : template &lt;size_t Dim&gt;
+<span class="lineNum">      89 </span>            : void ComputeDuDt&lt;Dim&gt;::apply(
+<span class="lineNum">      90 </span>            :     const gsl::not_null&lt;Scalar&lt;DataVector&gt;*&gt; dt_pi,
+<span class="lineNum">      91 </span>            :     const gsl::not_null&lt;tnsr::i&lt;DataVector, Dim, Frame::Inertial&gt;*&gt; dt_phi,
+<span class="lineNum">      92 </span>            :     const gsl::not_null&lt;Scalar&lt;DataVector&gt;*&gt; dt_psi,
+<span class="lineNum">      93 </span>            :     const Scalar&lt;DataVector&gt;&amp; pi, const tnsr::i&lt;DataVector, Dim&gt;&amp; phi,
+<span class="lineNum">      94 </span>            :     const tnsr::i&lt;DataVector, Dim&gt;&amp; d_psi, const tnsr::i&lt;DataVector, Dim&gt;&amp; d_pi,
+<span class="lineNum">      95 </span>            :     const tnsr::ij&lt;DataVector, Dim&gt;&amp; d_phi, const Scalar&lt;DataVector&gt;&amp; lapse,
+<span class="lineNum">      96 </span>            :     const tnsr::I&lt;DataVector, Dim&gt;&amp; shift,
+<span class="lineNum">      97 </span>            :     const tnsr::i&lt;DataVector, Dim&gt;&amp; deriv_lapse,
+<span class="lineNum">      98 </span>            :     const tnsr::iJ&lt;DataVector, Dim&gt;&amp; deriv_shift,
+<span class="lineNum">      99 </span>            :     const tnsr::II&lt;DataVector, Dim&gt;&amp; upper_spatial_metric,
+<span class="lineNum">     100 </span>            :     const tnsr::I&lt;DataVector, Dim&gt;&amp; trace_spatial_christoffel,
+<span class="lineNum">     101 </span>            :     const Scalar&lt;DataVector&gt;&amp; trace_extrinsic_curvature,
+<span class="lineNum">     102 </span>            :     const Scalar&lt;DataVector&gt;&amp; gamma1,
+<span class="lineNum">     103 </span>            :     const Scalar&lt;DataVector&gt;&amp; gamma2) noexcept {
+<span class="lineNum">     104 </span>            :   dt_psi-&gt;get() = -lapse.get() * pi.get();
+<span class="lineNum">     105 </span>            :   for (size_t m = 0; m &lt; Dim; ++m) {
+<span class="lineNum">     106 </span>            :     dt_psi-&gt;get() +=
+<span class="lineNum">     107 </span>            :         shift.get(m) *
+<span class="lineNum">     108 </span>            :         (d_psi.get(m) + gamma1.get() * (d_psi.get(m) - phi.get(m)));
+<span class="lineNum">     109 </span>            :   }
+<span class="lineNum">     110 </span>            : 
+<span class="lineNum">     111 </span>            :   dt_pi-&gt;get() = lapse.get() * pi.get() * trace_extrinsic_curvature.get();
+<span class="lineNum">     112 </span>            :   for (size_t m = 0; m &lt; Dim; ++m) {
+<span class="lineNum">     113 </span>            :     dt_pi-&gt;get() += shift.get(m) * d_pi.get(m);
+<span class="lineNum">     114 </span>            :     dt_pi-&gt;get() += lapse.get() * phi.get(m) * trace_spatial_christoffel.get(m);
+<span class="lineNum">     115 </span>            :     dt_pi-&gt;get() += gamma1.get() * gamma2.get() * shift.get(m) *
+<span class="lineNum">     116 </span>            :                     (d_psi.get(m) - phi.get(m));
+<span class="lineNum">     117 </span>            :   }
+<span class="lineNum">     118 </span>            :   for (size_t m = 0; m &lt; Dim; ++m) {
+<span class="lineNum">     119 </span>            :     for (size_t n = 0; n &lt; Dim; ++n) {
+<span class="lineNum">     120 </span>            :       dt_pi-&gt;get() -=
+<span class="lineNum">     121 </span>            :           lapse.get() * upper_spatial_metric.get(m, n) * d_phi.get(m, n);
+<span class="lineNum">     122 </span>            :       dt_pi-&gt;get() -=
+<span class="lineNum">     123 </span>            :           upper_spatial_metric.get(m, n) * deriv_lapse.get(m) * phi.get(n);
+<span class="lineNum">     124 </span>            :     }
+<span class="lineNum">     125 </span>            :   }
+<span class="lineNum">     126 </span>            :   for (size_t k = 0; k &lt; Dim; ++k) {
+<span class="lineNum">     127 </span>            :     dt_phi-&gt;get(k) =
+<span class="lineNum">     128 </span>            :         -lapse.get() *
+<span class="lineNum">     129 </span>            :             (d_pi.get(k) + gamma2.get() * (phi.get(k) - d_psi.get(k))) -
+<span class="lineNum">     130 </span>            :         pi.get() * deriv_lapse.get(k);
+<span class="lineNum">     131 </span>            :     for (size_t m = 0; m &lt; Dim; ++m) {
+<span class="lineNum">     132 </span>            :       dt_phi-&gt;get(k) +=
+<span class="lineNum">     133 </span>            :           shift.get(m) * d_phi.get(m, k) + phi.get(m) * deriv_shift.get(k, m);
+<span class="lineNum">     134 </span>            :     }
+<span class="lineNum">     135 </span>            :   }
+<span class="lineNum">     136 </span>            : }
+<span class="lineNum">     137 </span>            : 
+<span class="lineNum">     138 </span>            : template &lt;size_t Dim&gt;
+<span class="lineNum">     139 </span>            : void ComputeNormalDotFluxes&lt;Dim&gt;::apply(
+<span class="lineNum">     140 </span>            :     const gsl::not_null&lt;Scalar&lt;DataVector&gt;*&gt; pi_normal_dot_flux,
+<span class="lineNum">     141 </span>            :     const gsl::not_null&lt;tnsr::i&lt;DataVector, Dim&gt;*&gt; phi_normal_dot_flux,
+<span class="lineNum">     142 </span>            :     const gsl::not_null&lt;Scalar&lt;DataVector&gt;*&gt; psi_normal_dot_flux,
+<span class="lineNum">     143 </span>            :     const Scalar&lt;DataVector&gt;&amp; pi, const tnsr::i&lt;DataVector, Dim&gt;&amp; phi,
+<span class="lineNum">     144 </span>            :     const Scalar&lt;DataVector&gt;&amp; psi, const Scalar&lt;DataVector&gt;&amp; gamma1,
+<span class="lineNum">     145 </span>            :     const Scalar&lt;DataVector&gt;&amp; gamma2, const Scalar&lt;DataVector&gt;&amp; lapse,
+<span class="lineNum">     146 </span>            :     const tnsr::I&lt;DataVector, Dim&gt;&amp; shift,
+<span class="lineNum">     147 </span>            :     const tnsr::II&lt;DataVector, Dim&gt;&amp; inverse_spatial_metric,
+<span class="lineNum">     148 </span>            :     const tnsr::i&lt;DataVector, Dim&gt;&amp; interface_unit_normal) noexcept {
+<span class="lineNum">     149 </span>            :   const auto shift_dot_normal = get(dot_product(shift, interface_unit_normal));
+<span class="lineNum">     150 </span>            :   const auto normal_dot_phi = [&amp;]() {
+<span class="lineNum">     151 </span>            :     auto normal_dot_phi_ = make_with_value&lt;Scalar&lt;DataVector&gt;&gt;(psi, 0.);
+<span class="lineNum">     152 </span>            :     for (size_t i = 0; i &lt; Dim; ++i) {
+<span class="lineNum">     153 </span>            :       for (size_t j = 0; j &lt; Dim; ++j) {
+<span class="lineNum">     154 </span>            :         get(normal_dot_phi_) += inverse_spatial_metric.get(i, j) *
+<span class="lineNum">     155 </span>            :                                 interface_unit_normal.get(j) * phi.get(i);
+<span class="lineNum">     156 </span>            :       }
+<span class="lineNum">     157 </span>            :     }
+<span class="lineNum">     158 </span>            :     return normal_dot_phi_;
+<span class="lineNum">     159 </span>            :   }();
+<span class="lineNum">     160 </span>            : 
+<span class="lineNum">     161 </span>            :   psi_normal_dot_flux-&gt;get() =
+<span class="lineNum">     162 </span>            :       -(1. + get(gamma1)) * shift_dot_normal * get(psi);
+<span class="lineNum">     163 </span>            : 
+<span class="lineNum">     164 </span>            :   pi_normal_dot_flux-&gt;get() =
+<span class="lineNum">     165 </span>            :       -shift_dot_normal * get(pi) + get(lapse) * get(normal_dot_phi) -
+<span class="lineNum">     166 </span>            :       get(gamma1) * get(gamma2) * shift_dot_normal * get(psi);
+<span class="lineNum">     167 </span>            : 
+<span class="lineNum">     168 </span>            :   for (size_t i = 0; i &lt; Dim; ++i) {
+<span class="lineNum">     169 </span>            :     phi_normal_dot_flux-&gt;get(i) =
+<span class="lineNum">     170 </span>            :         get(lapse) * (interface_unit_normal.get(i) * get(pi) -
+<span class="lineNum">     171 </span>            :                       get(gamma2) * interface_unit_normal.get(i) * get(psi)) -
+<span class="lineNum">     172 </span>            :         shift_dot_normal * phi.get(i);
+<span class="lineNum">     173 </span>            :   }
+<span class="lineNum">     174 </span>            : }
+<span class="lineNum">     175 </span>            : 
+<span class="lineNum">     176 </span>            : template &lt;size_t Dim&gt;
+<span class="lineNum">     177 </span>            : void UpwindFlux&lt;Dim&gt;::package_data(
+<span class="lineNum">     178 </span>            :     const gsl::not_null&lt;Scalar&lt;DataVector&gt;*&gt; packaged_pi,
+<span class="lineNum">     179 </span>            :     const gsl::not_null&lt;tnsr::i&lt;DataVector, Dim, Frame::Inertial&gt;*&gt;
+<span class="lineNum">     180 </span>            :         packaged_phi,
+<span class="lineNum">     181 </span>            :     const gsl::not_null&lt;Scalar&lt;DataVector&gt;*&gt; packaged_psi,
+<span class="lineNum">     182 </span>            :     const gsl::not_null&lt;Scalar&lt;DataVector&gt;*&gt; packaged_lapse,
+<span class="lineNum">     183 </span>            :     const gsl::not_null&lt;tnsr::I&lt;DataVector, Dim, Frame::Inertial&gt;*&gt;
+<span class="lineNum">     184 </span>            :         packaged_shift,
+<span class="lineNum">     185 </span>            :     const gsl::not_null&lt;tnsr::II&lt;DataVector, Dim, Frame::Inertial&gt;*&gt;
+<span class="lineNum">     186 </span>            :         packaged_inverse_spatial_metric,
+<span class="lineNum">     187 </span>            :     const gsl::not_null&lt;Scalar&lt;DataVector&gt;*&gt; packaged_gamma1,
+<span class="lineNum">     188 </span>            :     const gsl::not_null&lt;Scalar&lt;DataVector&gt;*&gt; packaged_gamma2,
+<span class="lineNum">     189 </span>            :     const gsl::not_null&lt;tnsr::i&lt;DataVector, Dim, Frame::Inertial&gt;*&gt;
+<span class="lineNum">     190 </span>            :         packaged_interface_unit_normal,
+<span class="lineNum">     191 </span>            :     const Scalar&lt;DataVector&gt;&amp; pi,
+<span class="lineNum">     192 </span>            :     const tnsr::i&lt;DataVector, Dim, Frame::Inertial&gt;&amp; phi,
+<span class="lineNum">     193 </span>            :     const Scalar&lt;DataVector&gt;&amp; psi, const Scalar&lt;DataVector&gt;&amp; lapse,
+<span class="lineNum">     194 </span>            :     const tnsr::I&lt;DataVector, Dim, Frame::Inertial&gt;&amp; shift,
+<span class="lineNum">     195 </span>            :     const tnsr::II&lt;DataVector, Dim, Frame::Inertial&gt;&amp; inverse_spatial_metric,
+<span class="lineNum">     196 </span>            :     const Scalar&lt;DataVector&gt;&amp; gamma1, const Scalar&lt;DataVector&gt;&amp; gamma2,
+<span class="lineNum">     197 </span>            :     const tnsr::i&lt;DataVector, Dim, Frame::Inertial&gt;&amp; interface_unit_normal)
+<span class="lineNum">     198 </span>            :     const noexcept {
+<span class="lineNum">     199 </span>            :   *packaged_psi = psi;
+<span class="lineNum">     200 </span>            :   *packaged_pi = pi;
+<span class="lineNum">     201 </span>            :   *packaged_phi = phi;
+<span class="lineNum">     202 </span>            :   *packaged_lapse = lapse;
+<span class="lineNum">     203 </span>            :   *packaged_shift = shift;
+<span class="lineNum">     204 </span>            :   *packaged_inverse_spatial_metric = inverse_spatial_metric;
+<span class="lineNum">     205 </span>            :   *packaged_gamma1 = gamma1;
+<span class="lineNum">     206 </span>            :   *packaged_gamma2 = gamma2;
+<span class="lineNum">     207 </span>            :   *packaged_interface_unit_normal = interface_unit_normal;
+<span class="lineNum">     208 </span>            : }
+<span class="lineNum">     209 </span>            : 
+<span class="lineNum">     210 </span>            : template &lt;size_t Dim&gt;
+<span class="lineNum">     211 </span>            : void UpwindFlux&lt;Dim&gt;::operator()(
+<span class="lineNum">     212 </span>            :     const gsl::not_null&lt;Scalar&lt;DataVector&gt;*&gt; pi_normal_dot_numerical_flux,
+<span class="lineNum">     213 </span>            :     const gsl::not_null&lt;tnsr::i&lt;DataVector, Dim, Frame::Inertial&gt;*&gt;
+<span class="lineNum">     214 </span>            :         phi_normal_dot_numerical_flux,
+<span class="lineNum">     215 </span>            :     const gsl::not_null&lt;Scalar&lt;DataVector&gt;*&gt; psi_normal_dot_numerical_flux,
+<span class="lineNum">     216 </span>            :     const Scalar&lt;DataVector&gt;&amp; pi_int,
+<span class="lineNum">     217 </span>            :     const tnsr::i&lt;DataVector, Dim, Frame::Inertial&gt;&amp; phi_int,
+<span class="lineNum">     218 </span>            :     const Scalar&lt;DataVector&gt;&amp; psi_int, const Scalar&lt;DataVector&gt;&amp; lapse_int,
+<span class="lineNum">     219 </span>            :     const tnsr::I&lt;DataVector, Dim, Frame::Inertial&gt;&amp; shift_int,
+<span class="lineNum">     220 </span>            :     const tnsr::II&lt;DataVector, Dim, Frame::Inertial&gt;&amp;
+<span class="lineNum">     221 </span>            :         inverse_spatial_metric_int,
+<span class="lineNum">     222 </span>            :     const Scalar&lt;DataVector&gt;&amp; gamma1_int, const Scalar&lt;DataVector&gt;&amp; gamma2_int,
+<span class="lineNum">     223 </span>            :     const tnsr::i&lt;DataVector, Dim, Frame::Inertial&gt;&amp; interface_unit_normal_int,
+<span class="lineNum">     224 </span>            :     const Scalar&lt;DataVector&gt;&amp; pi_ext,
+<span class="lineNum">     225 </span>            :     const tnsr::i&lt;DataVector, Dim, Frame::Inertial&gt;&amp; phi_ext,
+<span class="lineNum">     226 </span>            :     const Scalar&lt;DataVector&gt;&amp; psi_ext, const Scalar&lt;DataVector&gt;&amp; lapse_ext,
+<span class="lineNum">     227 </span>            :     const tnsr::I&lt;DataVector, Dim, Frame::Inertial&gt;&amp; shift_ext,
+<span class="lineNum">     228 </span>            :     const tnsr::II&lt;DataVector, Dim, Frame::Inertial&gt;&amp;
+<span class="lineNum">     229 </span>            :         inverse_spatial_metric_ext,
+<span class="lineNum">     230 </span>            :     const Scalar&lt;DataVector&gt;&amp; gamma1_ext, const Scalar&lt;DataVector&gt;&amp; gamma2_ext,
+<span class="lineNum">     231 </span>            :     const tnsr::i&lt;DataVector, Dim,
+<span class="lineNum">     232 </span>            :                   Frame::Inertial&gt;&amp; /*interface_unit_normal_ext*/) const
+<span class="lineNum">     233 </span>            :     noexcept {
+<span class="lineNum">     234 </span>            :   const Scalar&lt;DataVector&gt; gamma1_avg{0.5 *
+<span class="lineNum">     235 </span>            :                                       (get(gamma1_int) + get(gamma1_ext))};
+<span class="lineNum">     236 </span>            :   const Scalar&lt;DataVector&gt; gamma2_avg{0.5 *
+<span class="lineNum">     237 </span>            :                                       (get(gamma2_int) + get(gamma2_ext))};
+<span class="lineNum">     238 </span>            : 
+<span class="lineNum">     239 </span>            :   const auto char_fields_int =
+<span class="lineNum">     240 </span>            :       characteristic_fields(gamma2_avg, inverse_spatial_metric_int, psi_int,
+<span class="lineNum">     241 </span>            :                             pi_int, phi_int, interface_unit_normal_int);
+<span class="lineNum">     242 </span>            :   const auto char_speeds_int = characteristic_speeds(
+<span class="lineNum">     243 </span>            :       gamma1_avg, lapse_int, shift_int, interface_unit_normal_int);
+<span class="lineNum">     244 </span>            :   const auto char_fields_ext =
+<span class="lineNum">     245 </span>            :       characteristic_fields(gamma2_avg, inverse_spatial_metric_ext, psi_ext,
+<span class="lineNum">     246 </span>            :                             pi_ext, phi_ext, interface_unit_normal_int);
+<span class="lineNum">     247 </span>            :   const auto char_speeds_ext = characteristic_speeds(
+<span class="lineNum">     248 </span>            :       gamma1_avg, lapse_ext, shift_ext, interface_unit_normal_int);
+<span class="lineNum">     249 </span>            : 
+<span class="lineNum">     250 </span>            :   const auto weighted_char_fields =
+<span class="lineNum">     251 </span>            :       CurvedScalarWave_detail::weight_char_fields&lt;Dim&gt;(
+<span class="lineNum">     252 </span>            :           char_fields_int, char_speeds_int, char_fields_ext, char_speeds_ext);
+<span class="lineNum">     253 </span>            : 
+<span class="lineNum">     254 </span>            :   const auto weighted_evolved_fields =
+<span class="lineNum">     255 </span>            :       evolved_fields_from_characteristic_fields(
+<span class="lineNum">     256 </span>            :           gamma2_avg, get&lt;Tags::VPsi&gt;(weighted_char_fields),
+<span class="lineNum">     257 </span>            :           get&lt;Tags::VZero&lt;Dim&gt;&gt;(weighted_char_fields),
+<span class="lineNum">     258 </span>            :           get&lt;Tags::VPlus&gt;(weighted_char_fields),
+<span class="lineNum">     259 </span>            :           get&lt;Tags::VMinus&gt;(weighted_char_fields), interface_unit_normal_int);
+<span class="lineNum">     260 </span>            : 
+<span class="lineNum">     261 </span>            :   *psi_normal_dot_numerical_flux = get&lt;Psi&gt;(weighted_evolved_fields);
+<span class="lineNum">     262 </span>            :   *pi_normal_dot_numerical_flux = get&lt;Pi&gt;(weighted_evolved_fields);
+<span class="lineNum">     263 </span>            :   *phi_normal_dot_numerical_flux = get&lt;Phi&lt;Dim&gt;&gt;(weighted_evolved_fields);
+<span class="lineNum">     264 </span>            : }
+<span class="lineNum">     265 </span>            : /// \endcond
+<span class="lineNum">     266 </span>            : }  // namespace CurvedScalarWave
+<span class="lineNum">     267 </span>            : // Generate explicit instantiations of partial_derivatives function as well as
+<span class="lineNum">     268 </span>            : // all other functions in Equations.cpp
+<span class="lineNum">     269 </span>            : 
+<span class="lineNum">     270 </span>            : #include &quot;NumericalAlgorithms/LinearOperators/PartialDerivatives.tpp&quot;  // IWYU pragma: keep
+<span class="lineNum">     271 </span>            : 
+<span class="lineNum">     272 </span>            : template &lt;size_t Dim&gt;
+<span class="lineNum">     273 </span><span class="lineNoCov">          0 : using derivative_tags = typename CurvedScalarWave::System&lt;Dim&gt;::gradients_tags;</span>
+<span class="lineNum">     274 </span>            : 
+<span class="lineNum">     275 </span>            : template &lt;size_t Dim&gt;
+<span class="lineNum">     276 </span><span class="lineNoCov">          0 : using variables_tags =</span>
+<span class="lineNum">     277 </span>            :     typename CurvedScalarWave::System&lt;Dim&gt;::variables_tag::tags_list;
+<span class="lineNum">     278 </span>            : 
+<span class="lineNum">     279 </span><span class="lineNoCov">          0 : using derivative_frame = Frame::Inertial;</span>
+<span class="lineNum">     280 </span>            : 
+<span class="lineNum">     281 </span><span class="lineNoCov">          0 : #define DIM(data) BOOST_PP_TUPLE_ELEM(0, data)</span>
+<span class="lineNum">     282 </span>            : 
+<span class="lineNum">     283 </span><span class="lineNoCov">          0 : #define INSTANTIATION(_, data)                                               \</span>
+<span class="lineNum">     284 </span>            :   template class CurvedScalarWave::ComputeDuDt&lt;DIM(data)&gt;;                   \
+<span class="lineNum">     285 </span>            :   template struct CurvedScalarWave::ComputeNormalDotFluxes&lt;DIM(data)&gt;;       \
+<span class="lineNum">     286 </span>            :   template struct CurvedScalarWave::UpwindFlux&lt;DIM(data)&gt;;                   \
+<span class="lineNum">     287 </span>            :   template Variables&lt;                                                        \
+<span class="lineNum">     288 </span>            :       db::wrap_tags_in&lt;::Tags::deriv, derivative_tags&lt;DIM(data)&gt;,            \
+<span class="lineNum">     289 </span>            :                        tmpl::size_t&lt;DIM(data)&gt;, derivative_frame&gt;&gt;           \
+<span class="lineNum">     290 </span>            :   partial_derivatives&lt;derivative_tags&lt;DIM(data)&gt;, variables_tags&lt;DIM(data)&gt;, \
+<span class="lineNum">     291 </span>            :                       DIM(data), derivative_frame&gt;(                          \
+<span class="lineNum">     292 </span>            :       const Variables&lt;variables_tags&lt;DIM(data)&gt;&gt;&amp; u,                         \
+<span class="lineNum">     293 </span>            :       const Mesh&lt;DIM(data)&gt;&amp; mesh,                                           \
+<span class="lineNum">     294 </span>            :       const InverseJacobian&lt;DataVector, DIM(data), Frame::Logical,           \
+<span class="lineNum">     295 </span>            :                             derivative_frame&gt;&amp; inverse_jacobian) noexcept;
+<span class="lineNum">     296 </span>            : 
+<span class="lineNum">     297 </span>            : GENERATE_INSTANTIATIONS(INSTANTIATION, (1, 2, 3))
+<span class="lineNum">     298 </span>            : 
+<span class="lineNum">     299 </span>            : #undef INSTANTIATION
+<span class="lineNum">     300 </span>            : #undef DIM
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

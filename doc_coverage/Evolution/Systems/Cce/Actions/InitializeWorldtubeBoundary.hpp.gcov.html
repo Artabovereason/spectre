@@ -1,0 +1,269 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - Evolution/Systems/Cce/Actions/InitializeWorldtubeBoundary.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../../index.html">top level</a> - <a href="index.html">Evolution/Systems/Cce/Actions</a> - InitializeWorldtubeBoundary.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">2</td>
+            <td class="headerCovTableEntry">15</td>
+            <td class="headerCovTableEntryLo">13.3 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #pragma once
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;cstddef&gt;
+<span class="lineNum">       7 </span>            : #include &lt;tuple&gt;
+<span class="lineNum">       8 </span>            : #include &lt;utility&gt;
+<span class="lineNum">       9 </span>            : 
+<span class="lineNum">      10 </span>            : #include &quot;DataStructures/DataBox/DataBox.hpp&quot;
+<span class="lineNum">      11 </span>            : #include &quot;DataStructures/DataBox/DataBoxTag.hpp&quot;
+<span class="lineNum">      12 </span>            : #include &quot;DataStructures/VariablesTag.hpp&quot;
+<span class="lineNum">      13 </span>            : #include &quot;Evolution/Systems/Cce/BoundaryData.hpp&quot;
+<span class="lineNum">      14 </span>            : #include &quot;Evolution/Systems/Cce/InterfaceManagers/GhLockstepInterfaceManager.hpp&quot;
+<span class="lineNum">      15 </span>            : #include &quot;Evolution/Systems/Cce/InterfaceManagers/WorldtubeInterfaceManager.hpp&quot;
+<span class="lineNum">      16 </span>            : #include &quot;Evolution/Systems/Cce/OptionTags.hpp&quot;
+<span class="lineNum">      17 </span>            : #include &quot;Evolution/Systems/Cce/ReadBoundaryDataH5.hpp&quot;
+<span class="lineNum">      18 </span>            : #include &quot;Evolution/Systems/Cce/Tags.hpp&quot;
+<span class="lineNum">      19 </span>            : #include &quot;NumericalAlgorithms/Interpolation/SpanInterpolator.hpp&quot;
+<span class="lineNum">      20 </span>            : #include &quot;Parallel/Algorithm.hpp&quot;
+<span class="lineNum">      21 </span>            : #include &quot;Parallel/Info.hpp&quot;
+<span class="lineNum">      22 </span>            : #include &quot;Parallel/Invoke.hpp&quot;
+<span class="lineNum">      23 </span>            : #include &quot;ParallelAlgorithms/Initialization/MergeIntoDataBox.hpp&quot;
+<span class="lineNum">      24 </span>            : #include &quot;Utilities/Gsl.hpp&quot;
+<span class="lineNum">      25 </span>            : #include &quot;Utilities/Requires.hpp&quot;
+<span class="lineNum">      26 </span>            : #include &quot;Utilities/TMPL.hpp&quot;
+<span class="lineNum">      27 </span>            : #include &quot;Utilities/TaggedTuple.hpp&quot;
+<span class="lineNum">      28 </span>            : 
+<span class="lineNum">      29 </span>            : namespace Cce {
+<span class="lineNum">      30 </span>            : namespace Actions {
+<span class="lineNum">      31 </span>            : /*!
+<span class="lineNum">      32 </span>            :  * \ingroup ActionsGroup
+<span class="lineNum">      33 </span>            :  * \brief Initializes a H5WorldtubeBoundary
+<span class="lineNum">      34 </span>            :  *
+<span class="lineNum">      35 </span>            :  * \details Uses:
+<span class="lineNum">      36 </span>            :  * - initialization tag
+<span class="lineNum">      37 </span>            :  * `Cce::InitializationTags::H5WorldtubeBoundaryDataManager`,
+<span class="lineNum">      38 </span>            :  * - const global cache tag `Cce::Tags::LMax`.
+<span class="lineNum">      39 </span>            :  *
+<span class="lineNum">      40 </span>            :  * Databox changes:
+<span class="lineNum">      41 </span>            :  * - Adds:
+<span class="lineNum">      42 </span>            :  *   - `Cce::Tags::H5WorldtubeBoundaryDataManager`
+<span class="lineNum">      43 </span>            :  *   - `Tags::Variables&lt;typename
+<span class="lineNum">      44 </span>            :  * Metavariables::cce_boundary_communication_tags&gt;`
+<span class="lineNum">      45 </span>            :  * - Removes: nothing
+<span class="lineNum">      46 </span>            :  * - Modifies: nothing
+<span class="lineNum">      47 </span>            :  */
+<span class="lineNum">      48 </span><span class="lineCov">          1 : struct InitializeH5WorldtubeBoundary {</span>
+<span class="lineNum">      49 </span><span class="lineNoCov">          0 :   using initialization_tags =</span>
+<span class="lineNum">      50 </span>            :       tmpl::list&lt;InitializationTags::H5WorldtubeBoundaryDataManager&gt;;
+<span class="lineNum">      51 </span>            : 
+<span class="lineNum">      52 </span><span class="lineNoCov">          0 :   using const_global_cache_tags = tmpl::list&lt;Tags::LMax&gt;;</span>
+<span class="lineNum">      53 </span>            : 
+<span class="lineNum">      54 </span>            :   template &lt;class Metavariables&gt;
+<span class="lineNum">      55 </span><span class="lineNoCov">          0 :   using h5_boundary_manager_simple_tags = db::AddSimpleTags&lt;</span>
+<span class="lineNum">      56 </span>            :       ::Tags::Variables&lt;
+<span class="lineNum">      57 </span>            :           typename Metavariables::cce_boundary_communication_tags&gt;,
+<span class="lineNum">      58 </span>            :       Tags::H5WorldtubeBoundaryDataManager&gt;;
+<span class="lineNum">      59 </span>            : 
+<span class="lineNum">      60 </span>            :   template &lt;class Metavariables&gt;
+<span class="lineNum">      61 </span><span class="lineNoCov">          0 :   using return_tag_list = h5_boundary_manager_simple_tags&lt;Metavariables&gt;;</span>
+<span class="lineNum">      62 </span>            : 
+<span class="lineNum">      63 </span>            :   template &lt;typename DbTags, typename... InboxTags, typename Metavariables,
+<span class="lineNum">      64 </span>            :             typename ArrayIndex, typename ActionList,
+<span class="lineNum">      65 </span>            :             typename ParallelComponent,
+<span class="lineNum">      66 </span>            :             Requires&lt;tmpl::list_contains_v&lt;
+<span class="lineNum">      67 </span>            :                 DbTags, InitializationTags::H5WorldtubeBoundaryDataManager&gt;&gt; =
+<span class="lineNum">      68 </span>            :                 nullptr&gt;
+<span class="lineNum">      69 </span><span class="lineNoCov">          0 :   static auto apply(db::DataBox&lt;DbTags&gt;&amp; box,</span>
+<span class="lineNum">      70 </span>            :                     const tuples::TaggedTuple&lt;InboxTags...&gt;&amp; /*inboxes*/,
+<span class="lineNum">      71 </span>            :                     const Parallel::ConstGlobalCache&lt;Metavariables&gt;&amp; /*cache*/,
+<span class="lineNum">      72 </span>            :                     const ArrayIndex&amp; /*array_index*/,
+<span class="lineNum">      73 </span>            :                     const ActionList /*meta*/,
+<span class="lineNum">      74 </span>            :                     const ParallelComponent* const /*meta*/) noexcept {
+<span class="lineNum">      75 </span>            :     const size_t l_max = db::get&lt;Tags::LMax&gt;(box);
+<span class="lineNum">      76 </span>            :     Variables&lt;typename Metavariables::cce_boundary_communication_tags&gt;
+<span class="lineNum">      77 </span>            :         boundary_variables{
+<span class="lineNum">      78 </span>            :             Spectral::Swsh::number_of_swsh_collocation_points(l_max)};
+<span class="lineNum">      79 </span>            : 
+<span class="lineNum">      80 </span>            :     WorldtubeDataManager boundary_data_manager;
+<span class="lineNum">      81 </span>            :     db::mutate&lt;InitializationTags::H5WorldtubeBoundaryDataManager&gt;(
+<span class="lineNum">      82 </span>            :         make_not_null(&amp;box),
+<span class="lineNum">      83 </span>            :         [&amp;boundary_data_manager](const gsl::not_null&lt;WorldtubeDataManager*&gt;
+<span class="lineNum">      84 </span>            :                                      initialization_data_manager) noexcept {
+<span class="lineNum">      85 </span>            :           boundary_data_manager = std::move(*initialization_data_manager);
+<span class="lineNum">      86 </span>            :         });
+<span class="lineNum">      87 </span>            :     auto initial_box = Initialization::merge_into_databox&lt;
+<span class="lineNum">      88 </span>            :         InitializeH5WorldtubeBoundary,
+<span class="lineNum">      89 </span>            :         h5_boundary_manager_simple_tags&lt;Metavariables&gt;, db::AddComputeTags&lt;&gt;,
+<span class="lineNum">      90 </span>            :         Initialization::MergePolicy::Overwrite&gt;(
+<span class="lineNum">      91 </span>            :         std::move(box), std::move(boundary_variables),
+<span class="lineNum">      92 </span>            :         std::move(boundary_data_manager));
+<span class="lineNum">      93 </span>            : 
+<span class="lineNum">      94 </span>            :     return std::make_tuple(std::move(initial_box));
+<span class="lineNum">      95 </span>            :   }
+<span class="lineNum">      96 </span>            : 
+<span class="lineNum">      97 </span>            :   template &lt;typename DbTags, typename... InboxTags, typename Metavariables,
+<span class="lineNum">      98 </span>            :             typename ArrayIndex, typename ActionList,
+<span class="lineNum">      99 </span>            :             typename ParallelComponent,
+<span class="lineNum">     100 </span>            :             Requires&lt;not tmpl::list_contains_v&lt;
+<span class="lineNum">     101 </span>            :                 DbTags, InitializationTags::H5WorldtubeBoundaryDataManager&gt;&gt; =
+<span class="lineNum">     102 </span>            :                 nullptr&gt;
+<span class="lineNum">     103 </span><span class="lineNoCov">          0 :   static auto apply(db::DataBox&lt;DbTags&gt;&amp; box,</span>
+<span class="lineNum">     104 </span>            :                     const tuples::TaggedTuple&lt;InboxTags...&gt;&amp; /*inboxes*/,
+<span class="lineNum">     105 </span>            :                     const Parallel::ConstGlobalCache&lt;Metavariables&gt;&amp; /*cache*/,
+<span class="lineNum">     106 </span>            :                     const ArrayIndex&amp; /*array_index*/,
+<span class="lineNum">     107 </span>            :                     const ActionList /*meta*/,
+<span class="lineNum">     108 </span>            :                     const ParallelComponent* const /*meta*/) noexcept {
+<span class="lineNum">     109 </span>            :     return std::make_tuple(std::move(box));
+<span class="lineNum">     110 </span>            :   }
+<span class="lineNum">     111 </span>            : };
+<span class="lineNum">     112 </span>            : 
+<span class="lineNum">     113 </span>            : /*!
+<span class="lineNum">     114 </span>            :  * \ingroup ActionsGroup
+<span class="lineNum">     115 </span>            :  * \brief Initializes a GhWorldtubeBoundary
+<span class="lineNum">     116 </span>            :  *
+<span class="lineNum">     117 </span>            :  * \details Uses:
+<span class="lineNum">     118 </span>            :  * - initialization tag
+<span class="lineNum">     119 </span>            :  * `Cce::InitializationTags::GhWorldtubeBoundaryDataManager`,
+<span class="lineNum">     120 </span>            :  * - const global cache tags `InitializationTags::LMax`,
+<span class="lineNum">     121 </span>            :  * `InitializationTags::ExtractionRadius`.
+<span class="lineNum">     122 </span>            :  *
+<span class="lineNum">     123 </span>            :  * Databox changes:
+<span class="lineNum">     124 </span>            :  * - Adds:
+<span class="lineNum">     125 </span>            :  *   - `Tags::Variables&lt;typename
+<span class="lineNum">     126 </span>            :  * Metavariables::cce_boundary_communication_tags&gt;`
+<span class="lineNum">     127 </span>            :  *   - `Tags::GhInterfaceManager` (cloned from
+<span class="lineNum">     128 </span>            :  * `InitializationTags::GhInterfaceManager`)
+<span class="lineNum">     129 </span>            :  * - Removes: nothing
+<span class="lineNum">     130 </span>            :  * - Modifies: nothing
+<span class="lineNum">     131 </span>            :  */
+<span class="lineNum">     132 </span><span class="lineCov">          1 : struct InitializeGhWorldtubeBoundary {</span>
+<span class="lineNum">     133 </span><span class="lineNoCov">          0 :   using initialization_tags = tmpl::list&lt;Tags::GhInterfaceManager&gt;;</span>
+<span class="lineNum">     134 </span>            : 
+<span class="lineNum">     135 </span><span class="lineNoCov">          0 :   using initialization_tags_to_keep = tmpl::list&lt;Tags::GhInterfaceManager&gt;;</span>
+<span class="lineNum">     136 </span>            : 
+<span class="lineNum">     137 </span><span class="lineNoCov">          0 :   using const_global_cache_tags =</span>
+<span class="lineNum">     138 </span>            :       tmpl::list&lt;Tags::LMax, InitializationTags::ExtractionRadius&gt;;
+<span class="lineNum">     139 </span>            : 
+<span class="lineNum">     140 </span>            :   template &lt;class Metavariables&gt;
+<span class="lineNum">     141 </span><span class="lineNoCov">          0 :   using gh_boundary_manager_simple_tags = db::AddSimpleTags&lt;</span>
+<span class="lineNum">     142 </span>            :       ::Tags::Variables&lt;
+<span class="lineNum">     143 </span>            :           typename Metavariables::cce_boundary_communication_tags&gt;,
+<span class="lineNum">     144 </span>            :       Tags::GhInterfaceManager&gt;;
+<span class="lineNum">     145 </span>            : 
+<span class="lineNum">     146 </span>            :   template &lt;typename DbTags, typename... InboxTags, typename Metavariables,
+<span class="lineNum">     147 </span>            :             typename ArrayIndex, typename ActionList,
+<span class="lineNum">     148 </span>            :             typename ParallelComponent,
+<span class="lineNum">     149 </span>            :             Requires&lt;tmpl::list_contains_v&lt;DbTags, Tags::GhInterfaceManager&gt;&gt; =
+<span class="lineNum">     150 </span>            :                 nullptr&gt;
+<span class="lineNum">     151 </span><span class="lineNoCov">          0 :   static auto apply(db::DataBox&lt;DbTags&gt;&amp; box,</span>
+<span class="lineNum">     152 </span>            :                     const tuples::TaggedTuple&lt;InboxTags...&gt;&amp; /*inboxes*/,
+<span class="lineNum">     153 </span>            :                     const Parallel::ConstGlobalCache&lt;Metavariables&gt;&amp; /*cache*/,
+<span class="lineNum">     154 </span>            :                     const ArrayIndex&amp; /*array_index*/,
+<span class="lineNum">     155 </span>            :                     const ActionList /*meta*/,
+<span class="lineNum">     156 </span>            :                     const ParallelComponent* const /*meta*/) noexcept {
+<span class="lineNum">     157 </span>            :     const size_t l_max = db::get&lt;Tags::LMax&gt;(box);
+<span class="lineNum">     158 </span>            :     Variables&lt;typename Metavariables::cce_boundary_communication_tags&gt;
+<span class="lineNum">     159 </span>            :         boundary_variables{
+<span class="lineNum">     160 </span>            :             Spectral::Swsh::number_of_swsh_collocation_points(l_max)};
+<span class="lineNum">     161 </span>            : 
+<span class="lineNum">     162 </span>            :     auto initial_box = Initialization::merge_into_databox&lt;
+<span class="lineNum">     163 </span>            :         InitializeGhWorldtubeBoundary,
+<span class="lineNum">     164 </span>            :         gh_boundary_manager_simple_tags&lt;Metavariables&gt;, db::AddComputeTags&lt;&gt;,
+<span class="lineNum">     165 </span>            :         Initialization::MergePolicy::Overwrite&gt;(
+<span class="lineNum">     166 </span>            :         std::move(box), std::move(boundary_variables),
+<span class="lineNum">     167 </span>            :         db::get&lt;Tags::GhInterfaceManager&gt;(box).get_clone());
+<span class="lineNum">     168 </span>            : 
+<span class="lineNum">     169 </span>            :     return std::make_tuple(std::move(initial_box));
+<span class="lineNum">     170 </span>            :   }
+<span class="lineNum">     171 </span>            : 
+<span class="lineNum">     172 </span>            :   template &lt;
+<span class="lineNum">     173 </span>            :       typename DbTags, typename... InboxTags, typename Metavariables,
+<span class="lineNum">     174 </span>            :       typename ArrayIndex, typename ActionList, typename ParallelComponent,
+<span class="lineNum">     175 </span>            :       Requires&lt;not tmpl::list_contains_v&lt;DbTags, Tags::GhInterfaceManager&gt;&gt; =
+<span class="lineNum">     176 </span>            :           nullptr&gt;
+<span class="lineNum">     177 </span><span class="lineNoCov">          0 :   static auto apply(db::DataBox&lt;DbTags&gt;&amp; box,</span>
+<span class="lineNum">     178 </span>            :                     const tuples::TaggedTuple&lt;InboxTags...&gt;&amp; /*inboxes*/,
+<span class="lineNum">     179 </span>            :                     const Parallel::ConstGlobalCache&lt;Metavariables&gt;&amp; /*cache*/,
+<span class="lineNum">     180 </span>            :                     const ArrayIndex&amp; /*array_index*/,
+<span class="lineNum">     181 </span>            :                     const ActionList /*meta*/,
+<span class="lineNum">     182 </span>            :                     const ParallelComponent* const /*meta*/) noexcept {
+<span class="lineNum">     183 </span>            :     ERROR(
+<span class="lineNum">     184 </span>            :         &quot;Required tag `Tags::GhInterfaceManager` is missing from the DataBox&quot;);
+<span class="lineNum">     185 </span>            :     return std::make_tuple(std::move(box));
+<span class="lineNum">     186 </span>            :   }
+<span class="lineNum">     187 </span>            : };
+<span class="lineNum">     188 </span>            : }  // namespace Actions
+<span class="lineNum">     189 </span>            : }  // namespace Cce
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

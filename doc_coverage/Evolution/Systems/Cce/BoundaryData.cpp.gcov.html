@@ -1,0 +1,1063 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - Evolution/Systems/Cce/BoundaryData.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../index.html">top level</a> - <a href="index.html">Evolution/Systems/Cce</a> - BoundaryData.cpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">22</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #include &quot;Evolution/Systems/Cce/BoundaryData.hpp&quot;
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;cstddef&gt;
+<span class="lineNum">       7 </span>            : 
+<span class="lineNum">       8 </span>            : #include &quot;DataStructures/ComplexDataVector.hpp&quot;
+<span class="lineNum">       9 </span>            : #include &quot;DataStructures/DataVector.hpp&quot;
+<span class="lineNum">      10 </span>            : #include &quot;DataStructures/SpinWeighted.hpp&quot;
+<span class="lineNum">      11 </span>            : #include &quot;DataStructures/Tensor/EagerMath/Magnitude.hpp&quot;
+<span class="lineNum">      12 </span>            : #include &quot;DataStructures/Tensor/Tensor.hpp&quot;
+<span class="lineNum">      13 </span>            : #include &quot;DataStructures/Tensor/TypeAliases.hpp&quot;
+<span class="lineNum">      14 </span>            : #include &quot;NumericalAlgorithms/Spectral/SwshCollocation.hpp&quot;
+<span class="lineNum">      15 </span>            : #include &quot;NumericalAlgorithms/Spectral/SwshDerivatives.hpp&quot;
+<span class="lineNum">      16 </span>            : #include &quot;PointwiseFunctions/GeneralRelativity/ComputeGhQuantities.hpp&quot;
+<span class="lineNum">      17 </span>            : #include &quot;PointwiseFunctions/GeneralRelativity/ComputeSpacetimeQuantities.hpp&quot;
+<span class="lineNum">      18 </span>            : #include &quot;Utilities/ContainerHelpers.hpp&quot;
+<span class="lineNum">      19 </span>            : #include &quot;Utilities/Math.hpp&quot;
+<span class="lineNum">      20 </span>            : 
+<span class="lineNum">      21 </span>            : namespace Cce {
+<span class="lineNum">      22 </span>            : 
+<span class="lineNum">      23 </span><span class="lineNoCov">          0 : void trigonometric_functions_on_swsh_collocation(</span>
+<span class="lineNum">      24 </span>            :     const gsl::not_null&lt;Scalar&lt;DataVector&gt;*&gt; cos_phi,
+<span class="lineNum">      25 </span>            :     const gsl::not_null&lt;Scalar&lt;DataVector&gt;*&gt; cos_theta,
+<span class="lineNum">      26 </span>            :     const gsl::not_null&lt;Scalar&lt;DataVector&gt;*&gt; sin_phi,
+<span class="lineNum">      27 </span>            :     const gsl::not_null&lt;Scalar&lt;DataVector&gt;*&gt; sin_theta,
+<span class="lineNum">      28 </span>            :     const size_t l_max) noexcept {
+<span class="lineNum">      29 </span>            :   const size_t size = Spectral::Swsh::number_of_swsh_collocation_points(l_max);
+<span class="lineNum">      30 </span>            :   destructive_resize_components(cos_phi, size);
+<span class="lineNum">      31 </span>            :   destructive_resize_components(cos_theta, size);
+<span class="lineNum">      32 </span>            :   destructive_resize_components(sin_phi, size);
+<span class="lineNum">      33 </span>            :   destructive_resize_components(sin_theta, size);
+<span class="lineNum">      34 </span>            : 
+<span class="lineNum">      35 </span>            :   const auto&amp; collocation = Spectral::Swsh::cached_collocation_metadata&lt;
+<span class="lineNum">      36 </span>            :       Spectral::Swsh::ComplexRepresentation::Interleaved&gt;(l_max);
+<span class="lineNum">      37 </span>            :   for (const auto&amp; collocation_point : collocation) {
+<span class="lineNum">      38 </span>            :     get(*sin_theta)[collocation_point.offset] = sin(collocation_point.theta);
+<span class="lineNum">      39 </span>            :     get(*cos_theta)[collocation_point.offset] = cos(collocation_point.theta);
+<span class="lineNum">      40 </span>            :     get(*sin_phi)[collocation_point.offset] = sin(collocation_point.phi);
+<span class="lineNum">      41 </span>            :     get(*cos_phi)[collocation_point.offset] = cos(collocation_point.phi);
+<span class="lineNum">      42 </span>            :   }
+<span class="lineNum">      43 </span>            : }
+<span class="lineNum">      44 </span>            : 
+<span class="lineNum">      45 </span><span class="lineNoCov">          0 : void cartesian_to_spherical_coordinates_and_jacobians(</span>
+<span class="lineNum">      46 </span>            :     const gsl::not_null&lt;tnsr::I&lt;DataVector, 3&gt;*&gt; unit_cartesian_coords,
+<span class="lineNum">      47 </span>            :     const gsl::not_null&lt;SphericaliCartesianJ*&gt; cartesian_to_spherical_jacobian,
+<span class="lineNum">      48 </span>            :     const gsl::not_null&lt;CartesianiSphericalJ*&gt;
+<span class="lineNum">      49 </span>            :         inverse_cartesian_to_spherical_jacobian,
+<span class="lineNum">      50 </span>            :     const Scalar&lt;DataVector&gt;&amp; cos_phi, const Scalar&lt;DataVector&gt;&amp; cos_theta,
+<span class="lineNum">      51 </span>            :     const Scalar&lt;DataVector&gt;&amp; sin_phi, const Scalar&lt;DataVector&gt;&amp; sin_theta,
+<span class="lineNum">      52 </span>            :     const double extraction_radius) noexcept {
+<span class="lineNum">      53 </span>            :   const size_t size = get(cos_phi).size();
+<span class="lineNum">      54 </span>            :   destructive_resize_components(unit_cartesian_coords, size);
+<span class="lineNum">      55 </span>            :   destructive_resize_components(cartesian_to_spherical_jacobian, size);
+<span class="lineNum">      56 </span>            :   destructive_resize_components(inverse_cartesian_to_spherical_jacobian, size);
+<span class="lineNum">      57 </span>            : 
+<span class="lineNum">      58 </span>            :   // note: factor of r scaled out
+<span class="lineNum">      59 </span>            :   get&lt;0&gt;(*unit_cartesian_coords) = get(sin_theta) * get(cos_phi);
+<span class="lineNum">      60 </span>            :   get&lt;1&gt;(*unit_cartesian_coords) = get(sin_theta) * get(sin_phi);
+<span class="lineNum">      61 </span>            :   get&lt;2&gt;(*unit_cartesian_coords) = get(cos_theta);
+<span class="lineNum">      62 </span>            : 
+<span class="lineNum">      63 </span>            :   // dx/dr   dy/dr  dz/dr
+<span class="lineNum">      64 </span>            :   get&lt;0, 0&gt;(*cartesian_to_spherical_jacobian) = get(sin_theta) * get(cos_phi);
+<span class="lineNum">      65 </span>            :   get&lt;0, 1&gt;(*cartesian_to_spherical_jacobian) = get(sin_theta) * get(sin_phi);
+<span class="lineNum">      66 </span>            :   get&lt;0, 2&gt;(*cartesian_to_spherical_jacobian) = get(cos_theta);
+<span class="lineNum">      67 </span>            :   // dx/dtheta   dy/dtheta  dz/dtheta
+<span class="lineNum">      68 </span>            :   get&lt;1, 0&gt;(*cartesian_to_spherical_jacobian) =
+<span class="lineNum">      69 </span>            :       extraction_radius * get(cos_theta) * get(cos_phi);
+<span class="lineNum">      70 </span>            :   get&lt;1, 1&gt;(*cartesian_to_spherical_jacobian) =
+<span class="lineNum">      71 </span>            :       extraction_radius * get(cos_theta) * get(sin_phi);
+<span class="lineNum">      72 </span>            :   get&lt;1, 2&gt;(*cartesian_to_spherical_jacobian) =
+<span class="lineNum">      73 </span>            :       -extraction_radius * get(sin_theta);
+<span class="lineNum">      74 </span>            :   // (1/sin(theta)) { dx/dphi,   dy/dphi,  dz/dphi }
+<span class="lineNum">      75 </span>            :   get&lt;2, 0&gt;(*cartesian_to_spherical_jacobian) =
+<span class="lineNum">      76 </span>            :       -extraction_radius * get(sin_phi);
+<span class="lineNum">      77 </span>            :   get&lt;2, 1&gt;(*cartesian_to_spherical_jacobian) =
+<span class="lineNum">      78 </span>            :       extraction_radius * get(cos_phi);
+<span class="lineNum">      79 </span>            :   get&lt;2, 2&gt;(*cartesian_to_spherical_jacobian) = 0.0;
+<span class="lineNum">      80 </span>            : 
+<span class="lineNum">      81 </span>            :   // dr/dx   dtheta/dx   dphi/dx * sin(theta)
+<span class="lineNum">      82 </span>            :   get&lt;0, 0&gt;(*inverse_cartesian_to_spherical_jacobian) =
+<span class="lineNum">      83 </span>            :       get(cos_phi) * get(sin_theta);
+<span class="lineNum">      84 </span>            :   get&lt;0, 1&gt;(*inverse_cartesian_to_spherical_jacobian) =
+<span class="lineNum">      85 </span>            :       get(cos_phi) * get(cos_theta) / extraction_radius;
+<span class="lineNum">      86 </span>            :   get&lt;0, 2&gt;(*inverse_cartesian_to_spherical_jacobian) =
+<span class="lineNum">      87 </span>            :       -get(sin_phi) / (extraction_radius);
+<span class="lineNum">      88 </span>            :   // dr/dy   dtheta/dy   dphi/dy * sin(theta)
+<span class="lineNum">      89 </span>            :   get&lt;1, 0&gt;(*inverse_cartesian_to_spherical_jacobian) =
+<span class="lineNum">      90 </span>            :       get(sin_phi) * get(sin_theta);
+<span class="lineNum">      91 </span>            :   get&lt;1, 1&gt;(*inverse_cartesian_to_spherical_jacobian) =
+<span class="lineNum">      92 </span>            :       get(cos_theta) * get(sin_phi) / extraction_radius;
+<span class="lineNum">      93 </span>            :   get&lt;1, 2&gt;(*inverse_cartesian_to_spherical_jacobian) =
+<span class="lineNum">      94 </span>            :       get(cos_phi) / (extraction_radius);
+<span class="lineNum">      95 </span>            :   // dr/dz   dtheta/dz   dphi/dz * sin(theta)
+<span class="lineNum">      96 </span>            :   get&lt;2, 0&gt;(*inverse_cartesian_to_spherical_jacobian) = get(cos_theta);
+<span class="lineNum">      97 </span>            :   get&lt;2, 1&gt;(*inverse_cartesian_to_spherical_jacobian) =
+<span class="lineNum">      98 </span>            :       -get(sin_theta) / extraction_radius;
+<span class="lineNum">      99 </span>            :   get&lt;2, 2&gt;(*inverse_cartesian_to_spherical_jacobian) = 0.0;
+<span class="lineNum">     100 </span>            : }
+<span class="lineNum">     101 </span>            : 
+<span class="lineNum">     102 </span><span class="lineNoCov">          0 : void cartesian_spatial_metric_and_derivatives_from_modes(</span>
+<span class="lineNum">     103 </span>            :     const gsl::not_null&lt;tnsr::ii&lt;DataVector, 3&gt;*&gt; cartesian_spatial_metric,
+<span class="lineNum">     104 </span>            :     const gsl::not_null&lt;tnsr::II&lt;DataVector, 3&gt;*&gt;
+<span class="lineNum">     105 </span>            :         inverse_cartesian_spatial_metric,
+<span class="lineNum">     106 </span>            :     const gsl::not_null&lt;tnsr::ijj&lt;DataVector, 3&gt;*&gt; d_cartesian_spatial_metric,
+<span class="lineNum">     107 </span>            :     const gsl::not_null&lt;tnsr::ii&lt;DataVector, 3&gt;*&gt; dt_cartesian_spatial_metric,
+<span class="lineNum">     108 </span>            :     const gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexModalVector, 0&gt;&gt;*&gt;
+<span class="lineNum">     109 </span>            :         interpolation_modal_buffer,
+<span class="lineNum">     110 </span>            :     const gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;*&gt;
+<span class="lineNum">     111 </span>            :         interpolation_buffer,
+<span class="lineNum">     112 </span>            :     const gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 1&gt;&gt;*&gt; eth_buffer,
+<span class="lineNum">     113 </span>            :     const tnsr::ii&lt;ComplexModalVector, 3&gt;&amp; spatial_metric_coefficients,
+<span class="lineNum">     114 </span>            :     const tnsr::ii&lt;ComplexModalVector, 3&gt;&amp; dr_spatial_metric_coefficients,
+<span class="lineNum">     115 </span>            :     const tnsr::ii&lt;ComplexModalVector, 3&gt;&amp; dt_spatial_metric_coefficients,
+<span class="lineNum">     116 </span>            :     const CartesianiSphericalJ&amp; inverse_cartesian_to_spherical_jacobian,
+<span class="lineNum">     117 </span>            :     const size_t l_max) noexcept {
+<span class="lineNum">     118 </span>            :   const size_t size = get&lt;0, 0&gt;(inverse_cartesian_to_spherical_jacobian).size();
+<span class="lineNum">     119 </span>            :   destructive_resize_components(cartesian_spatial_metric, size);
+<span class="lineNum">     120 </span>            :   destructive_resize_components(d_cartesian_spatial_metric, size);
+<span class="lineNum">     121 </span>            :   destructive_resize_components(dt_cartesian_spatial_metric, size);
+<span class="lineNum">     122 </span>            : 
+<span class="lineNum">     123 </span>            :   destructive_resize_components(interpolation_buffer, size);
+<span class="lineNum">     124 </span>            :   destructive_resize_components(interpolation_modal_buffer, size);
+<span class="lineNum">     125 </span>            :   destructive_resize_components(eth_buffer, size);
+<span class="lineNum">     126 </span>            : 
+<span class="lineNum">     127 </span>            :   // Allocation
+<span class="lineNum">     128 </span>            :   SphericaliCartesianjj spherical_d_cartesian_spatial_metric{size};
+<span class="lineNum">     129 </span>            : 
+<span class="lineNum">     130 </span>            :   for (size_t i = 0; i &lt; 3; ++i) {
+<span class="lineNum">     131 </span>            :     for (size_t j = i; j &lt; 3; ++j) {
+<span class="lineNum">     132 </span>            :       // copy the modes to a spin-weighted type for interpolation
+<span class="lineNum">     133 </span>            :       get(*interpolation_modal_buffer).data() =
+<span class="lineNum">     134 </span>            :           spatial_metric_coefficients.get(i, j);
+<span class="lineNum">     135 </span>            :       Spectral::Swsh::inverse_swsh_transform(
+<span class="lineNum">     136 </span>            :           l_max, 1, make_not_null(&amp;get(*interpolation_buffer)),
+<span class="lineNum">     137 </span>            :           get(*interpolation_modal_buffer));
+<span class="lineNum">     138 </span>            :       cartesian_spatial_metric-&gt;get(i, j) =
+<span class="lineNum">     139 </span>            :           real(get(*interpolation_buffer).data());
+<span class="lineNum">     140 </span>            : 
+<span class="lineNum">     141 </span>            :       get(*interpolation_modal_buffer).data() =
+<span class="lineNum">     142 </span>            :           dt_spatial_metric_coefficients.get(i, j);
+<span class="lineNum">     143 </span>            :       Spectral::Swsh::inverse_swsh_transform(
+<span class="lineNum">     144 </span>            :           l_max, 1, make_not_null(&amp;get(*interpolation_buffer)),
+<span class="lineNum">     145 </span>            :           get(*interpolation_modal_buffer));
+<span class="lineNum">     146 </span>            :       dt_cartesian_spatial_metric-&gt;get(i, j) =
+<span class="lineNum">     147 </span>            :           real(get(*interpolation_buffer).data());
+<span class="lineNum">     148 </span>            : 
+<span class="lineNum">     149 </span>            :       get(*interpolation_modal_buffer).data() =
+<span class="lineNum">     150 </span>            :           dr_spatial_metric_coefficients.get(i, j);
+<span class="lineNum">     151 </span>            :       Spectral::Swsh::inverse_swsh_transform(
+<span class="lineNum">     152 </span>            :           l_max, 1, make_not_null(&amp;get(*interpolation_buffer)),
+<span class="lineNum">     153 </span>            :           get(*interpolation_modal_buffer));
+<span class="lineNum">     154 </span>            :       spherical_d_cartesian_spatial_metric.get(0, i, j) =
+<span class="lineNum">     155 </span>            :           real(get(*interpolation_buffer).data());
+<span class="lineNum">     156 </span>            :     }
+<span class="lineNum">     157 </span>            :   }
+<span class="lineNum">     158 </span>            : 
+<span class="lineNum">     159 </span>            :   *inverse_cartesian_spatial_metric =
+<span class="lineNum">     160 </span>            :       determinant_and_inverse(*cartesian_spatial_metric).second;
+<span class="lineNum">     161 </span>            : 
+<span class="lineNum">     162 </span>            :   for (size_t i = 0; i &lt; 3; ++i) {
+<span class="lineNum">     163 </span>            :     for (size_t j = i; j &lt; 3; ++j) {
+<span class="lineNum">     164 </span>            :       // reusing the interpolation buffer for taking the angular derivatives
+<span class="lineNum">     165 </span>            :       get(*interpolation_buffer) =
+<span class="lineNum">     166 </span>            :           std::complex&lt;double&gt;(1.0, 0.0) * cartesian_spatial_metric-&gt;get(i, j);
+<span class="lineNum">     167 </span>            :       Spectral::Swsh::angular_derivatives&lt;
+<span class="lineNum">     168 </span>            :           tmpl::list&lt;Spectral::Swsh::Tags::Eth&gt;&gt;(
+<span class="lineNum">     169 </span>            :           l_max, 1, make_not_null(&amp;get(*eth_buffer)),
+<span class="lineNum">     170 </span>            :           get(*interpolation_buffer));
+<span class="lineNum">     171 </span>            :       spherical_d_cartesian_spatial_metric.get(1, i, j) =
+<span class="lineNum">     172 </span>            :           -real(get(*eth_buffer).data());
+<span class="lineNum">     173 </span>            :       spherical_d_cartesian_spatial_metric.get(2, i, j) =
+<span class="lineNum">     174 </span>            :           -imag(get(*eth_buffer).data());
+<span class="lineNum">     175 </span>            :     }
+<span class="lineNum">     176 </span>            :   }
+<span class="lineNum">     177 </span>            : 
+<span class="lineNum">     178 </span>            :   // convert derivatives to cartesian form
+<span class="lineNum">     179 </span>            :   for (size_t i = 0; i &lt; 3; ++i) {
+<span class="lineNum">     180 </span>            :     for (size_t j = i; j &lt; 3; ++j) {
+<span class="lineNum">     181 </span>            :       for (size_t k = 0; k &lt; 3; ++k) {
+<span class="lineNum">     182 </span>            :         d_cartesian_spatial_metric-&gt;get(k, i, j) =
+<span class="lineNum">     183 </span>            :             inverse_cartesian_to_spherical_jacobian.get(k, 0) *
+<span class="lineNum">     184 </span>            :             spherical_d_cartesian_spatial_metric.get(0, i, j);
+<span class="lineNum">     185 </span>            :         for (size_t A = 0; A &lt; 2; ++A) {
+<span class="lineNum">     186 </span>            :           d_cartesian_spatial_metric-&gt;get(k, i, j) +=
+<span class="lineNum">     187 </span>            :               inverse_cartesian_to_spherical_jacobian.get(k, A + 1) *
+<span class="lineNum">     188 </span>            :               spherical_d_cartesian_spatial_metric.get(A + 1, i, j);
+<span class="lineNum">     189 </span>            :         }
+<span class="lineNum">     190 </span>            :       }
+<span class="lineNum">     191 </span>            :     }
+<span class="lineNum">     192 </span>            :   }
+<span class="lineNum">     193 </span>            : }
+<span class="lineNum">     194 </span>            : 
+<span class="lineNum">     195 </span><span class="lineNoCov">          0 : void cartesian_shift_and_derivatives_from_modes(</span>
+<span class="lineNum">     196 </span>            :     const gsl::not_null&lt;tnsr::I&lt;DataVector, 3&gt;*&gt; cartesian_shift,
+<span class="lineNum">     197 </span>            :     const gsl::not_null&lt;tnsr::iJ&lt;DataVector, 3&gt;*&gt; d_cartesian_shift,
+<span class="lineNum">     198 </span>            :     const gsl::not_null&lt;tnsr::I&lt;DataVector, 3&gt;*&gt; dt_cartesian_shift,
+<span class="lineNum">     199 </span>            :     const gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexModalVector, 0&gt;&gt;*&gt;
+<span class="lineNum">     200 </span>            :         interpolation_modal_buffer,
+<span class="lineNum">     201 </span>            :     const gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;*&gt;
+<span class="lineNum">     202 </span>            :         interpolation_buffer,
+<span class="lineNum">     203 </span>            :     const gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 1&gt;&gt;*&gt; eth_buffer,
+<span class="lineNum">     204 </span>            :     const tnsr::I&lt;ComplexModalVector, 3&gt;&amp; shift_coefficients,
+<span class="lineNum">     205 </span>            :     const tnsr::I&lt;ComplexModalVector, 3&gt;&amp; dr_shift_coefficients,
+<span class="lineNum">     206 </span>            :     const tnsr::I&lt;ComplexModalVector, 3&gt;&amp; dt_shift_coefficients,
+<span class="lineNum">     207 </span>            :     const CartesianiSphericalJ&amp; inverse_cartesian_to_spherical_jacobian,
+<span class="lineNum">     208 </span>            :     const size_t l_max) noexcept {
+<span class="lineNum">     209 </span>            :   const size_t size = get&lt;0, 0&gt;(inverse_cartesian_to_spherical_jacobian).size();
+<span class="lineNum">     210 </span>            :   destructive_resize_components(cartesian_shift, size);
+<span class="lineNum">     211 </span>            :   destructive_resize_components(d_cartesian_shift, size);
+<span class="lineNum">     212 </span>            :   destructive_resize_components(dt_cartesian_shift, size);
+<span class="lineNum">     213 </span>            : 
+<span class="lineNum">     214 </span>            :   destructive_resize_components(interpolation_buffer, size);
+<span class="lineNum">     215 </span>            :   destructive_resize_components(interpolation_modal_buffer, size);
+<span class="lineNum">     216 </span>            :   destructive_resize_components(eth_buffer, size);
+<span class="lineNum">     217 </span>            : 
+<span class="lineNum">     218 </span>            :   // Allocation
+<span class="lineNum">     219 </span>            :   SphericaliCartesianJ spherical_d_cartesian_shift{size};
+<span class="lineNum">     220 </span>            : 
+<span class="lineNum">     221 </span>            :   for (size_t i = 0; i &lt; 3; ++i) {
+<span class="lineNum">     222 </span>            :     // copy the modes to a spin-weighted type for interpolation
+<span class="lineNum">     223 </span>            :     get(*interpolation_modal_buffer).data() = shift_coefficients.get(i);
+<span class="lineNum">     224 </span>            :     Spectral::Swsh::inverse_swsh_transform(
+<span class="lineNum">     225 </span>            :         l_max, 1, make_not_null(&amp;get(*interpolation_buffer)),
+<span class="lineNum">     226 </span>            :         get(*interpolation_modal_buffer));
+<span class="lineNum">     227 </span>            :     cartesian_shift-&gt;get(i) = real(get(*interpolation_buffer).data());
+<span class="lineNum">     228 </span>            : 
+<span class="lineNum">     229 </span>            :     get(*interpolation_modal_buffer).data() = dt_shift_coefficients.get(i);
+<span class="lineNum">     230 </span>            :     Spectral::Swsh::inverse_swsh_transform(
+<span class="lineNum">     231 </span>            :         l_max, 1, make_not_null(&amp;get(*interpolation_buffer)),
+<span class="lineNum">     232 </span>            :         get(*interpolation_modal_buffer));
+<span class="lineNum">     233 </span>            :     dt_cartesian_shift-&gt;get(i) = real(get(*interpolation_buffer).data());
+<span class="lineNum">     234 </span>            : 
+<span class="lineNum">     235 </span>            :     get(*interpolation_modal_buffer).data() = dr_shift_coefficients.get(i);
+<span class="lineNum">     236 </span>            :     Spectral::Swsh::inverse_swsh_transform(
+<span class="lineNum">     237 </span>            :         l_max, 1, make_not_null(&amp;get(*interpolation_buffer)),
+<span class="lineNum">     238 </span>            :         get(*interpolation_modal_buffer));
+<span class="lineNum">     239 </span>            :     spherical_d_cartesian_shift.get(0, i) =
+<span class="lineNum">     240 </span>            :         real(get(*interpolation_buffer).data());
+<span class="lineNum">     241 </span>            :   }
+<span class="lineNum">     242 </span>            : 
+<span class="lineNum">     243 </span>            :   for (size_t i = 0; i &lt; 3; ++i) {
+<span class="lineNum">     244 </span>            :     // reusing the interpolation buffer for taking the angular derivatives
+<span class="lineNum">     245 </span>            :     get(*interpolation_buffer) =
+<span class="lineNum">     246 </span>            :         std::complex&lt;double&gt;(1.0, 0.0) * cartesian_shift-&gt;get(i);
+<span class="lineNum">     247 </span>            :     Spectral::Swsh::angular_derivatives&lt;tmpl::list&lt;Spectral::Swsh::Tags::Eth&gt;&gt;(
+<span class="lineNum">     248 </span>            :         l_max, 1, make_not_null(&amp;get(*eth_buffer)), get(*interpolation_buffer));
+<span class="lineNum">     249 </span>            :     spherical_d_cartesian_shift.get(1, i) = -real(get(*eth_buffer).data());
+<span class="lineNum">     250 </span>            :     spherical_d_cartesian_shift.get(2, i) = -imag(get(*eth_buffer).data());
+<span class="lineNum">     251 </span>            :   }
+<span class="lineNum">     252 </span>            : 
+<span class="lineNum">     253 </span>            :   // convert derivatives to cartesian form
+<span class="lineNum">     254 </span>            :   for (size_t i = 0; i &lt; 3; ++i) {
+<span class="lineNum">     255 </span>            :     for (size_t k = 0; k &lt; 3; ++k) {
+<span class="lineNum">     256 </span>            :       d_cartesian_shift-&gt;get(k, i) =
+<span class="lineNum">     257 </span>            :           inverse_cartesian_to_spherical_jacobian.get(k, 0) *
+<span class="lineNum">     258 </span>            :           spherical_d_cartesian_shift.get(0, i);
+<span class="lineNum">     259 </span>            :       for (size_t A = 0; A &lt; 2; ++A) {
+<span class="lineNum">     260 </span>            :         d_cartesian_shift-&gt;get(k, i) +=
+<span class="lineNum">     261 </span>            :             inverse_cartesian_to_spherical_jacobian.get(k, A + 1) *
+<span class="lineNum">     262 </span>            :             spherical_d_cartesian_shift.get(A + 1, i);
+<span class="lineNum">     263 </span>            :       }
+<span class="lineNum">     264 </span>            :     }
+<span class="lineNum">     265 </span>            :   }
+<span class="lineNum">     266 </span>            : }
+<span class="lineNum">     267 </span>            : 
+<span class="lineNum">     268 </span><span class="lineNoCov">          0 : void cartesian_lapse_and_derivatives_from_modes(</span>
+<span class="lineNum">     269 </span>            :     const gsl::not_null&lt;Scalar&lt;DataVector&gt;*&gt; cartesian_lapse,
+<span class="lineNum">     270 </span>            :     const gsl::not_null&lt;tnsr::i&lt;DataVector, 3&gt;*&gt; d_cartesian_lapse,
+<span class="lineNum">     271 </span>            :     const gsl::not_null&lt;Scalar&lt;DataVector&gt;*&gt; dt_cartesian_lapse,
+<span class="lineNum">     272 </span>            :     const gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexModalVector, 0&gt;&gt;*&gt;
+<span class="lineNum">     273 </span>            :         interpolation_modal_buffer,
+<span class="lineNum">     274 </span>            :     const gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;*&gt;
+<span class="lineNum">     275 </span>            :         interpolation_buffer,
+<span class="lineNum">     276 </span>            :     const gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 1&gt;&gt;*&gt; eth_buffer,
+<span class="lineNum">     277 </span>            :     const Scalar&lt;ComplexModalVector&gt;&amp; lapse_coefficients,
+<span class="lineNum">     278 </span>            :     const Scalar&lt;ComplexModalVector&gt;&amp; dr_lapse_coefficients,
+<span class="lineNum">     279 </span>            :     const Scalar&lt;ComplexModalVector&gt;&amp; dt_lapse_coefficients,
+<span class="lineNum">     280 </span>            :     const CartesianiSphericalJ&amp; inverse_cartesian_to_spherical_jacobian,
+<span class="lineNum">     281 </span>            :     const size_t l_max) noexcept {
+<span class="lineNum">     282 </span>            :   const size_t size = get&lt;0, 0&gt;(inverse_cartesian_to_spherical_jacobian).size();
+<span class="lineNum">     283 </span>            :   destructive_resize_components(cartesian_lapse, size);
+<span class="lineNum">     284 </span>            :   destructive_resize_components(d_cartesian_lapse, size);
+<span class="lineNum">     285 </span>            :   destructive_resize_components(dt_cartesian_lapse, size);
+<span class="lineNum">     286 </span>            : 
+<span class="lineNum">     287 </span>            :   destructive_resize_components(interpolation_buffer, size);
+<span class="lineNum">     288 </span>            :   destructive_resize_components(interpolation_modal_buffer, size);
+<span class="lineNum">     289 </span>            :   destructive_resize_components(eth_buffer, size);
+<span class="lineNum">     290 </span>            : 
+<span class="lineNum">     291 </span>            :   // Allocation
+<span class="lineNum">     292 </span>            :   tnsr::i&lt;DataVector, 3&gt; spherical_d_cartesian_lapse{size};
+<span class="lineNum">     293 </span>            :   // copy the modes to a spin-weighted type for interpolation
+<span class="lineNum">     294 </span>            :   get(*interpolation_modal_buffer).data() = get(lapse_coefficients);
+<span class="lineNum">     295 </span>            :   Spectral::Swsh::inverse_swsh_transform(
+<span class="lineNum">     296 </span>            :       l_max, 1, make_not_null(&amp;get(*interpolation_buffer)),
+<span class="lineNum">     297 </span>            :       get(*interpolation_modal_buffer));
+<span class="lineNum">     298 </span>            :   get(*cartesian_lapse) = real(get(*interpolation_buffer).data());
+<span class="lineNum">     299 </span>            : 
+<span class="lineNum">     300 </span>            :   get(*interpolation_modal_buffer).data() = get(dt_lapse_coefficients);
+<span class="lineNum">     301 </span>            :   Spectral::Swsh::inverse_swsh_transform(
+<span class="lineNum">     302 </span>            :       l_max, 1, make_not_null(&amp;get(*interpolation_buffer)),
+<span class="lineNum">     303 </span>            :       get(*interpolation_modal_buffer));
+<span class="lineNum">     304 </span>            :   get(*dt_cartesian_lapse) = real(get(*interpolation_buffer).data());
+<span class="lineNum">     305 </span>            : 
+<span class="lineNum">     306 </span>            :   get(*interpolation_modal_buffer).data() = get(dr_lapse_coefficients);
+<span class="lineNum">     307 </span>            :   Spectral::Swsh::inverse_swsh_transform(
+<span class="lineNum">     308 </span>            :       l_max, 1, make_not_null(&amp;get(*interpolation_buffer)),
+<span class="lineNum">     309 </span>            :       get(*interpolation_modal_buffer));
+<span class="lineNum">     310 </span>            :   get&lt;0&gt;(spherical_d_cartesian_lapse) = real(get(*interpolation_buffer).data());
+<span class="lineNum">     311 </span>            : 
+<span class="lineNum">     312 </span>            :   // reusing the interpolation buffer for taking the angular derivatives
+<span class="lineNum">     313 </span>            :   get(*interpolation_buffer) =
+<span class="lineNum">     314 </span>            :       std::complex&lt;double&gt;(1.0, 0.0) * get(*cartesian_lapse);
+<span class="lineNum">     315 </span>            :   Spectral::Swsh::angular_derivatives&lt;tmpl::list&lt;Spectral::Swsh::Tags::Eth&gt;&gt;(
+<span class="lineNum">     316 </span>            :       l_max, 1, make_not_null(&amp;get(*eth_buffer)), get(*interpolation_buffer));
+<span class="lineNum">     317 </span>            :   spherical_d_cartesian_lapse.get(1) = -real(get(*eth_buffer).data());
+<span class="lineNum">     318 </span>            :   spherical_d_cartesian_lapse.get(2) = -imag(get(*eth_buffer).data());
+<span class="lineNum">     319 </span>            : 
+<span class="lineNum">     320 </span>            :   // convert derivatives to cartesian form
+<span class="lineNum">     321 </span>            :   for (size_t k = 0; k &lt; 3; ++k) {
+<span class="lineNum">     322 </span>            :     d_cartesian_lapse-&gt;get(k) =
+<span class="lineNum">     323 </span>            :         inverse_cartesian_to_spherical_jacobian.get(k, 0) *
+<span class="lineNum">     324 </span>            :         get&lt;0&gt;(spherical_d_cartesian_lapse);
+<span class="lineNum">     325 </span>            :     for (size_t A = 0; A &lt; 2; ++A) {
+<span class="lineNum">     326 </span>            :       d_cartesian_lapse-&gt;get(k) +=
+<span class="lineNum">     327 </span>            :           inverse_cartesian_to_spherical_jacobian.get(k, A + 1) *
+<span class="lineNum">     328 </span>            :           spherical_d_cartesian_lapse.get(A + 1);
+<span class="lineNum">     329 </span>            :     }
+<span class="lineNum">     330 </span>            :   }
+<span class="lineNum">     331 </span>            : }
+<span class="lineNum">     332 </span>            : 
+<span class="lineNum">     333 </span><span class="lineNoCov">          0 : void null_metric_and_derivative(</span>
+<span class="lineNum">     334 </span>            :     const gsl::not_null&lt;tnsr::aa&lt;DataVector, 3, Frame::RadialNull&gt;*&gt;
+<span class="lineNum">     335 </span>            :         du_null_metric,
+<span class="lineNum">     336 </span>            :     const gsl::not_null&lt;tnsr::aa&lt;DataVector, 3, Frame::RadialNull&gt;*&gt;
+<span class="lineNum">     337 </span>            :         null_metric,
+<span class="lineNum">     338 </span>            :     const SphericaliCartesianJ&amp; cartesian_to_spherical_jacobian,
+<span class="lineNum">     339 </span>            :     const tnsr::aa&lt;DataVector, 3&gt;&amp; dt_spacetime_metric,
+<span class="lineNum">     340 </span>            :     const tnsr::aa&lt;DataVector, 3&gt;&amp; spacetime_metric) noexcept {
+<span class="lineNum">     341 </span>            :   const size_t size = get&lt;0, 0&gt;(spacetime_metric).size();
+<span class="lineNum">     342 </span>            :   destructive_resize_components(null_metric, size);
+<span class="lineNum">     343 </span>            :   destructive_resize_components(du_null_metric, size);
+<span class="lineNum">     344 </span>            : 
+<span class="lineNum">     345 </span>            :   get&lt;0, 0&gt;(*null_metric) = get&lt;0, 0&gt;(spacetime_metric);
+<span class="lineNum">     346 </span>            :   get&lt;0, 0&gt;(*du_null_metric) = get&lt;0, 0&gt;(dt_spacetime_metric);
+<span class="lineNum">     347 </span>            : 
+<span class="lineNum">     348 </span>            :   get&lt;0, 1&gt;(*null_metric) = -1.0;
+<span class="lineNum">     349 </span>            :   get&lt;0, 1&gt;(*du_null_metric) = 0.0;
+<span class="lineNum">     350 </span>            : 
+<span class="lineNum">     351 </span>            :   for (size_t i = 0; i &lt; 3; ++i) {
+<span class="lineNum">     352 </span>            :     null_metric-&gt;get(1, i + 1) = 0.0;
+<span class="lineNum">     353 </span>            :     du_null_metric-&gt;get(1, i + 1) = 0.0;
+<span class="lineNum">     354 </span>            :   }
+<span class="lineNum">     355 </span>            : 
+<span class="lineNum">     356 </span>            :   for (size_t A = 0; A &lt; 2; ++A) {
+<span class="lineNum">     357 </span>            :     null_metric-&gt;get(0, A + 2) = cartesian_to_spherical_jacobian.get(A + 1, 0) *
+<span class="lineNum">     358 </span>            :                                  spacetime_metric.get(0, 1);
+<span class="lineNum">     359 </span>            :     du_null_metric-&gt;get(0, A + 2) =
+<span class="lineNum">     360 </span>            :         cartesian_to_spherical_jacobian.get(A + 1, 0) *
+<span class="lineNum">     361 </span>            :         dt_spacetime_metric.get(0, 1);
+<span class="lineNum">     362 </span>            :     for (size_t i = 1; i &lt; 3; ++i) {
+<span class="lineNum">     363 </span>            :       null_metric-&gt;get(0, A + 2) +=
+<span class="lineNum">     364 </span>            :           cartesian_to_spherical_jacobian.get(A + 1, i) *
+<span class="lineNum">     365 </span>            :           spacetime_metric.get(0, i + 1);
+<span class="lineNum">     366 </span>            :       du_null_metric-&gt;get(0, A + 2) +=
+<span class="lineNum">     367 </span>            :           cartesian_to_spherical_jacobian.get(A + 1, i) *
+<span class="lineNum">     368 </span>            :           dt_spacetime_metric.get(0, i + 1);
+<span class="lineNum">     369 </span>            :     }
+<span class="lineNum">     370 </span>            :   }
+<span class="lineNum">     371 </span>            : 
+<span class="lineNum">     372 </span>            :   for (size_t A = 0; A &lt; 2; ++A) {
+<span class="lineNum">     373 </span>            :     for (size_t B = A; B &lt; 2; ++B) {
+<span class="lineNum">     374 </span>            :       null_metric-&gt;get(A + 2, B + 2) =
+<span class="lineNum">     375 </span>            :           cartesian_to_spherical_jacobian.get(A + 1, 0) *
+<span class="lineNum">     376 </span>            :           cartesian_to_spherical_jacobian.get(B + 1, 0) *
+<span class="lineNum">     377 </span>            :           spacetime_metric.get(1, 1);
+<span class="lineNum">     378 </span>            :       du_null_metric-&gt;get(A + 2, B + 2) =
+<span class="lineNum">     379 </span>            :           cartesian_to_spherical_jacobian.get(A + 1, 0) *
+<span class="lineNum">     380 </span>            :           cartesian_to_spherical_jacobian.get(B + 1, 0) *
+<span class="lineNum">     381 </span>            :           dt_spacetime_metric.get(1, 1);
+<span class="lineNum">     382 </span>            : 
+<span class="lineNum">     383 </span>            :       for (size_t i = 1; i &lt; 3; ++i) {
+<span class="lineNum">     384 </span>            :         null_metric-&gt;get(A + 2, B + 2) +=
+<span class="lineNum">     385 </span>            :             cartesian_to_spherical_jacobian.get(A + 1, i) *
+<span class="lineNum">     386 </span>            :             cartesian_to_spherical_jacobian.get(B + 1, i) *
+<span class="lineNum">     387 </span>            :             spacetime_metric.get(i + 1, i + 1);
+<span class="lineNum">     388 </span>            :         du_null_metric-&gt;get(A + 2, B + 2) +=
+<span class="lineNum">     389 </span>            :             cartesian_to_spherical_jacobian.get(A + 1, i) *
+<span class="lineNum">     390 </span>            :             cartesian_to_spherical_jacobian.get(B + 1, i) *
+<span class="lineNum">     391 </span>            :             dt_spacetime_metric.get(i + 1, i + 1);
+<span class="lineNum">     392 </span>            :       }
+<span class="lineNum">     393 </span>            : 
+<span class="lineNum">     394 </span>            :       for (size_t i = 0; i &lt; 3; ++i) {
+<span class="lineNum">     395 </span>            :         for (size_t j = i + 1; j &lt; 3; ++j) {
+<span class="lineNum">     396 </span>            :           // the off-diagonal pieces must be explicitly symmetrized
+<span class="lineNum">     397 </span>            :           null_metric-&gt;get(A + 2, B + 2) +=
+<span class="lineNum">     398 </span>            :               (cartesian_to_spherical_jacobian.get(A + 1, i) *
+<span class="lineNum">     399 </span>            :                    cartesian_to_spherical_jacobian.get(B + 1, j) +
+<span class="lineNum">     400 </span>            :                cartesian_to_spherical_jacobian.get(A + 1, j) *
+<span class="lineNum">     401 </span>            :                    cartesian_to_spherical_jacobian.get(B + 1, i)) *
+<span class="lineNum">     402 </span>            :               spacetime_metric.get(i + 1, j + 1);
+<span class="lineNum">     403 </span>            :           du_null_metric-&gt;get(A + 2, B + 2) +=
+<span class="lineNum">     404 </span>            :               (cartesian_to_spherical_jacobian.get(A + 1, i) *
+<span class="lineNum">     405 </span>            :                    cartesian_to_spherical_jacobian.get(B + 1, j) +
+<span class="lineNum">     406 </span>            :                cartesian_to_spherical_jacobian.get(A + 1, j) *
+<span class="lineNum">     407 </span>            :                    cartesian_to_spherical_jacobian.get(B + 1, i)) *
+<span class="lineNum">     408 </span>            :               dt_spacetime_metric.get(i + 1, j + 1);
+<span class="lineNum">     409 </span>            :         }
+<span class="lineNum">     410 </span>            :       }
+<span class="lineNum">     411 </span>            :     }
+<span class="lineNum">     412 </span>            :   }
+<span class="lineNum">     413 </span>            : 
+<span class="lineNum">     414 </span>            :   for (size_t a = 0; a &lt; 4; ++a) {
+<span class="lineNum">     415 </span>            :     for (size_t b = 0; b &lt; a; ++b) {
+<span class="lineNum">     416 </span>            :       null_metric-&gt;get(a, b) = null_metric-&gt;get(b, a);
+<span class="lineNum">     417 </span>            :       du_null_metric-&gt;get(a, b) = du_null_metric-&gt;get(b, a);
+<span class="lineNum">     418 </span>            :     }
+<span class="lineNum">     419 </span>            :   }
+<span class="lineNum">     420 </span>            : }
+<span class="lineNum">     421 </span>            : 
+<span class="lineNum">     422 </span><span class="lineNoCov">          0 : void worldtube_normal_and_derivatives(</span>
+<span class="lineNum">     423 </span>            :     const gsl::not_null&lt;tnsr::I&lt;DataVector, 3&gt;*&gt; worldtube_normal,
+<span class="lineNum">     424 </span>            :     const gsl::not_null&lt;tnsr::I&lt;DataVector, 3&gt;*&gt; dt_worldtube_normal,
+<span class="lineNum">     425 </span>            :     const Scalar&lt;DataVector&gt;&amp; cos_phi, const Scalar&lt;DataVector&gt;&amp; cos_theta,
+<span class="lineNum">     426 </span>            :     const tnsr::aa&lt;DataVector, 3&gt;&amp; spacetime_metric,
+<span class="lineNum">     427 </span>            :     const tnsr::aa&lt;DataVector, 3&gt;&amp; dt_spacetime_metric,
+<span class="lineNum">     428 </span>            :     const Scalar&lt;DataVector&gt;&amp; sin_phi, const Scalar&lt;DataVector&gt;&amp; sin_theta,
+<span class="lineNum">     429 </span>            :     const tnsr::II&lt;DataVector, 3&gt;&amp; inverse_spatial_metric) noexcept {
+<span class="lineNum">     430 </span>            :   const size_t size = get&lt;0, 0&gt;(spacetime_metric).size();
+<span class="lineNum">     431 </span>            :   destructive_resize_components(worldtube_normal, size);
+<span class="lineNum">     432 </span>            :   destructive_resize_components(dt_worldtube_normal, size);
+<span class="lineNum">     433 </span>            : 
+<span class="lineNum">     434 </span>            :   // Allocation
+<span class="lineNum">     435 </span>            :   Variables&lt;tmpl::list&lt;::Tags::Tempi&lt;0, 3&gt;, ::Tags::TempScalar&lt;1&gt;&gt;&gt;
+<span class="lineNum">     436 </span>            :       aggregated_buffers{size};
+<span class="lineNum">     437 </span>            :   tnsr::i&lt;DataVector, 3&gt;&amp; sigma = get&lt;::Tags::Tempi&lt;0, 3&gt;&gt;(aggregated_buffers);
+<span class="lineNum">     438 </span>            :   get&lt;0&gt;(sigma) = get(cos_phi) * square(get(sin_theta));
+<span class="lineNum">     439 </span>            :   get&lt;1&gt;(sigma) = get(sin_phi) * square(get(sin_theta));
+<span class="lineNum">     440 </span>            :   get&lt;2&gt;(sigma) = get(sin_theta) * get(cos_theta);
+<span class="lineNum">     441 </span>            : 
+<span class="lineNum">     442 </span>            :   // Allocation
+<span class="lineNum">     443 </span>            :   magnitude(make_not_null(&amp;get&lt;::Tags::TempScalar&lt;1&gt;&gt;(aggregated_buffers)),
+<span class="lineNum">     444 </span>            :             sigma, inverse_spatial_metric);
+<span class="lineNum">     445 </span>            :   const DataVector&amp; norm_of_sigma =
+<span class="lineNum">     446 </span>            :       get(get&lt;::Tags::TempScalar&lt;1&gt;&gt;(aggregated_buffers));
+<span class="lineNum">     447 </span>            : 
+<span class="lineNum">     448 </span>            :   get&lt;0&gt;(sigma) /= norm_of_sigma;
+<span class="lineNum">     449 </span>            :   get&lt;1&gt;(sigma) /= norm_of_sigma;
+<span class="lineNum">     450 </span>            :   get&lt;2&gt;(sigma) /= norm_of_sigma;
+<span class="lineNum">     451 </span>            : 
+<span class="lineNum">     452 </span>            :   for (size_t i = 0; i &lt; 3; ++i) {
+<span class="lineNum">     453 </span>            :     worldtube_normal-&gt;get(i) = inverse_spatial_metric.get(i, 0) * sigma.get(0);
+<span class="lineNum">     454 </span>            :     for (size_t j = 1; j &lt; 3; ++j) {
+<span class="lineNum">     455 </span>            :       worldtube_normal-&gt;get(i) +=
+<span class="lineNum">     456 </span>            :           inverse_spatial_metric.get(i, j) * sigma.get(j);
+<span class="lineNum">     457 </span>            :     }
+<span class="lineNum">     458 </span>            :   }
+<span class="lineNum">     459 </span>            : 
+<span class="lineNum">     460 </span>            :   for (size_t i = 0; i &lt; 3; ++i) {
+<span class="lineNum">     461 </span>            :     for (size_t m = 0; m &lt; 3; ++m) {
+<span class="lineNum">     462 </span>            :       for (size_t n = 0; n &lt; 3; ++n) {
+<span class="lineNum">     463 </span>            :         if (UNLIKELY(m == 0 and n == 0)) {
+<span class="lineNum">     464 </span>            :           dt_worldtube_normal-&gt;get(i) =
+<span class="lineNum">     465 </span>            :               (0.5 * worldtube_normal-&gt;get(i) * get&lt;0&gt;(*worldtube_normal) -
+<span class="lineNum">     466 </span>            :                inverse_spatial_metric.get(i, 0)) *
+<span class="lineNum">     467 </span>            :               get&lt;0&gt;(*worldtube_normal) * get&lt;1, 1&gt;(dt_spacetime_metric);
+<span class="lineNum">     468 </span>            :         } else {
+<span class="lineNum">     469 </span>            :           dt_worldtube_normal-&gt;get(i) +=
+<span class="lineNum">     470 </span>            :               (0.5 * worldtube_normal-&gt;get(i) * worldtube_normal-&gt;get(m) -
+<span class="lineNum">     471 </span>            :                inverse_spatial_metric.get(i, m)) *
+<span class="lineNum">     472 </span>            :               worldtube_normal-&gt;get(n) * dt_spacetime_metric.get(m + 1, n + 1);
+<span class="lineNum">     473 </span>            :         }
+<span class="lineNum">     474 </span>            :       }
+<span class="lineNum">     475 </span>            :     }
+<span class="lineNum">     476 </span>            :   }
+<span class="lineNum">     477 </span>            : }
+<span class="lineNum">     478 </span>            : 
+<span class="lineNum">     479 </span><span class="lineNoCov">          0 : void null_vector_l_and_derivatives(</span>
+<span class="lineNum">     480 </span>            :     const gsl::not_null&lt;tnsr::A&lt;DataVector, 3&gt;*&gt; du_null_l,
+<span class="lineNum">     481 </span>            :     const gsl::not_null&lt;tnsr::A&lt;DataVector, 3&gt;*&gt; null_l,
+<span class="lineNum">     482 </span>            :     const tnsr::I&lt;DataVector, 3&gt;&amp; dt_worldtube_normal,
+<span class="lineNum">     483 </span>            :     const Scalar&lt;DataVector&gt;&amp; dt_lapse,
+<span class="lineNum">     484 </span>            :     const tnsr::aa&lt;DataVector, 3&gt;&amp; dt_spacetime_metric,
+<span class="lineNum">     485 </span>            :     const tnsr::I&lt;DataVector, 3&gt;&amp; dt_shift, const Scalar&lt;DataVector&gt;&amp; lapse,
+<span class="lineNum">     486 </span>            :     const tnsr::aa&lt;DataVector, 3&gt;&amp; spacetime_metric,
+<span class="lineNum">     487 </span>            :     const tnsr::I&lt;DataVector, 3&gt;&amp; shift,
+<span class="lineNum">     488 </span>            :     const tnsr::I&lt;DataVector, 3&gt;&amp; worldtube_normal) noexcept {
+<span class="lineNum">     489 </span>            :   const size_t size = get(lapse).size();
+<span class="lineNum">     490 </span>            :   destructive_resize_components(du_null_l, size);
+<span class="lineNum">     491 </span>            :   destructive_resize_components(null_l, size);
+<span class="lineNum">     492 </span>            : 
+<span class="lineNum">     493 </span>            :   // Allocation
+<span class="lineNum">     494 </span>            :   Variables&lt;tmpl::list&lt;::Tags::TempScalar&lt;0&gt;, ::Tags::TempScalar&lt;1&gt;,
+<span class="lineNum">     495 </span>            :                        ::Tags::TempScalar&lt;2&gt;&gt;&gt;
+<span class="lineNum">     496 </span>            :       aggregated_buffer{size};
+<span class="lineNum">     497 </span>            :   DataVector&amp; denominator = get(get&lt;::Tags::TempScalar&lt;0&gt;&gt;(aggregated_buffer));
+<span class="lineNum">     498 </span>            :   DataVector&amp; du_denominator =
+<span class="lineNum">     499 </span>            :       get(get&lt;::Tags::TempScalar&lt;1&gt;&gt;(aggregated_buffer));
+<span class="lineNum">     500 </span>            :   DataVector&amp; one_divided_by_lapse =
+<span class="lineNum">     501 </span>            :       get(get&lt;::Tags::TempScalar&lt;2&gt;&gt;(aggregated_buffer));
+<span class="lineNum">     502 </span>            :   one_divided_by_lapse = 1.0 / get(lapse);
+<span class="lineNum">     503 </span>            :   denominator = get(lapse);
+<span class="lineNum">     504 </span>            :   for (size_t i = 0; i &lt; 3; ++i) {
+<span class="lineNum">     505 </span>            :     // off-diagonal
+<span class="lineNum">     506 </span>            :     for (size_t j = i + 1; j &lt; 3; ++j) {
+<span class="lineNum">     507 </span>            :       denominator -= spacetime_metric.get(i + 1, j + 1) *
+<span class="lineNum">     508 </span>            :                      (shift.get(i) * worldtube_normal.get(j) +
+<span class="lineNum">     509 </span>            :                       shift.get(j) * worldtube_normal.get(i));
+<span class="lineNum">     510 </span>            :     }
+<span class="lineNum">     511 </span>            :     // diagonal
+<span class="lineNum">     512 </span>            :     denominator -= spacetime_metric.get(i + 1, i + 1) * shift.get(i) *
+<span class="lineNum">     513 </span>            :                    worldtube_normal.get(i);
+<span class="lineNum">     514 </span>            :   }
+<span class="lineNum">     515 </span>            :   // buffer re-use because we won't need the uninverted denominator after this.
+<span class="lineNum">     516 </span>            :   DataVector&amp; one_divided_by_denominator =
+<span class="lineNum">     517 </span>            :       get(get&lt;::Tags::TempScalar&lt;0&gt;&gt;(aggregated_buffer));
+<span class="lineNum">     518 </span>            :   one_divided_by_denominator = 1.0 / denominator;
+<span class="lineNum">     519 </span>            :   get&lt;0&gt;(*null_l) = one_divided_by_denominator * one_divided_by_lapse;
+<span class="lineNum">     520 </span>            :   for (size_t i = 0; i &lt; 3; ++i) {
+<span class="lineNum">     521 </span>            :     null_l-&gt;get(i + 1) =
+<span class="lineNum">     522 </span>            :         (worldtube_normal.get(i) - shift.get(i) * one_divided_by_lapse) *
+<span class="lineNum">     523 </span>            :         one_divided_by_denominator;
+<span class="lineNum">     524 </span>            :   }
+<span class="lineNum">     525 </span>            : 
+<span class="lineNum">     526 </span>            :   du_denominator = -get(dt_lapse);
+<span class="lineNum">     527 </span>            :   for (size_t i = 0; i &lt; 3; ++i) {
+<span class="lineNum">     528 </span>            :     for (size_t j = i + 1; j &lt; 3; ++j) {
+<span class="lineNum">     529 </span>            :       // symmetry
+<span class="lineNum">     530 </span>            :       du_denominator += (dt_shift.get(i) * worldtube_normal.get(j) +
+<span class="lineNum">     531 </span>            :                          dt_shift.get(j) * worldtube_normal.get(i)) *
+<span class="lineNum">     532 </span>            :                             spacetime_metric.get(i + 1, j + 1) +
+<span class="lineNum">     533 </span>            :                         (shift.get(i) * worldtube_normal.get(j) +
+<span class="lineNum">     534 </span>            :                          shift.get(j) * worldtube_normal.get(i)) *
+<span class="lineNum">     535 </span>            :                             dt_spacetime_metric.get(i + 1, j + 1) +
+<span class="lineNum">     536 </span>            :                         (shift.get(i) * dt_worldtube_normal.get(j) +
+<span class="lineNum">     537 </span>            :                          shift.get(j) * dt_worldtube_normal.get(i)) *
+<span class="lineNum">     538 </span>            :                             spacetime_metric.get(i + 1, j + 1);
+<span class="lineNum">     539 </span>            :     }
+<span class="lineNum">     540 </span>            :     // diagonal
+<span class="lineNum">     541 </span>            :     du_denominator += dt_shift.get(i) * spacetime_metric.get(i + 1, i + 1) *
+<span class="lineNum">     542 </span>            :                           worldtube_normal.get(i) +
+<span class="lineNum">     543 </span>            :                       shift.get(i) * dt_spacetime_metric.get(i + 1, i + 1) *
+<span class="lineNum">     544 </span>            :                           worldtube_normal.get(i) +
+<span class="lineNum">     545 </span>            :                       shift.get(i) * spacetime_metric.get(i + 1, i + 1) *
+<span class="lineNum">     546 </span>            :                           dt_worldtube_normal.get(i);
+<span class="lineNum">     547 </span>            :   }
+<span class="lineNum">     548 </span>            :   du_denominator *= square(one_divided_by_denominator);
+<span class="lineNum">     549 </span>            : 
+<span class="lineNum">     550 </span>            :   get&lt;0&gt;(*du_null_l) = (du_denominator - get(dt_lapse) * one_divided_by_lapse *
+<span class="lineNum">     551 </span>            :                                              one_divided_by_denominator) *
+<span class="lineNum">     552 </span>            :                        one_divided_by_lapse;
+<span class="lineNum">     553 </span>            :   for (size_t i = 0; i &lt; 3; ++i) {
+<span class="lineNum">     554 </span>            :     du_null_l-&gt;get(i + 1) =
+<span class="lineNum">     555 </span>            :         (dt_worldtube_normal.get(i) - dt_shift.get(i) * one_divided_by_lapse) *
+<span class="lineNum">     556 </span>            :         one_divided_by_denominator;
+<span class="lineNum">     557 </span>            :     du_null_l-&gt;get(i + 1) += shift.get(i) * get(dt_lapse) *
+<span class="lineNum">     558 </span>            :                              square(one_divided_by_lapse) *
+<span class="lineNum">     559 </span>            :                              one_divided_by_denominator;
+<span class="lineNum">     560 </span>            :     du_null_l-&gt;get(i + 1) +=
+<span class="lineNum">     561 </span>            :         (-shift.get(i) * one_divided_by_lapse + worldtube_normal.get(i)) *
+<span class="lineNum">     562 </span>            :         du_denominator;
+<span class="lineNum">     563 </span>            :   }
+<span class="lineNum">     564 </span>            : }
+<span class="lineNum">     565 </span>            : 
+<span class="lineNum">     566 </span><span class="lineNoCov">          0 : void dlambda_null_metric_and_inverse(</span>
+<span class="lineNum">     567 </span>            :     const gsl::not_null&lt;tnsr::aa&lt;DataVector, 3, Frame::RadialNull&gt;*&gt;
+<span class="lineNum">     568 </span>            :         dlambda_null_metric,
+<span class="lineNum">     569 </span>            :     const gsl::not_null&lt;tnsr::AA&lt;DataVector, 3, Frame::RadialNull&gt;*&gt;
+<span class="lineNum">     570 </span>            :         dlambda_inverse_null_metric,
+<span class="lineNum">     571 </span>            :     const AngulariCartesianA&amp; angular_d_null_l,
+<span class="lineNum">     572 </span>            :     const SphericaliCartesianJ&amp; cartesian_to_spherical_jacobian,
+<span class="lineNum">     573 </span>            :     const tnsr::iaa&lt;DataVector, 3&gt;&amp; phi,
+<span class="lineNum">     574 </span>            :     const tnsr::aa&lt;DataVector, 3&gt;&amp; dt_spacetime_metric,
+<span class="lineNum">     575 </span>            :     const tnsr::A&lt;DataVector, 3&gt;&amp; du_null_l,
+<span class="lineNum">     576 </span>            :     const tnsr::AA&lt;DataVector, 3, Frame::RadialNull&gt;&amp; inverse_null_metric,
+<span class="lineNum">     577 </span>            :     const tnsr::A&lt;DataVector, 3&gt;&amp; null_l,
+<span class="lineNum">     578 </span>            :     const tnsr::aa&lt;DataVector, 3&gt;&amp; spacetime_metric) noexcept {
+<span class="lineNum">     579 </span>            :   // first, the (down-index) null metric
+<span class="lineNum">     580 </span>            :   const size_t size = get&lt;0, 0&gt;(spacetime_metric).size();
+<span class="lineNum">     581 </span>            :   destructive_resize_components(dlambda_null_metric, size);
+<span class="lineNum">     582 </span>            :   destructive_resize_components(dlambda_inverse_null_metric, size);
+<span class="lineNum">     583 </span>            : 
+<span class="lineNum">     584 </span>            :   get&lt;0, 0&gt;(*dlambda_null_metric) =
+<span class="lineNum">     585 </span>            :       get&lt;0&gt;(null_l) * get&lt;0, 0&gt;(dt_spacetime_metric) +
+<span class="lineNum">     586 </span>            :       2.0 * get&lt;0&gt;(du_null_l) * get&lt;0, 0&gt;(spacetime_metric);
+<span class="lineNum">     587 </span>            :   for (size_t i = 0; i &lt; 3; ++i) {
+<span class="lineNum">     588 </span>            :     get&lt;0, 0&gt;(*dlambda_null_metric) +=
+<span class="lineNum">     589 </span>            :         null_l.get(i + 1) * phi.get(i, 0, 0) +
+<span class="lineNum">     590 </span>            :         2.0 * du_null_l.get(i + 1) * spacetime_metric.get(i + 1, 0);
+<span class="lineNum">     591 </span>            :   }
+<span class="lineNum">     592 </span>            :   // A0 component
+<span class="lineNum">     593 </span>            :   for (size_t A = 0; A &lt; 2; ++A) {
+<span class="lineNum">     594 </span>            :     dlambda_null_metric-&gt;get(0, A + 2) =
+<span class="lineNum">     595 </span>            :         cartesian_to_spherical_jacobian.get(A + 1, 0) *
+<span class="lineNum">     596 </span>            :             (get&lt;0&gt;(du_null_l) * get&lt;1, 0&gt;(spacetime_metric) +
+<span class="lineNum">     597 </span>            :              get&lt;0&gt;(null_l) * get&lt;1, 0&gt;(dt_spacetime_metric)) +
+<span class="lineNum">     598 </span>            :         angular_d_null_l.get(A, 1) * get&lt;1, 0&gt;(spacetime_metric) +
+<span class="lineNum">     599 </span>            :         angular_d_null_l.get(A, 0) * get&lt;0, 0&gt;(spacetime_metric);
+<span class="lineNum">     600 </span>            :     for (size_t k = 1; k &lt; 3; ++k) {
+<span class="lineNum">     601 </span>            :       dlambda_null_metric-&gt;get(0, A + 2) +=
+<span class="lineNum">     602 </span>            :           cartesian_to_spherical_jacobian.get(A + 1, k) *
+<span class="lineNum">     603 </span>            :               (get&lt;0&gt;(du_null_l) * spacetime_metric.get(k + 1, 0) +
+<span class="lineNum">     604 </span>            :                get&lt;0&gt;(null_l) * dt_spacetime_metric.get(k + 1, 0)) +
+<span class="lineNum">     605 </span>            :           angular_d_null_l.get(A, k + 1) * spacetime_metric.get(k + 1, 0);
+<span class="lineNum">     606 </span>            :     }
+<span class="lineNum">     607 </span>            :     for (size_t i = 0; i &lt; 3; ++i) {
+<span class="lineNum">     608 </span>            :       for (size_t k = 0; k &lt; 3; ++k) {
+<span class="lineNum">     609 </span>            :         dlambda_null_metric-&gt;get(0, A + 2) +=
+<span class="lineNum">     610 </span>            :             cartesian_to_spherical_jacobian.get(A + 1, k) *
+<span class="lineNum">     611 </span>            :             (du_null_l.get(i + 1) * spacetime_metric.get(k + 1, i + 1) +
+<span class="lineNum">     612 </span>            :              null_l.get(i + 1) * phi.get(i, k + 1, 0));
+<span class="lineNum">     613 </span>            :       }
+<span class="lineNum">     614 </span>            :     }
+<span class="lineNum">     615 </span>            :     dlambda_null_metric-&gt;get(A + 2, 0) = dlambda_null_metric-&gt;get(0, A + 2);
+<span class="lineNum">     616 </span>            :   }
+<span class="lineNum">     617 </span>            :   // zero the null directions
+<span class="lineNum">     618 </span>            :   get&lt;0, 1&gt;(*dlambda_null_metric) = 0.0;
+<span class="lineNum">     619 </span>            :   for (size_t a = 1; a &lt; 4; ++a) {
+<span class="lineNum">     620 </span>            :     dlambda_null_metric-&gt;get(1, a) = 0.0;
+<span class="lineNum">     621 </span>            :   }
+<span class="lineNum">     622 </span>            : 
+<span class="lineNum">     623 </span>            :   for (size_t A = 0; A &lt; 2; ++A) {
+<span class="lineNum">     624 </span>            :     for (size_t B = 0; B &lt; 2; ++B) {
+<span class="lineNum">     625 </span>            :       dlambda_null_metric-&gt;get(A + 2, B + 2) = 0.0;
+<span class="lineNum">     626 </span>            :     }
+<span class="lineNum">     627 </span>            :   }
+<span class="lineNum">     628 </span>            : 
+<span class="lineNum">     629 </span>            :   for (size_t A = 0; A &lt; 2; ++A) {
+<span class="lineNum">     630 </span>            :     for (size_t B = A; B &lt; 2; ++B) {
+<span class="lineNum">     631 </span>            :       for (size_t i = 0; i &lt; 3; ++i) {
+<span class="lineNum">     632 </span>            :         for (size_t j = 0; j &lt; 3; ++j) {
+<span class="lineNum">     633 </span>            :           dlambda_null_metric-&gt;get(A + 2, B + 2) +=
+<span class="lineNum">     634 </span>            :               get&lt;0&gt;(null_l) * cartesian_to_spherical_jacobian.get(A + 1, i) *
+<span class="lineNum">     635 </span>            :               cartesian_to_spherical_jacobian.get(B + 1, j) *
+<span class="lineNum">     636 </span>            :               dt_spacetime_metric.get(i + 1, j + 1);
+<span class="lineNum">     637 </span>            :         }
+<span class="lineNum">     638 </span>            :       }
+<span class="lineNum">     639 </span>            :     }
+<span class="lineNum">     640 </span>            :   }
+<span class="lineNum">     641 </span>            :   for (size_t A = 0; A &lt; 2; ++A) {
+<span class="lineNum">     642 </span>            :     for (size_t B = A; B &lt; 2; ++B) {
+<span class="lineNum">     643 </span>            :       for (size_t i = 0; i &lt; 3; ++i) {
+<span class="lineNum">     644 </span>            :         for (size_t j = 0; j &lt; 3; ++j) {
+<span class="lineNum">     645 </span>            :           for (size_t k = 0; k &lt; 3; ++k) {
+<span class="lineNum">     646 </span>            :             dlambda_null_metric-&gt;get(A + 2, B + 2) +=
+<span class="lineNum">     647 </span>            :                 null_l.get(k + 1) *
+<span class="lineNum">     648 </span>            :                 cartesian_to_spherical_jacobian.get(A + 1, i) *
+<span class="lineNum">     649 </span>            :                 cartesian_to_spherical_jacobian.get(B + 1, j) *
+<span class="lineNum">     650 </span>            :                 phi.get(k, i + 1, j + 1);
+<span class="lineNum">     651 </span>            :           }
+<span class="lineNum">     652 </span>            :         }
+<span class="lineNum">     653 </span>            :       }
+<span class="lineNum">     654 </span>            :     }
+<span class="lineNum">     655 </span>            :   }
+<span class="lineNum">     656 </span>            : 
+<span class="lineNum">     657 </span>            :   for (size_t A = 0; A &lt; 2; ++A) {
+<span class="lineNum">     658 </span>            :     for (size_t B = A; B &lt; 2; ++B) {
+<span class="lineNum">     659 </span>            :       for (size_t i = 0; i &lt; 3; ++i) {
+<span class="lineNum">     660 </span>            :         for (size_t a = 0; a &lt; 4; ++a) {
+<span class="lineNum">     661 </span>            :           dlambda_null_metric-&gt;get(A + 2, B + 2) +=
+<span class="lineNum">     662 </span>            :               (angular_d_null_l.get(A, a) *
+<span class="lineNum">     663 </span>            :                    cartesian_to_spherical_jacobian.get(B + 1, i) +
+<span class="lineNum">     664 </span>            :                angular_d_null_l.get(B, a) *
+<span class="lineNum">     665 </span>            :                    cartesian_to_spherical_jacobian.get(A + 1, i)) *
+<span class="lineNum">     666 </span>            :               spacetime_metric.get(a, i + 1);
+<span class="lineNum">     667 </span>            :         }
+<span class="lineNum">     668 </span>            :       }
+<span class="lineNum">     669 </span>            :     }
+<span class="lineNum">     670 </span>            :   }
+<span class="lineNum">     671 </span>            :   for (size_t a = 0; a &lt; 4; ++a) {
+<span class="lineNum">     672 </span>            :     for (size_t b = 0; b &lt; a; ++b) {
+<span class="lineNum">     673 </span>            :       dlambda_null_metric-&gt;get(a, b) = dlambda_null_metric-&gt;get(b, a);
+<span class="lineNum">     674 </span>            :     }
+<span class="lineNum">     675 </span>            :   }
+<span class="lineNum">     676 </span>            : 
+<span class="lineNum">     677 </span>            :   for (size_t a = 0; a &lt; 4; ++a) {
+<span class="lineNum">     678 </span>            :     for (size_t b = 0; b &lt; 4; ++b) {
+<span class="lineNum">     679 </span>            :       dlambda_inverse_null_metric-&gt;get(a, b) = 0.0;
+<span class="lineNum">     680 </span>            :     }
+<span class="lineNum">     681 </span>            :   }
+<span class="lineNum">     682 </span>            :   for (size_t A = 0; A &lt; 2; ++A) {
+<span class="lineNum">     683 </span>            :     for (size_t B = A; B &lt; 2; ++B) {
+<span class="lineNum">     684 </span>            :       for (size_t C = 0; C &lt; 2; ++C) {
+<span class="lineNum">     685 </span>            :         for (size_t D = 0; D &lt; 2; ++D) {
+<span class="lineNum">     686 </span>            :           dlambda_inverse_null_metric-&gt;get(A + 2, B + 2) -=
+<span class="lineNum">     687 </span>            :               inverse_null_metric.get(A + 2, C + 2) *
+<span class="lineNum">     688 </span>            :               inverse_null_metric.get(B + 2, D + 2) *
+<span class="lineNum">     689 </span>            :               dlambda_null_metric-&gt;get(C + 2, D + 2);
+<span class="lineNum">     690 </span>            :         }
+<span class="lineNum">     691 </span>            :       }
+<span class="lineNum">     692 </span>            :     }
+<span class="lineNum">     693 </span>            :   }
+<span class="lineNum">     694 </span>            : 
+<span class="lineNum">     695 </span>            :   for (size_t A = 0; A &lt; 2; ++A) {
+<span class="lineNum">     696 </span>            :     for (size_t B = 0; B &lt; 2; ++B) {
+<span class="lineNum">     697 </span>            :       dlambda_inverse_null_metric-&gt;get(1, A + 2) +=
+<span class="lineNum">     698 </span>            :           inverse_null_metric.get(A + 2, B + 2) *
+<span class="lineNum">     699 </span>            :           dlambda_null_metric-&gt;get(0, B + 2);
+<span class="lineNum">     700 </span>            :       for (size_t C = 0; C &lt; 2; ++C) {
+<span class="lineNum">     701 </span>            :         dlambda_inverse_null_metric-&gt;get(1, A + 2) -=
+<span class="lineNum">     702 </span>            :             inverse_null_metric.get(A + 2, B + 2) *
+<span class="lineNum">     703 </span>            :             inverse_null_metric.get(1, C + 2) *
+<span class="lineNum">     704 </span>            :             dlambda_null_metric-&gt;get(C + 2, B + 2);
+<span class="lineNum">     705 </span>            :       }
+<span class="lineNum">     706 </span>            :     }
+<span class="lineNum">     707 </span>            :   }
+<span class="lineNum">     708 </span>            : 
+<span class="lineNum">     709 </span>            :   get&lt;1, 1&gt;(*dlambda_inverse_null_metric) -= get&lt;0, 0&gt;(*dlambda_null_metric);
+<span class="lineNum">     710 </span>            : 
+<span class="lineNum">     711 </span>            :   for (size_t A = 0; A &lt; 2; ++A) {
+<span class="lineNum">     712 </span>            :     get&lt;1, 1&gt;(*dlambda_inverse_null_metric) +=
+<span class="lineNum">     713 </span>            :         2.0 * inverse_null_metric.get(1, A + 2) *
+<span class="lineNum">     714 </span>            :         dlambda_null_metric-&gt;get(0, A + 2);
+<span class="lineNum">     715 </span>            :     for (size_t B = 0; B &lt; 2; ++B) {
+<span class="lineNum">     716 </span>            :       get&lt;1, 1&gt;(*dlambda_inverse_null_metric) -=
+<span class="lineNum">     717 </span>            :           inverse_null_metric.get(1, A + 2) *
+<span class="lineNum">     718 </span>            :           inverse_null_metric.get(1, B + 2) *
+<span class="lineNum">     719 </span>            :           dlambda_null_metric-&gt;get(A + 2, B + 2);
+<span class="lineNum">     720 </span>            :     }
+<span class="lineNum">     721 </span>            :   }
+<span class="lineNum">     722 </span>            : }
+<span class="lineNum">     723 </span>            : 
+<span class="lineNum">     724 </span><span class="lineNoCov">          0 : void bondi_r(</span>
+<span class="lineNum">     725 </span>            :     const gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;*&gt; bondi_r,
+<span class="lineNum">     726 </span>            :     const tnsr::aa&lt;DataVector, 3, Frame::RadialNull&gt;&amp; null_metric) noexcept {
+<span class="lineNum">     727 </span>            :   destructive_resize_components(bondi_r, get&lt;0, 0&gt;(null_metric).size());
+<span class="lineNum">     728 </span>            : 
+<span class="lineNum">     729 </span>            :   // the inclusion of the std::complex&lt;double&gt; informs the expression
+<span class="lineNum">     730 </span>            :   // templates to turn the result into a ComplexDataVector
+<span class="lineNum">     731 </span>            :   get(*bondi_r).data() = std::complex&lt;double&gt;(1.0, 0) *
+<span class="lineNum">     732 </span>            :                          pow(get&lt;2, 2&gt;(null_metric) * get&lt;3, 3&gt;(null_metric) -
+<span class="lineNum">     733 </span>            :                                  square(get&lt;2, 3&gt;(null_metric)),
+<span class="lineNum">     734 </span>            :                              0.25);
+<span class="lineNum">     735 </span>            : }
+<span class="lineNum">     736 </span>            : 
+<span class="lineNum">     737 </span><span class="lineNoCov">          0 : void d_bondi_r(</span>
+<span class="lineNum">     738 </span>            :     const gsl::not_null&lt;tnsr::a&lt;DataVector, 3, Frame::RadialNull&gt;*&gt; d_bondi_r,
+<span class="lineNum">     739 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; bondi_r,
+<span class="lineNum">     740 </span>            :     const tnsr::aa&lt;DataVector, 3, Frame::RadialNull&gt;&amp; dlambda_null_metric,
+<span class="lineNum">     741 </span>            :     const tnsr::aa&lt;DataVector, 3, Frame::RadialNull&gt;&amp; du_null_metric,
+<span class="lineNum">     742 </span>            :     const tnsr::AA&lt;DataVector, 3, Frame::RadialNull&gt;&amp; inverse_null_metric,
+<span class="lineNum">     743 </span>            :     const size_t l_max) noexcept {
+<span class="lineNum">     744 </span>            :   destructive_resize_components(d_bondi_r,
+<span class="lineNum">     745 </span>            :                                 get&lt;0, 0&gt;(inverse_null_metric).size());
+<span class="lineNum">     746 </span>            : 
+<span class="lineNum">     747 </span>            :   // compute the time derivative part
+<span class="lineNum">     748 </span>            :   get&lt;0&gt;(*d_bondi_r) =
+<span class="lineNum">     749 </span>            :       0.25 * real(get(bondi_r).data()) *
+<span class="lineNum">     750 </span>            :       (get&lt;2, 2&gt;(inverse_null_metric) * get&lt;2, 2&gt;(du_null_metric) +
+<span class="lineNum">     751 </span>            :        2.0 * get&lt;2, 3&gt;(inverse_null_metric) * get&lt;2, 3&gt;(du_null_metric) +
+<span class="lineNum">     752 </span>            :        get&lt;3, 3&gt;(inverse_null_metric) * get&lt;3, 3&gt;(du_null_metric));
+<span class="lineNum">     753 </span>            :   // compute the lambda derivative part
+<span class="lineNum">     754 </span>            :   get&lt;1&gt;(*d_bondi_r) =
+<span class="lineNum">     755 </span>            :       0.25 * real(get(bondi_r).data()) *
+<span class="lineNum">     756 </span>            :       (get&lt;2, 2&gt;(inverse_null_metric) * get&lt;2, 2&gt;(dlambda_null_metric) +
+<span class="lineNum">     757 </span>            :        2.0 * get&lt;2, 3&gt;(inverse_null_metric) * get&lt;2, 3&gt;(dlambda_null_metric) +
+<span class="lineNum">     758 </span>            :        get&lt;3, 3&gt;(inverse_null_metric) * get&lt;3, 3&gt;(dlambda_null_metric));
+<span class="lineNum">     759 </span>            : 
+<span class="lineNum">     760 </span>            :   // Allocation (of result and coefficient buffer)
+<span class="lineNum">     761 </span>            :   const auto eth_of_r =
+<span class="lineNum">     762 </span>            :       Spectral::Swsh::angular_derivative&lt;Spectral::Swsh::Tags::Eth&gt;(
+<span class="lineNum">     763 </span>            :           l_max, 1, get(bondi_r));
+<span class="lineNum">     764 </span>            :   d_bondi_r-&gt;get(2) = -real(eth_of_r.data());
+<span class="lineNum">     765 </span>            :   d_bondi_r-&gt;get(3) = -imag(eth_of_r.data());
+<span class="lineNum">     766 </span>            : }
+<span class="lineNum">     767 </span>            : 
+<span class="lineNum">     768 </span><span class="lineNoCov">          0 : void dyads(</span>
+<span class="lineNum">     769 </span>            :     const gsl::not_null&lt;tnsr::i&lt;ComplexDataVector, 2, Frame::RadialNull&gt;*&gt;
+<span class="lineNum">     770 </span>            :         down_dyad,
+<span class="lineNum">     771 </span>            :     const gsl::not_null&lt;tnsr::I&lt;ComplexDataVector, 2, Frame::RadialNull&gt;*&gt;
+<span class="lineNum">     772 </span>            :         up_dyad) noexcept {
+<span class="lineNum">     773 </span>            :   // implicit factors of sin_theta omitted (still normalized as desired, though)
+<span class="lineNum">     774 </span>            :   get&lt;0&gt;(*down_dyad) = -1.0;
+<span class="lineNum">     775 </span>            :   get&lt;1&gt;(*down_dyad) = std::complex&lt;double&gt;(0.0, -1.0);
+<span class="lineNum">     776 </span>            :   get&lt;0&gt;(*up_dyad) = -1.0;
+<span class="lineNum">     777 </span>            :   get&lt;1&gt;(*up_dyad) = std::complex&lt;double&gt;(0.0, -1.0);
+<span class="lineNum">     778 </span>            : }
+<span class="lineNum">     779 </span>            : 
+<span class="lineNum">     780 </span><span class="lineNoCov">          0 : void beta_worldtube_data(</span>
+<span class="lineNum">     781 </span>            :     const gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;*&gt; beta,
+<span class="lineNum">     782 </span>            :     const tnsr::a&lt;DataVector, 3, Frame::RadialNull&gt;&amp; d_bondi_r) noexcept {
+<span class="lineNum">     783 </span>            :   destructive_resize_components(beta, get&lt;0&gt;(d_bondi_r).size());
+<span class="lineNum">     784 </span>            :   get(*beta).data() = std::complex&lt;double&gt;(-0.5, 0.0) * log(get&lt;1&gt;(d_bondi_r));
+<span class="lineNum">     785 </span>            : }
+<span class="lineNum">     786 </span>            : 
+<span class="lineNum">     787 </span><span class="lineNoCov">          0 : void bondi_u_worldtube_data(</span>
+<span class="lineNum">     788 </span>            :     const gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 1&gt;&gt;*&gt; bondi_u,
+<span class="lineNum">     789 </span>            :     const tnsr::i&lt;ComplexDataVector, 2, Frame::RadialNull&gt;&amp; dyad,
+<span class="lineNum">     790 </span>            :     const tnsr::a&lt;DataVector, 3, Frame::RadialNull&gt;&amp; d_bondi_r,
+<span class="lineNum">     791 </span>            :     const tnsr::AA&lt;DataVector, 3, Frame::RadialNull&gt;&amp;
+<span class="lineNum">     792 </span>            :         inverse_null_metric) noexcept {
+<span class="lineNum">     793 </span>            :   destructive_resize_components(bondi_u, get&lt;0&gt;(d_bondi_r).size());
+<span class="lineNum">     794 </span>            :   get(*bondi_u).data() = -get&lt;0&gt;(dyad) * get&lt;1, 2&gt;(inverse_null_metric) -
+<span class="lineNum">     795 </span>            :                          get&lt;1&gt;(dyad) * get&lt;1, 3&gt;(inverse_null_metric);
+<span class="lineNum">     796 </span>            : 
+<span class="lineNum">     797 </span>            :   for (size_t A = 0; A &lt; 2; ++A) {
+<span class="lineNum">     798 </span>            :     for (size_t B = 0; B &lt; 2; ++B) {
+<span class="lineNum">     799 </span>            :       get(*bondi_u).data() -= d_bondi_r.get(2 + A) * dyad.get(B) *
+<span class="lineNum">     800 </span>            :                               inverse_null_metric.get(A + 2, B + 2) /
+<span class="lineNum">     801 </span>            :                               get&lt;1&gt;(d_bondi_r);
+<span class="lineNum">     802 </span>            :     }
+<span class="lineNum">     803 </span>            :   }
+<span class="lineNum">     804 </span>            : }
+<span class="lineNum">     805 </span>            : 
+<span class="lineNum">     806 </span><span class="lineNoCov">          0 : void bondi_w_worldtube_data(</span>
+<span class="lineNum">     807 </span>            :     const gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;*&gt; bondi_w,
+<span class="lineNum">     808 </span>            :     const tnsr::a&lt;DataVector, 3, Frame::RadialNull&gt;&amp; d_bondi_r,
+<span class="lineNum">     809 </span>            :     const tnsr::AA&lt;DataVector, 3, Frame::RadialNull&gt;&amp; inverse_null_metric,
+<span class="lineNum">     810 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; bondi_r) noexcept {
+<span class="lineNum">     811 </span>            :   destructive_resize_components(bondi_w, get(bondi_r).data().size());
+<span class="lineNum">     812 </span>            : 
+<span class="lineNum">     813 </span>            :   get(*bondi_w).data() =
+<span class="lineNum">     814 </span>            :       std::complex&lt;double&gt;(1.0, 0.0) *
+<span class="lineNum">     815 </span>            :       (-1.0 + get&lt;1&gt;(d_bondi_r) * get&lt;1, 1&gt;(inverse_null_metric) -
+<span class="lineNum">     816 </span>            :        2.0 * get&lt;0&gt;(d_bondi_r));
+<span class="lineNum">     817 </span>            : 
+<span class="lineNum">     818 </span>            :   for (size_t A = 0; A &lt; 2; ++A) {
+<span class="lineNum">     819 </span>            :     get(*bondi_w).data() +=
+<span class="lineNum">     820 </span>            :         2.0 * d_bondi_r.get(A + 2) * inverse_null_metric.get(1, A + 2);
+<span class="lineNum">     821 </span>            :   }
+<span class="lineNum">     822 </span>            : 
+<span class="lineNum">     823 </span>            :   for (size_t A = 0; A &lt; 2; ++A) {
+<span class="lineNum">     824 </span>            :     for (size_t B = 0; B &lt; 2; ++B) {
+<span class="lineNum">     825 </span>            :       get(*bondi_w).data() += d_bondi_r.get(A + 2) * d_bondi_r.get(B + 2) *
+<span class="lineNum">     826 </span>            :                               inverse_null_metric.get(A + 2, B + 2) /
+<span class="lineNum">     827 </span>            :                               get&lt;1&gt;(d_bondi_r);
+<span class="lineNum">     828 </span>            :     }
+<span class="lineNum">     829 </span>            :   }
+<span class="lineNum">     830 </span>            :   get(*bondi_w).data() /=  get(bondi_r).data();
+<span class="lineNum">     831 </span>            : }
+<span class="lineNum">     832 </span>            : 
+<span class="lineNum">     833 </span><span class="lineNoCov">          0 : void bondi_j_worldtube_data(</span>
+<span class="lineNum">     834 </span>            :     const gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;*&gt; bondi_j,
+<span class="lineNum">     835 </span>            :     const tnsr::aa&lt;DataVector, 3, Frame::RadialNull&gt;&amp; null_metric,
+<span class="lineNum">     836 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; bondi_r,
+<span class="lineNum">     837 </span>            :     const tnsr::I&lt;ComplexDataVector, 2, Frame::RadialNull&gt;&amp; dyad) noexcept {
+<span class="lineNum">     838 </span>            :   destructive_resize_components(bondi_j, get(bondi_r).data().size());
+<span class="lineNum">     839 </span>            : 
+<span class="lineNum">     840 </span>            :   get(*bondi_j).data() =
+<span class="lineNum">     841 </span>            :       0.5 *
+<span class="lineNum">     842 </span>            :       (square(get&lt;0&gt;(dyad)) * get&lt;2, 2&gt;(null_metric) +
+<span class="lineNum">     843 </span>            :        2.0 * get&lt;0&gt;(dyad) * get&lt;1&gt;(dyad) * get&lt;2, 3&gt;(null_metric) +
+<span class="lineNum">     844 </span>            :        square(get&lt;1&gt;(dyad)) * get&lt;3, 3&gt;(null_metric)) /
+<span class="lineNum">     845 </span>            :       square(get(bondi_r).data());
+<span class="lineNum">     846 </span>            : }
+<span class="lineNum">     847 </span>            : 
+<span class="lineNum">     848 </span><span class="lineNoCov">          0 : void dr_bondi_j(</span>
+<span class="lineNum">     849 </span>            :     const gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;*&gt; dr_bondi_j,
+<span class="lineNum">     850 </span>            :     const gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;*&gt;
+<span class="lineNum">     851 </span>            :         denominator_buffer,
+<span class="lineNum">     852 </span>            :     const tnsr::aa&lt;DataVector, 3, Frame::RadialNull&gt;&amp; dlambda_null_metric,
+<span class="lineNum">     853 </span>            :     const tnsr::a&lt;DataVector, 3, Frame::RadialNull&gt;&amp; d_bondi_r,
+<span class="lineNum">     854 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;&amp; bondi_j,
+<span class="lineNum">     855 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; bondi_r,
+<span class="lineNum">     856 </span>            :     const tnsr::I&lt;ComplexDataVector, 2, Frame::RadialNull&gt;&amp; dyad) noexcept {
+<span class="lineNum">     857 </span>            :   destructive_resize_components(dr_bondi_j, get(bondi_r).data().size());
+<span class="lineNum">     858 </span>            :   destructive_resize_components(denominator_buffer, get(bondi_r).data().size());
+<span class="lineNum">     859 </span>            :   get(*dr_bondi_j) = -2.0 * get(bondi_j) / get(bondi_r);
+<span class="lineNum">     860 </span>            :   get(*denominator_buffer).data() =
+<span class="lineNum">     861 </span>            :       1.0 / (square(get(bondi_r).data()) * get&lt;1&gt;(d_bondi_r));
+<span class="lineNum">     862 </span>            :   for (size_t A = 0; A &lt; 2; ++A) {
+<span class="lineNum">     863 </span>            :     for (size_t B = 0; B &lt; 2; ++B) {
+<span class="lineNum">     864 </span>            :       get(*dr_bondi_j).data() += 0.5 * dyad.get(A) * dyad.get(B) *
+<span class="lineNum">     865 </span>            :                                  dlambda_null_metric.get(A + 2, B + 2) *
+<span class="lineNum">     866 </span>            :                                  get(*denominator_buffer).data();
+<span class="lineNum">     867 </span>            :     }
+<span class="lineNum">     868 </span>            :   }
+<span class="lineNum">     869 </span>            : }
+<span class="lineNum">     870 </span>            : 
+<span class="lineNum">     871 </span><span class="lineNoCov">          0 : void d2lambda_bondi_r(</span>
+<span class="lineNum">     872 </span>            :     const gsl::not_null&lt;Scalar&lt;DataVector&gt;*&gt; d2lambda_bondi_r,
+<span class="lineNum">     873 </span>            :     const tnsr::a&lt;DataVector, 3, Frame::RadialNull&gt;&amp; d_bondi_r,
+<span class="lineNum">     874 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;&amp; dr_bondi_j,
+<span class="lineNum">     875 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;&amp; bondi_j,
+<span class="lineNum">     876 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; bondi_r) noexcept {
+<span class="lineNum">     877 </span>            :   destructive_resize_components(d2lambda_bondi_r, get(bondi_j).data().size());
+<span class="lineNum">     878 </span>            :   get(*d2lambda_bondi_r) =
+<span class="lineNum">     879 </span>            :       real(-0.25 * get(bondi_r).data() *
+<span class="lineNum">     880 </span>            :            (get(dr_bondi_j).data() * conj(get(dr_bondi_j).data()) -
+<span class="lineNum">     881 </span>            :             0.25 *
+<span class="lineNum">     882 </span>            :                 square(conj(get(bondi_j).data()) * get(dr_bondi_j).data() +
+<span class="lineNum">     883 </span>            :                        get(bondi_j).data() * conj(get(dr_bondi_j).data())) /
+<span class="lineNum">     884 </span>            :                 (1.0 + get(bondi_j).data() * conj(get(bondi_j).data()))));
+<span class="lineNum">     885 </span>            :   get(*d2lambda_bondi_r) *= square(get&lt;1&gt;(d_bondi_r));
+<span class="lineNum">     886 </span>            : }
+<span class="lineNum">     887 </span>            : 
+<span class="lineNum">     888 </span><span class="lineNoCov">          0 : void bondi_q_worldtube_data(</span>
+<span class="lineNum">     889 </span>            :     const gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 1&gt;&gt;*&gt; bondi_q,
+<span class="lineNum">     890 </span>            :     const gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 1&gt;&gt;*&gt; dr_bondi_u,
+<span class="lineNum">     891 </span>            :     const Scalar&lt;DataVector&gt;&amp; d2lambda_r,
+<span class="lineNum">     892 </span>            :     const tnsr::AA&lt;DataVector, 3, Frame::RadialNull&gt;&amp;
+<span class="lineNum">     893 </span>            :         dlambda_inverse_null_metric,
+<span class="lineNum">     894 </span>            :     const tnsr::a&lt;DataVector, 3, Frame::RadialNull&gt;&amp; d_bondi_r,
+<span class="lineNum">     895 </span>            :     const tnsr::i&lt;ComplexDataVector, 2, Frame::RadialNull&gt;&amp; dyad,
+<span class="lineNum">     896 </span>            :     const tnsr::i&lt;DataVector, 2, Frame::RadialNull&gt;&amp; angular_d_dlambda_r,
+<span class="lineNum">     897 </span>            :     const tnsr::AA&lt;DataVector, 3, Frame::RadialNull&gt;&amp; inverse_null_metric,
+<span class="lineNum">     898 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;&amp; bondi_j,
+<span class="lineNum">     899 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; bondi_r,
+<span class="lineNum">     900 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 1&gt;&gt;&amp; bondi_u) noexcept {
+<span class="lineNum">     901 </span>            :   destructive_resize_components(bondi_q, get(bondi_j).data().size());
+<span class="lineNum">     902 </span>            :   // Allocation
+<span class="lineNum">     903 </span>            :   Scalar&lt;SpinWeighted&lt;ComplexDataVector, 1&gt;&gt; dlambda_bondi_u{
+<span class="lineNum">     904 </span>            :       get(bondi_j).data().size()};
+<span class="lineNum">     905 </span>            : 
+<span class="lineNum">     906 </span>            :   get(dlambda_bondi_u).data() =
+<span class="lineNum">     907 </span>            :       -get(bondi_u).data() * get(d2lambda_r) / get&lt;1&gt;(d_bondi_r);
+<span class="lineNum">     908 </span>            : 
+<span class="lineNum">     909 </span>            :   for (size_t A = 0; A &lt; 2; ++A) {
+<span class="lineNum">     910 </span>            :     get(dlambda_bondi_u) -=
+<span class="lineNum">     911 </span>            :         (dlambda_inverse_null_metric.get(1, A + 2) +
+<span class="lineNum">     912 </span>            :          get(d2lambda_r) * inverse_null_metric.get(1, A + 2) /
+<span class="lineNum">     913 </span>            :              get&lt;1&gt;(d_bondi_r)) *
+<span class="lineNum">     914 </span>            :         dyad.get(A);
+<span class="lineNum">     915 </span>            :     for (size_t B = 0; B &lt; 2; ++B) {
+<span class="lineNum">     916 </span>            :       get(dlambda_bondi_u) -=
+<span class="lineNum">     917 </span>            :           (d_bondi_r.get(B + 2) *
+<span class="lineNum">     918 </span>            :            dlambda_inverse_null_metric.get(A + 2, B + 2) / get&lt;1&gt;(d_bondi_r)) *
+<span class="lineNum">     919 </span>            :           dyad.get(A);
+<span class="lineNum">     920 </span>            :       get(dlambda_bondi_u) -= angular_d_dlambda_r.get(B) *
+<span class="lineNum">     921 </span>            :                               inverse_null_metric.get(A + 2, B + 2) *
+<span class="lineNum">     922 </span>            :                               dyad.get(A) / get&lt;1&gt;(d_bondi_r);
+<span class="lineNum">     923 </span>            :     }
+<span class="lineNum">     924 </span>            :   }
+<span class="lineNum">     925 </span>            :   get(*dr_bondi_u).data() = get(dlambda_bondi_u).data() / get&lt;1&gt;(d_bondi_r);
+<span class="lineNum">     926 </span>            : 
+<span class="lineNum">     927 </span>            :   get(*bondi_q).data() =
+<span class="lineNum">     928 </span>            :       square(get(bondi_r).data()) *
+<span class="lineNum">     929 </span>            :       (get(bondi_j).data() * conj(get(dlambda_bondi_u).data()) +
+<span class="lineNum">     930 </span>            :        sqrt(1.0 + get(bondi_j).data() * conj(get(bondi_j).data())) *
+<span class="lineNum">     931 </span>            :            get(dlambda_bondi_u).data());
+<span class="lineNum">     932 </span>            : }
+<span class="lineNum">     933 </span>            : 
+<span class="lineNum">     934 </span><span class="lineNoCov">          0 : void bondi_h_worldtube_data(</span>
+<span class="lineNum">     935 </span>            :     const gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;*&gt; bondi_h,
+<span class="lineNum">     936 </span>            :     const tnsr::a&lt;DataVector, 3, Frame::RadialNull&gt;&amp; d_bondi_r,
+<span class="lineNum">     937 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;&amp; bondi_j,
+<span class="lineNum">     938 </span>            :     const tnsr::aa&lt;DataVector, 3, Frame::RadialNull&gt;&amp; du_null_metric,
+<span class="lineNum">     939 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; bondi_r,
+<span class="lineNum">     940 </span>            :     const tnsr::I&lt;ComplexDataVector, 2, Frame::RadialNull&gt;&amp; dyad) noexcept {
+<span class="lineNum">     941 </span>            :   destructive_resize_components(bondi_h, get(bondi_j).data().size());
+<span class="lineNum">     942 </span>            : 
+<span class="lineNum">     943 </span>            :   get(*bondi_h).data() =
+<span class="lineNum">     944 </span>            :       -2.0 * get&lt;0&gt;(d_bondi_r) / get(bondi_r).data() * get(bondi_j).data();
+<span class="lineNum">     945 </span>            :   for (size_t A = 0; A &lt; 2; ++A) {
+<span class="lineNum">     946 </span>            :     for (size_t B = 0; B &lt; 2; ++B) {
+<span class="lineNum">     947 </span>            :       get(*bondi_h).data() += (0.5 / square(get(bondi_r).data())) *
+<span class="lineNum">     948 </span>            :                               dyad.get(A) * dyad.get(B) *
+<span class="lineNum">     949 </span>            :                               du_null_metric.get(A + 2, B + 2);
+<span class="lineNum">     950 </span>            :     }
+<span class="lineNum">     951 </span>            :   }
+<span class="lineNum">     952 </span>            : }
+<span class="lineNum">     953 </span>            : 
+<span class="lineNum">     954 </span><span class="lineNoCov">          0 : void du_j_worldtube_data(</span>
+<span class="lineNum">     955 </span>            :     const gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;*&gt; du_bondi_j,
+<span class="lineNum">     956 </span>            :     const tnsr::a&lt;DataVector, 3, Frame::RadialNull&gt;&amp; d_bondi_r,
+<span class="lineNum">     957 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;&amp; bondi_j,
+<span class="lineNum">     958 </span>            :     const tnsr::aa&lt;DataVector, 3, Frame::RadialNull&gt;&amp; du_null_metric,
+<span class="lineNum">     959 </span>            :     const tnsr::aa&lt;DataVector, 3, Frame::RadialNull&gt;&amp; dlambda_null_metric,
+<span class="lineNum">     960 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; bondi_r,
+<span class="lineNum">     961 </span>            :     const tnsr::I&lt;ComplexDataVector, 2, Frame::RadialNull&gt;&amp; dyad) noexcept {
+<span class="lineNum">     962 </span>            :   destructive_resize_components(du_bondi_j, get(bondi_j).data().size());
+<span class="lineNum">     963 </span>            : 
+<span class="lineNum">     964 </span>            :   for (size_t A = 0; A &lt; 2; ++A) {
+<span class="lineNum">     965 </span>            :     for (size_t B = 0; B &lt; 2; ++B) {
+<span class="lineNum">     966 </span>            :       if (UNLIKELY(A == 0 and B == 0)) {
+<span class="lineNum">     967 </span>            :         get(*du_bondi_j).data() = -(0.5 / square(get(bondi_r).data())) *
+<span class="lineNum">     968 </span>            :                                   square(get&lt;0&gt;(dyad)) *
+<span class="lineNum">     969 </span>            :                                   (get&lt;0&gt;(d_bondi_r) / get&lt;1&gt;(d_bondi_r) *
+<span class="lineNum">     970 </span>            :                                        get&lt;2, 2&gt;(dlambda_null_metric) -
+<span class="lineNum">     971 </span>            :                                    get&lt;2, 2&gt;(du_null_metric));
+<span class="lineNum">     972 </span>            : 
+<span class="lineNum">     973 </span>            :       } else {
+<span class="lineNum">     974 </span>            :         get(*du_bondi_j).data() -= (0.5 / square(get(bondi_r).data())) *
+<span class="lineNum">     975 </span>            :                                    dyad.get(A) * dyad.get(B) *
+<span class="lineNum">     976 </span>            :                                    (get&lt;0&gt;(d_bondi_r) / get&lt;1&gt;(d_bondi_r) *
+<span class="lineNum">     977 </span>            :                                         dlambda_null_metric.get(A + 2, B + 2) -
+<span class="lineNum">     978 </span>            :                                     du_null_metric.get(A + 2, B + 2));
+<span class="lineNum">     979 </span>            :       }
+<span class="lineNum">     980 </span>            :     }
+<span class="lineNum">     981 </span>            :   }
+<span class="lineNum">     982 </span>            : }
+<span class="lineNum">     983 </span>            : }  // namespace Cce
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

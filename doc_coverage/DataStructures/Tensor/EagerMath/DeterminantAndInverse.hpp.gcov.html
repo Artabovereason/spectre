@@ -1,0 +1,526 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - DataStructures/Tensor/EagerMath/DeterminantAndInverse.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../index.html">top level</a> - <a href="index.html">DataStructures/Tensor/EagerMath</a> - DeterminantAndInverse.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">4</td>
+            <td class="headerCovTableEntry">4</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineCov">          1 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : /// \file
+<span class="lineNum">       5 </span>            : /// Defines function computing the determinant and inverse of a tensor.
+<span class="lineNum">       6 </span>            : 
+<span class="lineNum">       7 </span>            : #pragma once
+<span class="lineNum">       8 </span>            : 
+<span class="lineNum">       9 </span>            : #include &lt;type_traits&gt;
+<span class="lineNum">      10 </span>            : #include &lt;utility&gt;
+<span class="lineNum">      11 </span>            : 
+<span class="lineNum">      12 </span>            : #include &quot;DataStructures/DataVector.hpp&quot;
+<span class="lineNum">      13 </span>            : #include &quot;DataStructures/Tensor/Tensor.hpp&quot;
+<span class="lineNum">      14 </span>            : #include &quot;DataStructures/Variables.hpp&quot;
+<span class="lineNum">      15 </span>            : #include &quot;ErrorHandling/Assert.hpp&quot;
+<span class="lineNum">      16 </span>            : #include &quot;Utilities/MakeWithValue.hpp&quot;
+<span class="lineNum">      17 </span>            : #include &quot;Utilities/Requires.hpp&quot;
+<span class="lineNum">      18 </span>            : #include &quot;Utilities/TMPL.hpp&quot;
+<span class="lineNum">      19 </span>            : #include &quot;Utilities/TypeTraits/IsComplexOfFundamental.hpp&quot;
+<span class="lineNum">      20 </span>            : 
+<span class="lineNum">      21 </span>            : namespace determinant_and_inverse_detail {
+<span class="lineNum">      22 </span>            : // Helps to shorten some repeated code:
+<span class="lineNum">      23 </span>            : template &lt;typename Index0, typename Index1&gt;
+<span class="lineNum">      24 </span>            : using inverse_indices =
+<span class="lineNum">      25 </span>            :     tmpl::list&lt;change_index_up_lo&lt;Index1&gt;, change_index_up_lo&lt;Index0&gt;&gt;;
+<span class="lineNum">      26 </span>            : 
+<span class="lineNum">      27 </span>            : template &lt;typename Symm, typename Index0, typename Index1,
+<span class="lineNum">      28 </span>            :           typename = std::nullptr_t&gt;
+<span class="lineNum">      29 </span>            : struct DetAndInverseImpl;
+<span class="lineNum">      30 </span>            : 
+<span class="lineNum">      31 </span>            : template &lt;typename Symm, typename Index0, typename Index1&gt;
+<span class="lineNum">      32 </span>            : struct DetAndInverseImpl&lt;Symm, Index0, Index1, Requires&lt;Index0::dim == 1&gt;&gt; {
+<span class="lineNum">      33 </span>            :   template &lt;typename T&gt;
+<span class="lineNum">      34 </span>            :   static void apply(
+<span class="lineNum">      35 </span>            :       const gsl::not_null&lt;Scalar&lt;T&gt;*&gt; det,
+<span class="lineNum">      36 </span>            :       const gsl::not_null&lt;Tensor&lt;T, Symm, inverse_indices&lt;Index0, Index1&gt;&gt;*&gt;
+<span class="lineNum">      37 </span>            :           inv,
+<span class="lineNum">      38 </span>            :       const Tensor&lt;T, Symm, tmpl::list&lt;Index0, Index1&gt;&gt;&amp; tensor) noexcept {
+<span class="lineNum">      39 </span>            :     const T&amp; t00 = get&lt;0, 0&gt;(tensor);
+<span class="lineNum">      40 </span>            :     // inv is non-const so that it can be moved into the std::pair:
+<span class="lineNum">      41 </span>            :     get(*det) = t00;
+<span class="lineNum">      42 </span>            :     get&lt;0, 0&gt;(*inv) = 1.0 / t00;
+<span class="lineNum">      43 </span>            :   }
+<span class="lineNum">      44 </span>            : };
+<span class="lineNum">      45 </span>            : 
+<span class="lineNum">      46 </span>            : // The inverse of a 2x2 tensor is computed from Cramer's rule.
+<span class="lineNum">      47 </span>            : template &lt;typename Index0, typename Index1&gt;
+<span class="lineNum">      48 </span>            : struct DetAndInverseImpl&lt;Symmetry&lt;2, 1&gt;, Index0, Index1,
+<span class="lineNum">      49 </span>            :                          Requires&lt;Index0::dim == 2&gt;&gt; {
+<span class="lineNum">      50 </span>            :   template &lt;typename T&gt;
+<span class="lineNum">      51 </span>            :   static void apply(
+<span class="lineNum">      52 </span>            :       const gsl::not_null&lt;Scalar&lt;T&gt;*&gt; det,
+<span class="lineNum">      53 </span>            :       const gsl::not_null&lt;
+<span class="lineNum">      54 </span>            :           Tensor&lt;T, Symmetry&lt;2, 1&gt;, inverse_indices&lt;Index0, Index1&gt;&gt;*&gt;
+<span class="lineNum">      55 </span>            :           inv,
+<span class="lineNum">      56 </span>            :       const Tensor&lt;T, Symmetry&lt;2, 1&gt;, tmpl::list&lt;Index0, Index1&gt;&gt;&amp;
+<span class="lineNum">      57 </span>            :           tensor) noexcept {
+<span class="lineNum">      58 </span>            :     const T&amp; t00 = get&lt;0, 0&gt;(tensor);
+<span class="lineNum">      59 </span>            :     const T&amp; t01 = get&lt;0, 1&gt;(tensor);
+<span class="lineNum">      60 </span>            :     const T&amp; t10 = get&lt;1, 0&gt;(tensor);
+<span class="lineNum">      61 </span>            :     const T&amp; t11 = get&lt;1, 1&gt;(tensor);
+<span class="lineNum">      62 </span>            : 
+<span class="lineNum">      63 </span>            :     get(*det) = t00 * t11 - t01 * t10;
+<span class="lineNum">      64 </span>            :     const T one_over_det = make_with_value&lt;T&gt;(*det, 1.0) / get(*det);
+<span class="lineNum">      65 </span>            :     get&lt;0, 0&gt;(*inv) = t11 * one_over_det;
+<span class="lineNum">      66 </span>            :     get&lt;0, 1&gt;(*inv) = -t01 * one_over_det;
+<span class="lineNum">      67 </span>            :     get&lt;1, 0&gt;(*inv) = -t10 * one_over_det;
+<span class="lineNum">      68 </span>            :     get&lt;1, 1&gt;(*inv) = t00 * one_over_det;
+<span class="lineNum">      69 </span>            :   }
+<span class="lineNum">      70 </span>            : };
+<span class="lineNum">      71 </span>            : 
+<span class="lineNum">      72 </span>            : template &lt;typename Index0&gt;
+<span class="lineNum">      73 </span>            : struct DetAndInverseImpl&lt;Symmetry&lt;1, 1&gt;, Index0, Index0,
+<span class="lineNum">      74 </span>            :                          Requires&lt;Index0::dim == 2&gt;&gt; {
+<span class="lineNum">      75 </span>            :   template &lt;typename T&gt;
+<span class="lineNum">      76 </span>            :   static void apply(
+<span class="lineNum">      77 </span>            :       const gsl::not_null&lt;Scalar&lt;T&gt;*&gt; det,
+<span class="lineNum">      78 </span>            :       const gsl::not_null&lt;
+<span class="lineNum">      79 </span>            :           Tensor&lt;T, Symmetry&lt;1, 1&gt;, inverse_indices&lt;Index0, Index0&gt;&gt;*&gt;
+<span class="lineNum">      80 </span>            :           inv,
+<span class="lineNum">      81 </span>            :       const Tensor&lt;T, Symmetry&lt;1, 1&gt;, tmpl::list&lt;Index0, Index0&gt;&gt;&amp;
+<span class="lineNum">      82 </span>            :           tensor) noexcept {
+<span class="lineNum">      83 </span>            :     const T&amp; t00 = get&lt;0, 0&gt;(tensor);
+<span class="lineNum">      84 </span>            :     const T&amp; t01 = get&lt;0, 1&gt;(tensor);
+<span class="lineNum">      85 </span>            :     const T&amp; t11 = get&lt;1, 1&gt;(tensor);
+<span class="lineNum">      86 </span>            : 
+<span class="lineNum">      87 </span>            :     get(*det) = t00 * t11 - t01 * t01;
+<span class="lineNum">      88 </span>            :     const T one_over_det = make_with_value&lt;T&gt;(*det, 1.0) / get(*det);
+<span class="lineNum">      89 </span>            :     get&lt;0, 0&gt;(*inv) = t11 * one_over_det;
+<span class="lineNum">      90 </span>            :     get&lt;0, 1&gt;(*inv) = -t01 * one_over_det;
+<span class="lineNum">      91 </span>            :     get&lt;1, 1&gt;(*inv) = t00 * one_over_det;
+<span class="lineNum">      92 </span>            :   }
+<span class="lineNum">      93 </span>            : };
+<span class="lineNum">      94 </span>            : 
+<span class="lineNum">      95 </span>            : // The inverse of a 3x3 tensor is computed from Cramer's rule. By reusing some
+<span class="lineNum">      96 </span>            : // terms, the determinant is computed efficiently at the same time.
+<span class="lineNum">      97 </span>            : template &lt;typename Index0, typename Index1&gt;
+<span class="lineNum">      98 </span>            : struct DetAndInverseImpl&lt;Symmetry&lt;2, 1&gt;, Index0, Index1,
+<span class="lineNum">      99 </span>            :                          Requires&lt;Index0::dim == 3&gt;&gt; {
+<span class="lineNum">     100 </span>            :   template &lt;typename T&gt;
+<span class="lineNum">     101 </span>            :   static void apply(
+<span class="lineNum">     102 </span>            :       const gsl::not_null&lt;Scalar&lt;T&gt;*&gt; det,
+<span class="lineNum">     103 </span>            :       const gsl::not_null&lt;
+<span class="lineNum">     104 </span>            :           Tensor&lt;T, Symmetry&lt;2, 1&gt;, inverse_indices&lt;Index0, Index1&gt;&gt;*&gt;
+<span class="lineNum">     105 </span>            :           inv,
+<span class="lineNum">     106 </span>            :       const Tensor&lt;T, Symmetry&lt;2, 1&gt;, tmpl::list&lt;Index0, Index1&gt;&gt;&amp;
+<span class="lineNum">     107 </span>            :           tensor) noexcept {
+<span class="lineNum">     108 </span>            :     const T&amp; t00 = get&lt;0, 0&gt;(tensor);
+<span class="lineNum">     109 </span>            :     const T&amp; t01 = get&lt;0, 1&gt;(tensor);
+<span class="lineNum">     110 </span>            :     const T&amp; t02 = get&lt;0, 2&gt;(tensor);
+<span class="lineNum">     111 </span>            :     const T&amp; t10 = get&lt;1, 0&gt;(tensor);
+<span class="lineNum">     112 </span>            :     const T&amp; t11 = get&lt;1, 1&gt;(tensor);
+<span class="lineNum">     113 </span>            :     const T&amp; t12 = get&lt;1, 2&gt;(tensor);
+<span class="lineNum">     114 </span>            :     const T&amp; t20 = get&lt;2, 0&gt;(tensor);
+<span class="lineNum">     115 </span>            :     const T&amp; t21 = get&lt;2, 1&gt;(tensor);
+<span class="lineNum">     116 </span>            :     const T&amp; t22 = get&lt;2, 2&gt;(tensor);
+<span class="lineNum">     117 </span>            :     const T a = t11 * t22 - t12 * t21;
+<span class="lineNum">     118 </span>            :     const T b = t12 * t20 - t10 * t22;
+<span class="lineNum">     119 </span>            :     const T c = t10 * t21 - t11 * t20;
+<span class="lineNum">     120 </span>            : 
+<span class="lineNum">     121 </span>            :     get(*det) = t00 * a + t01 * b + t02 * c;
+<span class="lineNum">     122 </span>            :     const T one_over_det = make_with_value&lt;T&gt;(*det, 1.0) / get(*det);
+<span class="lineNum">     123 </span>            :     get&lt;0, 0&gt;(*inv) = a * one_over_det;
+<span class="lineNum">     124 </span>            :     get&lt;0, 1&gt;(*inv) = (t21 * t02 - t22 * t01) * one_over_det;
+<span class="lineNum">     125 </span>            :     get&lt;0, 2&gt;(*inv) = (t01 * t12 - t02 * t11) * one_over_det;
+<span class="lineNum">     126 </span>            :     get&lt;1, 0&gt;(*inv) = b * one_over_det;
+<span class="lineNum">     127 </span>            :     get&lt;1, 1&gt;(*inv) = (t22 * t00 - t20 * t02) * one_over_det;
+<span class="lineNum">     128 </span>            :     get&lt;1, 2&gt;(*inv) = (t02 * t10 - t00 * t12) * one_over_det;
+<span class="lineNum">     129 </span>            :     get&lt;2, 0&gt;(*inv) = c * one_over_det;
+<span class="lineNum">     130 </span>            :     get&lt;2, 1&gt;(*inv) = (t20 * t01 - t21 * t00) * one_over_det;
+<span class="lineNum">     131 </span>            :     get&lt;2, 2&gt;(*inv) = (t00 * t11 - t01 * t10) * one_over_det;
+<span class="lineNum">     132 </span>            :   }
+<span class="lineNum">     133 </span>            : };
+<span class="lineNum">     134 </span>            : 
+<span class="lineNum">     135 </span>            : template &lt;typename Index0&gt;
+<span class="lineNum">     136 </span>            : struct DetAndInverseImpl&lt;Symmetry&lt;1, 1&gt;, Index0, Index0,
+<span class="lineNum">     137 </span>            :                          Requires&lt;Index0::dim == 3&gt;&gt; {
+<span class="lineNum">     138 </span>            :   template &lt;typename T&gt;
+<span class="lineNum">     139 </span>            :   static void apply(
+<span class="lineNum">     140 </span>            :       const gsl::not_null&lt;Scalar&lt;T&gt;*&gt; det,
+<span class="lineNum">     141 </span>            :       const gsl::not_null&lt;
+<span class="lineNum">     142 </span>            :           Tensor&lt;T, Symmetry&lt;1, 1&gt;, inverse_indices&lt;Index0, Index0&gt;&gt;*&gt;
+<span class="lineNum">     143 </span>            :           inv,
+<span class="lineNum">     144 </span>            :       const Tensor&lt;T, Symmetry&lt;1, 1&gt;, tmpl::list&lt;Index0, Index0&gt;&gt;&amp;
+<span class="lineNum">     145 </span>            :           tensor) noexcept {
+<span class="lineNum">     146 </span>            :     const T&amp; t00 = get&lt;0, 0&gt;(tensor);
+<span class="lineNum">     147 </span>            :     const T&amp; t01 = get&lt;0, 1&gt;(tensor);
+<span class="lineNum">     148 </span>            :     const T&amp; t02 = get&lt;0, 2&gt;(tensor);
+<span class="lineNum">     149 </span>            :     const T&amp; t11 = get&lt;1, 1&gt;(tensor);
+<span class="lineNum">     150 </span>            :     const T&amp; t12 = get&lt;1, 2&gt;(tensor);
+<span class="lineNum">     151 </span>            :     const T&amp; t22 = get&lt;2, 2&gt;(tensor);
+<span class="lineNum">     152 </span>            :     const T a = t11 * t22 - t12 * t12;
+<span class="lineNum">     153 </span>            :     const T b = t12 * t02 - t01 * t22;
+<span class="lineNum">     154 </span>            :     const T c = t01 * t12 - t11 * t02;
+<span class="lineNum">     155 </span>            : 
+<span class="lineNum">     156 </span>            :     get(*det) = t00 * a + t01 * b + t02 * c;
+<span class="lineNum">     157 </span>            :     const T one_over_det = make_with_value&lt;T&gt;(*det, 1.0) / get(*det);
+<span class="lineNum">     158 </span>            :     get&lt;0, 0&gt;(*inv) = (t11 * t22 - t12 * t12) * one_over_det;
+<span class="lineNum">     159 </span>            :     get&lt;0, 1&gt;(*inv) = (t12 * t02 - t22 * t01) * one_over_det;
+<span class="lineNum">     160 </span>            :     get&lt;0, 2&gt;(*inv) = (t01 * t12 - t02 * t11) * one_over_det;
+<span class="lineNum">     161 </span>            :     get&lt;1, 1&gt;(*inv) = (t22 * t00 - t02 * t02) * one_over_det;
+<span class="lineNum">     162 </span>            :     get&lt;1, 2&gt;(*inv) = (t02 * t01 - t00 * t12) * one_over_det;
+<span class="lineNum">     163 </span>            :     get&lt;2, 2&gt;(*inv) = (t00 * t11 - t01 * t01) * one_over_det;
+<span class="lineNum">     164 </span>            :   }
+<span class="lineNum">     165 </span>            : };
+<span class="lineNum">     166 </span>            : 
+<span class="lineNum">     167 </span>            : // The 4x4 tensor inverse is implemented using the formula for inverting a
+<span class="lineNum">     168 </span>            : // partitioned matrix (here, partitioned into 2x2 blocks). This is more
+<span class="lineNum">     169 </span>            : // efficient than Cramer's rule for matrices larger than 3x3.
+<span class="lineNum">     170 </span>            : //
+<span class="lineNum">     171 </span>            : // In this algorithm, the 4x4 input matrix is partitioned into the 2x2 blocks:
+<span class="lineNum">     172 </span>            : //   P Q
+<span class="lineNum">     173 </span>            : //   R S
+<span class="lineNum">     174 </span>            : // The 4x4 inverse matrix is partitioned into the 2x2 blocks:
+<span class="lineNum">     175 </span>            : //   U V
+<span class="lineNum">     176 </span>            : //   W X
+<span class="lineNum">     177 </span>            : // Each inverse block is obtained from the blocks {P,Q,R,S} of the input matrix
+<span class="lineNum">     178 </span>            : // as follows:
+<span class="lineNum">     179 </span>            : //   X = inv[S - R inv(P) Q] (i.e. inv(X) is the Schur complement of P)
+<span class="lineNum">     180 </span>            : //   W = - X R inv(P)
+<span class="lineNum">     181 </span>            : //   V = - inv(P) Q X
+<span class="lineNum">     182 </span>            : //   U = inv(P) + inv(P) Q X R inv(P) = inv(P) - inv(P) Q W
+<span class="lineNum">     183 </span>            : template &lt;typename Index0, typename Index1&gt;
+<span class="lineNum">     184 </span>            : struct DetAndInverseImpl&lt;Symmetry&lt;2, 1&gt;, Index0, Index1,
+<span class="lineNum">     185 </span>            :                          Requires&lt;Index0::dim == 4&gt;&gt; {
+<span class="lineNum">     186 </span>            :   template &lt;typename T&gt;
+<span class="lineNum">     187 </span>            :   static void apply(
+<span class="lineNum">     188 </span>            :       const gsl::not_null&lt;Scalar&lt;T&gt;*&gt; det,
+<span class="lineNum">     189 </span>            :       const gsl::not_null&lt;
+<span class="lineNum">     190 </span>            :           Tensor&lt;T, Symmetry&lt;2, 1&gt;, inverse_indices&lt;Index0, Index1&gt;&gt;*&gt;
+<span class="lineNum">     191 </span>            :           inv,
+<span class="lineNum">     192 </span>            :       const Tensor&lt;T, Symmetry&lt;2, 1&gt;, tmpl::list&lt;Index0, Index1&gt;&gt;&amp;
+<span class="lineNum">     193 </span>            :           tensor) noexcept {
+<span class="lineNum">     194 </span>            :     const T&amp; p00 = get&lt;0, 0&gt;(tensor);
+<span class="lineNum">     195 </span>            :     const T&amp; p01 = get&lt;0, 1&gt;(tensor);
+<span class="lineNum">     196 </span>            :     const T&amp; p10 = get&lt;1, 0&gt;(tensor);
+<span class="lineNum">     197 </span>            :     const T&amp; p11 = get&lt;1, 1&gt;(tensor);
+<span class="lineNum">     198 </span>            :     const T&amp; q00 = get&lt;0, 2&gt;(tensor);
+<span class="lineNum">     199 </span>            :     const T&amp; q01 = get&lt;0, 3&gt;(tensor);
+<span class="lineNum">     200 </span>            :     const T&amp; q10 = get&lt;1, 2&gt;(tensor);
+<span class="lineNum">     201 </span>            :     const T&amp; q11 = get&lt;1, 3&gt;(tensor);
+<span class="lineNum">     202 </span>            :     const T&amp; r00 = get&lt;2, 0&gt;(tensor);
+<span class="lineNum">     203 </span>            :     const T&amp; r01 = get&lt;2, 1&gt;(tensor);
+<span class="lineNum">     204 </span>            :     const T&amp; r10 = get&lt;3, 0&gt;(tensor);
+<span class="lineNum">     205 </span>            :     const T&amp; r11 = get&lt;3, 1&gt;(tensor);
+<span class="lineNum">     206 </span>            :     const T&amp; s00 = get&lt;2, 2&gt;(tensor);
+<span class="lineNum">     207 </span>            :     const T&amp; s01 = get&lt;2, 3&gt;(tensor);
+<span class="lineNum">     208 </span>            :     const T&amp; s10 = get&lt;3, 2&gt;(tensor);
+<span class="lineNum">     209 </span>            :     const T&amp; s11 = get&lt;3, 3&gt;(tensor);
+<span class="lineNum">     210 </span>            : 
+<span class="lineNum">     211 </span>            :     T&amp; u00 = get&lt;0, 0&gt;(*inv);
+<span class="lineNum">     212 </span>            :     T&amp; u01 = get&lt;0, 1&gt;(*inv);
+<span class="lineNum">     213 </span>            :     T&amp; u10 = get&lt;1, 0&gt;(*inv);
+<span class="lineNum">     214 </span>            :     T&amp; u11 = get&lt;1, 1&gt;(*inv);
+<span class="lineNum">     215 </span>            :     T&amp; v00 = get&lt;0, 2&gt;(*inv);
+<span class="lineNum">     216 </span>            :     T&amp; v01 = get&lt;0, 3&gt;(*inv);
+<span class="lineNum">     217 </span>            :     T&amp; v10 = get&lt;1, 2&gt;(*inv);
+<span class="lineNum">     218 </span>            :     T&amp; v11 = get&lt;1, 3&gt;(*inv);
+<span class="lineNum">     219 </span>            :     T&amp; w00 = get&lt;2, 0&gt;(*inv);
+<span class="lineNum">     220 </span>            :     T&amp; w01 = get&lt;2, 1&gt;(*inv);
+<span class="lineNum">     221 </span>            :     T&amp; w10 = get&lt;3, 0&gt;(*inv);
+<span class="lineNum">     222 </span>            :     T&amp; w11 = get&lt;3, 1&gt;(*inv);
+<span class="lineNum">     223 </span>            :     T&amp; x00 = get&lt;2, 2&gt;(*inv);
+<span class="lineNum">     224 </span>            :     T&amp; x01 = get&lt;2, 3&gt;(*inv);
+<span class="lineNum">     225 </span>            :     T&amp; x10 = get&lt;3, 2&gt;(*inv);
+<span class="lineNum">     226 </span>            :     T&amp; x11 = get&lt;3, 3&gt;(*inv);
+<span class="lineNum">     227 </span>            : 
+<span class="lineNum">     228 </span>            :     // Temporarily store det(P) in det
+<span class="lineNum">     229 </span>            :     get(*det) = p00 * p11 - p01 * p10;
+<span class="lineNum">     230 </span>            :     const T&amp; det_p = get(*det);
+<span class="lineNum">     231 </span>            :     const T one_over_det_p = make_with_value&lt;T&gt;(det_p, 1.0) / det_p;
+<span class="lineNum">     232 </span>            :     const T inv_p00 = p11 * one_over_det_p;
+<span class="lineNum">     233 </span>            :     const T inv_p01 = -p01 * one_over_det_p;
+<span class="lineNum">     234 </span>            :     const T inv_p10 = -p10 * one_over_det_p;
+<span class="lineNum">     235 </span>            :     const T inv_p11 = p00 * one_over_det_p;
+<span class="lineNum">     236 </span>            : 
+<span class="lineNum">     237 </span>            :     const T r_inv_p00 = r00 * inv_p00 + r01 * inv_p10;
+<span class="lineNum">     238 </span>            :     const T r_inv_p01 = r00 * inv_p01 + r01 * inv_p11;
+<span class="lineNum">     239 </span>            :     const T r_inv_p10 = r10 * inv_p00 + r11 * inv_p10;
+<span class="lineNum">     240 </span>            :     const T r_inv_p11 = r10 * inv_p01 + r11 * inv_p11;
+<span class="lineNum">     241 </span>            : 
+<span class="lineNum">     242 </span>            :     const T inv_p_q00 = inv_p00 * q00 + inv_p01 * q10;
+<span class="lineNum">     243 </span>            :     const T inv_p_q01 = inv_p00 * q01 + inv_p01 * q11;
+<span class="lineNum">     244 </span>            :     const T inv_p_q10 = inv_p10 * q00 + inv_p11 * q10;
+<span class="lineNum">     245 </span>            :     const T inv_p_q11 = inv_p10 * q01 + inv_p11 * q11;
+<span class="lineNum">     246 </span>            : 
+<span class="lineNum">     247 </span>            :     const T inv_x00 = s00 - (r_inv_p00 * q00 + r_inv_p01 * q10);
+<span class="lineNum">     248 </span>            :     const T inv_x01 = s01 - (r_inv_p00 * q01 + r_inv_p01 * q11);
+<span class="lineNum">     249 </span>            :     const T inv_x10 = s10 - (r_inv_p10 * q00 + r_inv_p11 * q10);
+<span class="lineNum">     250 </span>            :     const T inv_x11 = s11 - (r_inv_p10 * q01 + r_inv_p11 * q11);
+<span class="lineNum">     251 </span>            : 
+<span class="lineNum">     252 </span>            :     const T det_inv_x = inv_x00 * inv_x11 - inv_x01 * inv_x10;
+<span class="lineNum">     253 </span>            :     const T one_over_det_inv_x = make_with_value&lt;T&gt;(det_inv_x, 1.0) / det_inv_x;
+<span class="lineNum">     254 </span>            :     x00 = inv_x11 * one_over_det_inv_x;
+<span class="lineNum">     255 </span>            :     x01 = -inv_x01 * one_over_det_inv_x;
+<span class="lineNum">     256 </span>            :     x10 = -inv_x10 * one_over_det_inv_x;
+<span class="lineNum">     257 </span>            :     x11 = inv_x00 * one_over_det_inv_x;
+<span class="lineNum">     258 </span>            : 
+<span class="lineNum">     259 </span>            :     w00 = -x00 * r_inv_p00 - x01 * r_inv_p10;
+<span class="lineNum">     260 </span>            :     w01 = -x00 * r_inv_p01 - x01 * r_inv_p11;
+<span class="lineNum">     261 </span>            :     w10 = -x10 * r_inv_p00 - x11 * r_inv_p10;
+<span class="lineNum">     262 </span>            :     w11 = -x10 * r_inv_p01 - x11 * r_inv_p11;
+<span class="lineNum">     263 </span>            : 
+<span class="lineNum">     264 </span>            :     v00 = -inv_p_q00 * x00 - inv_p_q01 * x10;
+<span class="lineNum">     265 </span>            :     v01 = -inv_p_q00 * x01 - inv_p_q01 * x11;
+<span class="lineNum">     266 </span>            :     v10 = -inv_p_q10 * x00 - inv_p_q11 * x10;
+<span class="lineNum">     267 </span>            :     v11 = -inv_p_q10 * x01 - inv_p_q11 * x11;
+<span class="lineNum">     268 </span>            : 
+<span class="lineNum">     269 </span>            :     u00 = inv_p00 - (inv_p_q00 * w00 + inv_p_q01 * w10);
+<span class="lineNum">     270 </span>            :     u01 = inv_p01 - (inv_p_q00 * w01 + inv_p_q01 * w11);
+<span class="lineNum">     271 </span>            :     u10 = inv_p10 - (inv_p_q10 * w00 + inv_p_q11 * w10);
+<span class="lineNum">     272 </span>            :     u11 = inv_p11 - (inv_p_q10 * w01 + inv_p_q11 * w11);
+<span class="lineNum">     273 </span>            : 
+<span class="lineNum">     274 </span>            :     get(*det) *= det_inv_x;
+<span class="lineNum">     275 </span>            :   }
+<span class="lineNum">     276 </span>            : };
+<span class="lineNum">     277 </span>            : 
+<span class="lineNum">     278 </span>            : template &lt;typename Index0&gt;
+<span class="lineNum">     279 </span>            : struct DetAndInverseImpl&lt;Symmetry&lt;1, 1&gt;, Index0, Index0,
+<span class="lineNum">     280 </span>            :                          Requires&lt;Index0::dim == 4&gt;&gt; {
+<span class="lineNum">     281 </span>            :   template &lt;typename T&gt;
+<span class="lineNum">     282 </span>            :   static void apply(
+<span class="lineNum">     283 </span>            :       const gsl::not_null&lt;Scalar&lt;T&gt;*&gt; det,
+<span class="lineNum">     284 </span>            :       const gsl::not_null&lt;
+<span class="lineNum">     285 </span>            :           Tensor&lt;T, Symmetry&lt;1, 1&gt;, inverse_indices&lt;Index0, Index0&gt;&gt;*&gt;
+<span class="lineNum">     286 </span>            :           inv,
+<span class="lineNum">     287 </span>            :       const Tensor&lt;T, Symmetry&lt;1, 1&gt;, tmpl::list&lt;Index0, Index0&gt;&gt;&amp;
+<span class="lineNum">     288 </span>            :           tensor) noexcept {
+<span class="lineNum">     289 </span>            :     const T&amp; p00 = get&lt;0, 0&gt;(tensor);
+<span class="lineNum">     290 </span>            :     const T&amp; p01 = get&lt;0, 1&gt;(tensor);
+<span class="lineNum">     291 </span>            :     const T&amp; p11 = get&lt;1, 1&gt;(tensor);
+<span class="lineNum">     292 </span>            :     const T&amp; q00 = get&lt;0, 2&gt;(tensor);
+<span class="lineNum">     293 </span>            :     const T&amp; q01 = get&lt;0, 3&gt;(tensor);
+<span class="lineNum">     294 </span>            :     const T&amp; q10 = get&lt;1, 2&gt;(tensor);
+<span class="lineNum">     295 </span>            :     const T&amp; q11 = get&lt;1, 3&gt;(tensor);
+<span class="lineNum">     296 </span>            :     const T&amp; s00 = get&lt;2, 2&gt;(tensor);
+<span class="lineNum">     297 </span>            :     const T&amp; s01 = get&lt;2, 3&gt;(tensor);
+<span class="lineNum">     298 </span>            :     const T&amp; s11 = get&lt;3, 3&gt;(tensor);
+<span class="lineNum">     299 </span>            : 
+<span class="lineNum">     300 </span>            :     T&amp; u00 = get&lt;0, 0&gt;(*inv);
+<span class="lineNum">     301 </span>            :     T&amp; u01 = get&lt;0, 1&gt;(*inv);
+<span class="lineNum">     302 </span>            :     T&amp; u11 = get&lt;1, 1&gt;(*inv);
+<span class="lineNum">     303 </span>            :     T&amp; v00 = get&lt;0, 2&gt;(*inv);
+<span class="lineNum">     304 </span>            :     T&amp; v01 = get&lt;0, 3&gt;(*inv);
+<span class="lineNum">     305 </span>            :     T&amp; v10 = get&lt;1, 2&gt;(*inv);
+<span class="lineNum">     306 </span>            :     T&amp; v11 = get&lt;1, 3&gt;(*inv);
+<span class="lineNum">     307 </span>            :     T&amp; x00 = get&lt;2, 2&gt;(*inv);
+<span class="lineNum">     308 </span>            :     T&amp; x01 = get&lt;2, 3&gt;(*inv);
+<span class="lineNum">     309 </span>            :     T&amp; x11 = get&lt;3, 3&gt;(*inv);
+<span class="lineNum">     310 </span>            : 
+<span class="lineNum">     311 </span>            :     // Temporarily store det(P) in det
+<span class="lineNum">     312 </span>            :     get(*det) = p00 * p11 - p01 * p01;
+<span class="lineNum">     313 </span>            :     const T&amp; det_p = get(*det);
+<span class="lineNum">     314 </span>            :     const T one_over_det_p = make_with_value&lt;T&gt;(det_p, 1.0) / det_p;
+<span class="lineNum">     315 </span>            :     const T inv_p00 = p11 * one_over_det_p;
+<span class="lineNum">     316 </span>            :     const T inv_p01 = -p01 * one_over_det_p;
+<span class="lineNum">     317 </span>            :     const T inv_p11 = p00 * one_over_det_p;
+<span class="lineNum">     318 </span>            : 
+<span class="lineNum">     319 </span>            :     const T r_inv_p00 = q00 * inv_p00 + q10 * inv_p01;
+<span class="lineNum">     320 </span>            :     const T r_inv_p01 = q00 * inv_p01 + q10 * inv_p11;
+<span class="lineNum">     321 </span>            :     const T r_inv_p10 = q01 * inv_p00 + q11 * inv_p01;
+<span class="lineNum">     322 </span>            :     const T r_inv_p11 = q01 * inv_p01 + q11 * inv_p11;
+<span class="lineNum">     323 </span>            : 
+<span class="lineNum">     324 </span>            :     const T inv_x00 = s00 - (r_inv_p00 * q00 + r_inv_p01 * q10);
+<span class="lineNum">     325 </span>            :     const T inv_x01 = s01 - (r_inv_p00 * q01 + r_inv_p01 * q11);
+<span class="lineNum">     326 </span>            :     const T inv_x11 = s11 - (r_inv_p10 * q01 + r_inv_p11 * q11);
+<span class="lineNum">     327 </span>            : 
+<span class="lineNum">     328 </span>            :     const T det_inv_x = inv_x00 * inv_x11 - inv_x01 * inv_x01;
+<span class="lineNum">     329 </span>            :     const T one_over_det_inv_x = make_with_value&lt;T&gt;(det_inv_x, 1.0) / det_inv_x;
+<span class="lineNum">     330 </span>            :     x00 = inv_x11 * one_over_det_inv_x;
+<span class="lineNum">     331 </span>            :     x01 = -inv_x01 * one_over_det_inv_x;
+<span class="lineNum">     332 </span>            :     x11 = inv_x00 * one_over_det_inv_x;
+<span class="lineNum">     333 </span>            : 
+<span class="lineNum">     334 </span>            :     v00 = -x00 * r_inv_p00 - x01 * r_inv_p10;
+<span class="lineNum">     335 </span>            :     v10 = -x00 * r_inv_p01 - x01 * r_inv_p11;
+<span class="lineNum">     336 </span>            :     v01 = -x01 * r_inv_p00 - x11 * r_inv_p10;
+<span class="lineNum">     337 </span>            :     v11 = -x01 * r_inv_p01 - x11 * r_inv_p11;
+<span class="lineNum">     338 </span>            : 
+<span class="lineNum">     339 </span>            :     u00 = inv_p00 - (r_inv_p00 * v00 + r_inv_p10 * v01);
+<span class="lineNum">     340 </span>            :     u01 = inv_p01 - (r_inv_p00 * v10 + r_inv_p10 * v11);
+<span class="lineNum">     341 </span>            :     u11 = inv_p11 - (r_inv_p01 * v10 + r_inv_p11 * v11);
+<span class="lineNum">     342 </span>            : 
+<span class="lineNum">     343 </span>            :     get(*det) *= det_inv_x;
+<span class="lineNum">     344 </span>            :   }
+<span class="lineNum">     345 </span>            : };
+<span class="lineNum">     346 </span>            : }  // namespace determinant_and_inverse_detail
+<span class="lineNum">     347 </span>            : 
+<span class="lineNum">     348 </span>            : // @{
+<span class="lineNum">     349 </span>            : /*!
+<span class="lineNum">     350 </span>            :  * \ingroup TensorGroup
+<span class="lineNum">     351 </span>            :  * \brief Computes the determinant and inverse of a rank-2 Tensor.
+<span class="lineNum">     352 </span>            :  *
+<span class="lineNum">     353 </span>            :  * Computes the determinant and inverse together, because this leads to
+<span class="lineNum">     354 </span>            :  * fewer operations compared to computing the determinant independently.
+<span class="lineNum">     355 </span>            :  *
+<span class="lineNum">     356 </span>            :  * \details
+<span class="lineNum">     357 </span>            :  * Treats the input rank-2 tensor as a matrix. The first (second) index
+<span class="lineNum">     358 </span>            :  * of the tensor corresponds to the rows (columns) of the matrix. The
+<span class="lineNum">     359 </span>            :  * determinant is a scalar tensor. The inverse is a rank-2 tensor whose
+<span class="lineNum">     360 </span>            :  * indices are reversed and of opposite valence relative to the input
+<span class="lineNum">     361 </span>            :  * tensor, i.e. given \f$T_a^b\f$ returns \f$(Tinv)_b^a\f$.
+<span class="lineNum">     362 </span>            :  *
+<span class="lineNum">     363 </span>            :  * \note
+<span class="lineNum">     364 </span>            :  * When inverting a 4x4 spacetime metric, it is typically more efficient
+<span class="lineNum">     365 </span>            :  * to use the 3+1 decomposition of the 4-metric in terms of lapse,
+<span class="lineNum">     366 </span>            :  * shift, and spatial 3-metric, in which only the spatial 3-metric needs
+<span class="lineNum">     367 </span>            :  * to be inverted.
+<span class="lineNum">     368 </span>            :  */
+<span class="lineNum">     369 </span>            : template &lt;typename T, typename Symm, typename Index0, typename Index1&gt;
+<span class="lineNum">     370 </span><span class="lineCov">          1 : void determinant_and_inverse(</span>
+<span class="lineNum">     371 </span>            :     const gsl::not_null&lt;Scalar&lt;T&gt;*&gt; det,
+<span class="lineNum">     372 </span>            :     const gsl::not_null&lt;Tensor&lt;
+<span class="lineNum">     373 </span>            :         T, Symm,
+<span class="lineNum">     374 </span>            :         tmpl::list&lt;change_index_up_lo&lt;Index1&gt;, change_index_up_lo&lt;Index0&gt;&gt;&gt;*&gt;
+<span class="lineNum">     375 </span>            :         inv,
+<span class="lineNum">     376 </span>            :     const Tensor&lt;T, Symm, tmpl::list&lt;Index0, Index1&gt;&gt;&amp; tensor) noexcept {
+<span class="lineNum">     377 </span>            :   static_assert(Index0::dim == Index1::dim,
+<span class="lineNum">     378 </span>            :                 &quot;Cannot take the inverse of a Tensor whose Indices are not &quot;
+<span class="lineNum">     379 </span>            :                 &quot;of the same dimensionality.&quot;);
+<span class="lineNum">     380 </span>            :   static_assert(Index0::index_type == Index1::index_type,
+<span class="lineNum">     381 </span>            :                 &quot;Taking the inverse of a mixed Spatial and Spacetime index &quot;
+<span class="lineNum">     382 </span>            :                 &quot;Tensor is not allowed since it's not clear what that means.&quot;);
+<span class="lineNum">     383 </span>            :   static_assert(not std::is_integral&lt;T&gt;::value, &quot;Can't invert a Tensor&lt;int&gt;.&quot;);
+<span class="lineNum">     384 </span>            : 
+<span class="lineNum">     385 </span>            :   if constexpr (not tt::is_complex_or_fundamental_v&lt;T&gt;) {
+<span class="lineNum">     386 </span>            :     destructive_resize_components(det, get&lt;0, 0&gt;(tensor).size());
+<span class="lineNum">     387 </span>            :     destructive_resize_components(inv, get&lt;0, 0&gt;(tensor).size());
+<span class="lineNum">     388 </span>            :   }
+<span class="lineNum">     389 </span>            :   determinant_and_inverse_detail::DetAndInverseImpl&lt;Symm, Index0,
+<span class="lineNum">     390 </span>            :                                                     Index1&gt;::apply(det, inv,
+<span class="lineNum">     391 </span>            :                                                                    tensor);
+<span class="lineNum">     392 </span>            : }
+<span class="lineNum">     393 </span>            : 
+<span class="lineNum">     394 </span>            : template &lt;typename T, typename Symm, typename Index0, typename Index1&gt;
+<span class="lineNum">     395 </span><span class="lineCov">          1 : auto determinant_and_inverse(</span>
+<span class="lineNum">     396 </span>            :     const Tensor&lt;T, Symm, tmpl::list&lt;Index0, Index1&gt;&gt;&amp; tensor) noexcept
+<span class="lineNum">     397 </span>            :     -&gt; std::pair&lt;Scalar&lt;T&gt;, Tensor&lt;T, Symm,
+<span class="lineNum">     398 </span>            :                                    tmpl::list&lt;change_index_up_lo&lt;Index1&gt;,
+<span class="lineNum">     399 </span>            :                                               change_index_up_lo&lt;Index0&gt;&gt;&gt;&gt; {
+<span class="lineNum">     400 </span>            :   std::pair&lt;Scalar&lt;T&gt;, Tensor&lt;T, Symm,
+<span class="lineNum">     401 </span>            :                               tmpl::list&lt;change_index_up_lo&lt;Index1&gt;,
+<span class="lineNum">     402 </span>            :                                          change_index_up_lo&lt;Index0&gt;&gt;&gt;&gt;
+<span class="lineNum">     403 </span>            :       result{};
+<span class="lineNum">     404 </span>            :   determinant_and_inverse_detail::DetAndInverseImpl&lt;
+<span class="lineNum">     405 </span>            :       Symm, Index0, Index1&gt;::apply(make_not_null(&amp;result.first),
+<span class="lineNum">     406 </span>            :                                    make_not_null(&amp;result.second), tensor);
+<span class="lineNum">     407 </span>            :   return result;
+<span class="lineNum">     408 </span>            : }
+<span class="lineNum">     409 </span>            : // @}
+<span class="lineNum">     410 </span>            : 
+<span class="lineNum">     411 </span>            : /*!
+<span class="lineNum">     412 </span>            :  * \ingroup TensorGroup
+<span class="lineNum">     413 </span>            :  * \brief Computes the determinant and inverse of a rank-2 Tensor.
+<span class="lineNum">     414 </span>            :  *
+<span class="lineNum">     415 </span>            :  * Computes the determinant and inverse together, because this leads to fewer
+<span class="lineNum">     416 </span>            :  * operations compared to computing the determinant independently.
+<span class="lineNum">     417 </span>            :  *
+<span class="lineNum">     418 </span>            :  * \param tensor the input rank-2 Tensor.
+<span class="lineNum">     419 </span>            :  * \tparam DetTag the Tag for the determinant of input Tensor.
+<span class="lineNum">     420 </span>            :  * \tparam InvTag the Tag for the inverse of input Tensor.
+<span class="lineNum">     421 </span>            :  * \return a `Variables` that holds the determinant and inverse of the input
+<span class="lineNum">     422 </span>            :  * tensor, tagged by `DetTag` and `InvTag` respectively.
+<span class="lineNum">     423 </span>            :  *
+<span class="lineNum">     424 </span>            :  * \details
+<span class="lineNum">     425 </span>            :  * See determinant_and_inverse().
+<span class="lineNum">     426 </span>            :  */
+<span class="lineNum">     427 </span>            : template &lt;typename DetTag, typename InvTag, typename T, typename Symm,
+<span class="lineNum">     428 </span>            :           typename Index0, typename Index1&gt;
+<span class="lineNum">     429 </span><span class="lineCov">          1 : auto determinant_and_inverse(</span>
+<span class="lineNum">     430 </span>            :     const Tensor&lt;T, Symm, tmpl::list&lt;Index0, Index1&gt;&gt;&amp; tensor) noexcept
+<span class="lineNum">     431 </span>            :     -&gt; Variables&lt;tmpl::list&lt;DetTag, InvTag&gt;&gt; {
+<span class="lineNum">     432 </span>            :   static_assert(std::is_same_v&lt;typename DetTag::type, Scalar&lt;T&gt;&gt;,
+<span class="lineNum">     433 </span>            :                 &quot;Type of first return tag must correspond to that of input's &quot;
+<span class="lineNum">     434 </span>            :                 &quot;determinant.&quot;);
+<span class="lineNum">     435 </span>            :   static_assert(
+<span class="lineNum">     436 </span>            :       std::is_same_v&lt;typename InvTag::type,
+<span class="lineNum">     437 </span>            :                      Tensor&lt;T, Symm,
+<span class="lineNum">     438 </span>            :                             tmpl::list&lt;change_index_up_lo&lt;Index1&gt;,
+<span class="lineNum">     439 </span>            :                                        change_index_up_lo&lt;Index0&gt;&gt;&gt;&gt;,
+<span class="lineNum">     440 </span>            :       &quot;Type of second return tag must correspond to that of input's inverse.&quot;);
+<span class="lineNum">     441 </span>            :   Variables&lt;tmpl::list&lt;DetTag, InvTag&gt;&gt; result(get&lt;0, 0&gt;(tensor).size());
+<span class="lineNum">     442 </span>            :   determinant_and_inverse_detail::DetAndInverseImpl&lt;
+<span class="lineNum">     443 </span>            :       Symm, Index0, Index1&gt;::apply(make_not_null(&amp;get&lt;DetTag&gt;(result)),
+<span class="lineNum">     444 </span>            :                                    make_not_null(&amp;get&lt;InvTag&gt;(result)), tensor);
+<span class="lineNum">     445 </span>            :   return result;
+<span class="lineNum">     446 </span>            : }
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

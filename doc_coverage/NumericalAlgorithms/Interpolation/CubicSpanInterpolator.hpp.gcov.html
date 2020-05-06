@@ -1,0 +1,142 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - NumericalAlgorithms/Interpolation/CubicSpanInterpolator.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">NumericalAlgorithms/Interpolation</a> - CubicSpanInterpolator.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">4</td>
+            <td class="headerCovTableEntry">17</td>
+            <td class="headerCovTableEntryLo">23.5 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #pragma once
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;complex&gt;
+<span class="lineNum">       7 </span>            : #include &lt;cstddef&gt;
+<span class="lineNum">       8 </span>            : 
+<span class="lineNum">       9 </span>            : #include &quot;DataStructures/ComplexModalVector.hpp&quot;
+<span class="lineNum">      10 </span>            : #include &quot;DataStructures/DataVector.hpp&quot;
+<span class="lineNum">      11 </span>            : #include &quot;DataStructures/ModalVector.hpp&quot;
+<span class="lineNum">      12 </span>            : #include &quot;NumericalAlgorithms/Interpolation/SpanInterpolator.hpp&quot;
+<span class="lineNum">      13 </span>            : #include &quot;Options/Options.hpp&quot;
+<span class="lineNum">      14 </span>            : #include &quot;Parallel/CharmPupable.hpp&quot;
+<span class="lineNum">      15 </span>            : #include &quot;Utilities/Gsl.hpp&quot;
+<span class="lineNum">      16 </span>            : 
+<span class="lineNum">      17 </span>            : namespace intrp {
+<span class="lineNum">      18 </span>            : 
+<span class="lineNum">      19 </span>            : /// \brief Performs a cubic interpolation; this class can be chosen via the
+<span class="lineNum">      20 </span>            : /// options factory mechanism as a possible `SpanInterpolator`.
+<span class="lineNum">      21 </span>            : ///
+<span class="lineNum">      22 </span>            : /// \details This interpolator is hand-coded to be identical to the SpEC
+<span class="lineNum">      23 </span>            : /// implementation used for SpEC CCE so that comparison results can be as close
+<span class="lineNum">      24 </span>            : /// as possible for diagnostics.
+<span class="lineNum">      25 </span><span class="lineCov">          1 : class CubicSpanInterpolator : public SpanInterpolator {</span>
+<span class="lineNum">      26 </span>            :  public:
+<span class="lineNum">      27 </span><span class="lineNoCov">          0 :   using options = tmpl::list&lt;&gt;;</span>
+<span class="lineNum">      28 </span><span class="lineNoCov">          0 :   static constexpr OptionString help = {&quot;Cubic interpolator.&quot;};</span>
+<span class="lineNum">      29 </span>            : 
+<span class="lineNum">      30 </span><span class="lineNoCov">          0 :   CubicSpanInterpolator() = default;</span>
+<span class="lineNum">      31 </span><span class="lineNoCov">          0 :   CubicSpanInterpolator(const CubicSpanInterpolator&amp;) noexcept = default;</span>
+<span class="lineNum">      32 </span><span class="lineNoCov">          0 :   CubicSpanInterpolator&amp; operator=(const CubicSpanInterpolator&amp;) noexcept =</span>
+<span class="lineNum">      33 </span>            :       default;
+<span class="lineNum">      34 </span><span class="lineNoCov">          0 :   CubicSpanInterpolator(CubicSpanInterpolator&amp;&amp;) noexcept = default;</span>
+<span class="lineNum">      35 </span><span class="lineNoCov">          0 :   CubicSpanInterpolator&amp; operator=(CubicSpanInterpolator&amp;&amp;) noexcept = default;</span>
+<span class="lineNum">      36 </span><span class="lineNoCov">          0 :   ~CubicSpanInterpolator() noexcept override = default;</span>
+<span class="lineNum">      37 </span>            : 
+<span class="lineNum">      38 </span><span class="lineNoCov">          0 :   explicit CubicSpanInterpolator(CkMigrateMessage* /*unused*/) noexcept {}</span>
+<span class="lineNum">      39 </span>            : 
+<span class="lineNum">      40 </span><span class="lineNoCov">          0 :   WRAPPED_PUPable_decl_template(CubicSpanInterpolator);  // NOLINT</span>
+<span class="lineNum">      41 </span>            : 
+<span class="lineNum">      42 </span>            :   // clang-tidy: do not pass by non-const reference
+<span class="lineNum">      43 </span><span class="lineNoCov">          0 :   void pup(PUP::er&amp; /*p*/) noexcept override {}</span>
+<span class="lineNum">      44 </span>            : 
+<span class="lineNum">      45 </span><span class="lineCov">          1 :   std::unique_ptr&lt;SpanInterpolator&gt; get_clone() const noexcept override {</span>
+<span class="lineNum">      46 </span>            :     return std::make_unique&lt;CubicSpanInterpolator&gt;(*this);
+<span class="lineNum">      47 </span>            :   }
+<span class="lineNum">      48 </span>            : 
+<span class="lineNum">      49 </span><span class="lineCov">          1 :   double interpolate(const gsl::span&lt;const double&gt;&amp; source_points,</span>
+<span class="lineNum">      50 </span>            :                      const gsl::span&lt;const double&gt;&amp; values,
+<span class="lineNum">      51 </span>            :                      double target_point) const noexcept override;
+<span class="lineNum">      52 </span>            : 
+<span class="lineNum">      53 </span><span class="lineNoCov">          0 :   std::complex&lt;double&gt; interpolate(</span>
+<span class="lineNum">      54 </span>            :       const gsl::span&lt;const double&gt;&amp; source_points,
+<span class="lineNum">      55 </span>            :       const gsl::span&lt;const std::complex&lt;double&gt;&gt;&amp; values,
+<span class="lineNum">      56 </span>            :       double target_point) const noexcept;
+<span class="lineNum">      57 </span>            : 
+<span class="lineNum">      58 </span><span class="lineCov">          1 :   size_t required_number_of_points_before_and_after() const noexcept override {</span>
+<span class="lineNum">      59 </span>            :     return 2;
+<span class="lineNum">      60 </span>            :   }
+<span class="lineNum">      61 </span>            : };
+<span class="lineNum">      62 </span>            : }  // namespace intrp
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

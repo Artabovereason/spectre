@@ -1,0 +1,277 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - IO/Importers/VolumeDataReaderActions.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">IO/Importers</a> - VolumeDataReaderActions.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">3</td>
+            <td class="headerCovTableEntry">7</td>
+            <td class="headerCovTableEntryLo">42.9 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #pragma once
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;cstddef&gt;
+<span class="lineNum">       7 </span>            : #include &lt;iterator&gt;
+<span class="lineNum">       8 </span>            : #include &lt;unordered_map&gt;
+<span class="lineNum">       9 </span>            : 
+<span class="lineNum">      10 </span>            : #include &quot;DataStructures/DataBox/DataBox.hpp&quot;
+<span class="lineNum">      11 </span>            : #include &quot;DataStructures/DataBox/DataBoxTag.hpp&quot;
+<span class="lineNum">      12 </span>            : #include &quot;DataStructures/DataBox/TagName.hpp&quot;
+<span class="lineNum">      13 </span>            : #include &quot;DataStructures/Index.hpp&quot;
+<span class="lineNum">      14 </span>            : #include &quot;DataStructures/Tensor/TensorData.hpp&quot;
+<span class="lineNum">      15 </span>            : #include &quot;ErrorHandling/Error.hpp&quot;
+<span class="lineNum">      16 </span>            : #include &quot;IO/H5/AccessType.hpp&quot;
+<span class="lineNum">      17 </span>            : #include &quot;IO/H5/File.hpp&quot;
+<span class="lineNum">      18 </span>            : #include &quot;IO/H5/VolumeData.hpp&quot;
+<span class="lineNum">      19 </span>            : #include &quot;IO/Importers/Tags.hpp&quot;
+<span class="lineNum">      20 </span>            : #include &quot;IO/Observer/ArrayComponentId.hpp&quot;
+<span class="lineNum">      21 </span>            : #include &quot;Parallel/ConstGlobalCache.hpp&quot;
+<span class="lineNum">      22 </span>            : #include &quot;Parallel/Info.hpp&quot;
+<span class="lineNum">      23 </span>            : #include &quot;Parallel/Invoke.hpp&quot;
+<span class="lineNum">      24 </span>            : #include &quot;Utilities/Algorithm.hpp&quot;
+<span class="lineNum">      25 </span>            : #include &quot;Utilities/Requires.hpp&quot;
+<span class="lineNum">      26 </span>            : #include &quot;Utilities/TaggedTuple.hpp&quot;
+<span class="lineNum">      27 </span>            : 
+<span class="lineNum">      28 </span>            : namespace importers {
+<span class="lineNum">      29 </span>            : /// Actions related to importers
+<span class="lineNum">      30 </span>            : namespace Actions {
+<span class="lineNum">      31 </span>            : 
+<span class="lineNum">      32 </span>            : /*!
+<span class="lineNum">      33 </span>            :  * \brief Invoked on the `importers::VolumeDataReader` component to store the
+<span class="lineNum">      34 </span>            :  * registered data.
+<span class="lineNum">      35 </span>            :  *
+<span class="lineNum">      36 </span>            :  * The `importers::Actions::RegisterWithVolumeDataReader` action, which is
+<span class="lineNum">      37 </span>            :  * performed on each element of an array parallel component, invokes this action
+<span class="lineNum">      38 </span>            :  * on the `importers::VolumeDataReader` component.
+<span class="lineNum">      39 </span>            :  */
+<span class="lineNum">      40 </span><span class="lineCov">          1 : struct RegisterElementWithSelf {</span>
+<span class="lineNum">      41 </span>            :   template &lt;
+<span class="lineNum">      42 </span>            :       typename ParallelComponent, typename DbTagsList, typename Metavariables,
+<span class="lineNum">      43 </span>            :       typename ArrayIndex, typename DataBox = db::DataBox&lt;DbTagsList&gt;,
+<span class="lineNum">      44 </span>            :       Requires&lt;db::tag_is_retrievable_v&lt;Tags::RegisteredElements, DataBox&gt;&gt; =
+<span class="lineNum">      45 </span>            :           nullptr&gt;
+<span class="lineNum">      46 </span><span class="lineNoCov">          0 :   static void apply(db::DataBox&lt;DbTagsList&gt;&amp; box,</span>
+<span class="lineNum">      47 </span>            :                     const Parallel::ConstGlobalCache&lt;Metavariables&gt;&amp; /*cache*/,
+<span class="lineNum">      48 </span>            :                     const ArrayIndex&amp; /*array_index*/,
+<span class="lineNum">      49 </span>            :                     const observers::ArrayComponentId&amp; array_component_id,
+<span class="lineNum">      50 </span>            :                     const std::string&amp; grid_name) noexcept {
+<span class="lineNum">      51 </span>            :     db::mutate&lt;Tags::RegisteredElements&gt;(
+<span class="lineNum">      52 </span>            :         make_not_null(&amp;box),
+<span class="lineNum">      53 </span>            :         [&amp;array_component_id, &amp;grid_name](
+<span class="lineNum">      54 </span>            :             const gsl::not_null&lt;db::item_type&lt;Tags::RegisteredElements&gt;*&gt;
+<span class="lineNum">      55 </span>            :                 registered_elements) noexcept {
+<span class="lineNum">      56 </span>            :           (*registered_elements)[array_component_id] = grid_name;
+<span class="lineNum">      57 </span>            :         });
+<span class="lineNum">      58 </span>            :   }
+<span class="lineNum">      59 </span>            : };
+<span class="lineNum">      60 </span>            : 
+<span class="lineNum">      61 </span>            : }  // namespace Actions
+<span class="lineNum">      62 </span>            : 
+<span class="lineNum">      63 </span>            : /// Threaded actions related to importers
+<span class="lineNum">      64 </span><span class="lineCov">          1 : namespace ThreadedActions {</span>
+<span class="lineNum">      65 </span>            : 
+<span class="lineNum">      66 </span>            : /*!
+<span class="lineNum">      67 </span>            :  * \brief Read a volume data file and distribute the data to the registered
+<span class="lineNum">      68 </span>            :  * elements.
+<span class="lineNum">      69 </span>            :  *
+<span class="lineNum">      70 </span>            :  * This action can be invoked on the `importers::VolumeDataReader` component
+<span class="lineNum">      71 </span>            :  * once all elements have been registered with it. It opens the data file, reads
+<span class="lineNum">      72 </span>            :  * the data for each registered element and calls the `CallbackAction` on each
+<span class="lineNum">      73 </span>            :  * element providing the data.
+<span class="lineNum">      74 </span>            :  *
+<span class="lineNum">      75 </span>            :  * - The `ImporterOptionsGroup` parameter specifies the \ref OptionGroupsGroup
+<span class="lineNum">      76 </span>            :  * &quot;options group&quot; in the input file that provides the following run-time
+<span class="lineNum">      77 </span>            :  * options:
+<span class="lineNum">      78 </span>            :  *   - `importers::OptionTags::FileName`
+<span class="lineNum">      79 </span>            :  *   - `importers::OptionTags::Subgroup`
+<span class="lineNum">      80 </span>            :  *   - `importers::OptionTags::ObservationValue`
+<span class="lineNum">      81 </span>            :  * - The `FieldTagsList` parameter specifies a typelist of tensor tags that
+<span class="lineNum">      82 </span>            :  * are read from the file and provided to each element. It is assumed that the
+<span class="lineNum">      83 </span>            :  * tensor data is stored in datasets named `db::tag_name&lt;Tag&gt;() + suffix`, where
+<span class="lineNum">      84 </span>            :  * the `suffix` is empty for scalars or `&quot;_&quot;` followed by the
+<span class="lineNum">      85 </span>            :  * `Tensor::component_name` for each independent tensor component.
+<span class="lineNum">      86 </span>            :  * - The `CallbackAction` is invoked on each registered element of the
+<span class="lineNum">      87 </span>            :  * `CallbackComponent` with a
+<span class="lineNum">      88 </span>            :  * `tuples::tagged_tuple_from_typelist&lt;FieldTagsList&gt;` containing the
+<span class="lineNum">      89 </span>            :  * tensor data for that element. Use `Actions::SetData` to write the data
+<span class="lineNum">      90 </span>            :  * directly into their respective tags in the DataBox. The `CallbackComponent`
+<span class="lineNum">      91 </span>            :  * must the the same that was encoded into the `observers::ArrayComponentId`
+<span class="lineNum">      92 </span>            :  * used to register the elements.
+<span class="lineNum">      93 </span>            :  */
+<span class="lineNum">      94 </span>            : template &lt;typename ImporterOptionsGroup, typename FieldTagsList,
+<span class="lineNum">      95 </span>            :           typename CallbackAction, typename CallbackComponent&gt;
+<span class="lineNum">      96 </span><span class="lineCov">          1 : struct ReadVolumeData {</span>
+<span class="lineNum">      97 </span><span class="lineNoCov">          0 :   using const_global_cache_tags =</span>
+<span class="lineNum">      98 </span>            :       tmpl::list&lt;Tags::FileName&lt;ImporterOptionsGroup&gt;,
+<span class="lineNum">      99 </span>            :                  Tags::Subgroup&lt;ImporterOptionsGroup&gt;,
+<span class="lineNum">     100 </span>            :                  Tags::ObservationValue&lt;ImporterOptionsGroup&gt;&gt;;
+<span class="lineNum">     101 </span>            : 
+<span class="lineNum">     102 </span>            :   template &lt;typename ParallelComponent, typename DataBox,
+<span class="lineNum">     103 </span>            :             typename Metavariables, typename ArrayIndex,
+<span class="lineNum">     104 </span>            :             Requires&lt;db::tag_is_retrievable_v&lt;Tags::RegisteredElements,
+<span class="lineNum">     105 </span>            :                                               DataBox&gt;&gt; = nullptr&gt;
+<span class="lineNum">     106 </span><span class="lineNoCov">          0 :   static void apply(DataBox&amp; box,</span>
+<span class="lineNum">     107 </span>            :                     Parallel::ConstGlobalCache&lt;Metavariables&gt;&amp; cache,
+<span class="lineNum">     108 </span>            :                     const ArrayIndex&amp; /*array_index*/,
+<span class="lineNum">     109 </span>            :                     const gsl::not_null&lt;CmiNodeLock*&gt; node_lock) noexcept {
+<span class="lineNum">     110 </span>            :     Parallel::lock(node_lock);
+<span class="lineNum">     111 </span>            :     {
+<span class="lineNum">     112 </span>            :       // The scoping is to close the file before unlocking
+<span class="lineNum">     113 </span>            :       h5::H5File&lt;h5::AccessType::ReadOnly&gt; h5file(
+<span class="lineNum">     114 </span>            :           Parallel::get&lt;Tags::FileName&lt;ImporterOptionsGroup&gt;&gt;(cache));
+<span class="lineNum">     115 </span>            :       constexpr size_t version_number = 0;
+<span class="lineNum">     116 </span>            :       const auto&amp; volume_file = h5file.get&lt;h5::VolumeData&gt;(
+<span class="lineNum">     117 </span>            :           &quot;/&quot; + Parallel::get&lt;Tags::Subgroup&lt;ImporterOptionsGroup&gt;&gt;(cache),
+<span class="lineNum">     118 </span>            :           version_number);
+<span class="lineNum">     119 </span>            :       const auto observation_id = volume_file.find_observation_id(
+<span class="lineNum">     120 </span>            :           Parallel::get&lt;Tags::ObservationValue&lt;ImporterOptionsGroup&gt;&gt;(cache));
+<span class="lineNum">     121 </span>            :       // Read the tensor data for all elements at once, since that's how it's
+<span class="lineNum">     122 </span>            :       // stored in the file
+<span class="lineNum">     123 </span>            :       tuples::tagged_tuple_from_typelist&lt;FieldTagsList&gt; all_tensor_data{};
+<span class="lineNum">     124 </span>            :       tmpl::for_each&lt;FieldTagsList&gt;([
+<span class="lineNum">     125 </span>            :         &amp;all_tensor_data, &amp;volume_file, &amp;observation_id
+<span class="lineNum">     126 </span>            :       ](auto field_tag_v) noexcept {
+<span class="lineNum">     127 </span>            :         using field_tag = tmpl::type_from&lt;decltype(field_tag_v)&gt;;
+<span class="lineNum">     128 </span>            :         auto&amp; tensor_data = get&lt;field_tag&gt;(all_tensor_data);
+<span class="lineNum">     129 </span>            :         for (size_t i = 0; i &lt; tensor_data.size(); i++) {
+<span class="lineNum">     130 </span>            :           tensor_data[i] = volume_file.get_tensor_component(
+<span class="lineNum">     131 </span>            :               observation_id,
+<span class="lineNum">     132 </span>            :               db::tag_name&lt;field_tag&gt;() + tensor_data.component_suffix(
+<span class="lineNum">     133 </span>            :                                               tensor_data.get_tensor_index(i)));
+<span class="lineNum">     134 </span>            :         }
+<span class="lineNum">     135 </span>            :       });
+<span class="lineNum">     136 </span>            :       // Retrieve the information needed to reconstruct which element the data
+<span class="lineNum">     137 </span>            :       // belongs to
+<span class="lineNum">     138 </span>            :       const auto all_grid_names = volume_file.get_grid_names(observation_id);
+<span class="lineNum">     139 </span>            :       const auto all_extents = volume_file.get_extents(observation_id);
+<span class="lineNum">     140 </span>            :       // Distribute the tensor data to the registered elements
+<span class="lineNum">     141 </span>            :       for (auto&amp; element_and_name : get&lt;Tags::RegisteredElements&gt;(box)) {
+<span class="lineNum">     142 </span>            :         const CkArrayIndex&amp; raw_element_index =
+<span class="lineNum">     143 </span>            :             element_and_name.first.array_index();
+<span class="lineNum">     144 </span>            :         // Check if the parallel component of the registered element matches the
+<span class="lineNum">     145 </span>            :         // callback, because it's possible that elements from other components
+<span class="lineNum">     146 </span>            :         // with the same index are also registered.
+<span class="lineNum">     147 </span>            :         // Since the way the component is encoded in `ArrayComponentId` is
+<span class="lineNum">     148 </span>            :         // private to that class, we construct one and compare.
+<span class="lineNum">     149 </span>            :         if (element_and_name.first !=
+<span class="lineNum">     150 </span>            :             observers::ArrayComponentId(
+<span class="lineNum">     151 </span>            :                 std::add_pointer_t&lt;CallbackComponent&gt;{nullptr},
+<span class="lineNum">     152 </span>            :                 raw_element_index)) {
+<span class="lineNum">     153 </span>            :           continue;
+<span class="lineNum">     154 </span>            :         }
+<span class="lineNum">     155 </span>            :         // Find the data offset that corresponds to this element
+<span class="lineNum">     156 </span>            :         const auto element_data_offset_and_length =
+<span class="lineNum">     157 </span>            :             h5::offset_and_length_for_grid(element_and_name.second,
+<span class="lineNum">     158 </span>            :                                            all_grid_names, all_extents);
+<span class="lineNum">     159 </span>            :         // Extract this element's data from the read-in dataset
+<span class="lineNum">     160 </span>            :         tuples::tagged_tuple_from_typelist&lt;FieldTagsList&gt; element_data{};
+<span class="lineNum">     161 </span>            :         tmpl::for_each&lt;FieldTagsList&gt;([
+<span class="lineNum">     162 </span>            :           &amp;element_data, &amp;element_data_offset_and_length, &amp;all_tensor_data
+<span class="lineNum">     163 </span>            :         ](auto field_tag_v) noexcept {
+<span class="lineNum">     164 </span>            :           using field_tag = tmpl::type_from&lt;decltype(field_tag_v)&gt;;
+<span class="lineNum">     165 </span>            :           auto&amp; element_tensor_data = get&lt;field_tag&gt;(element_data);
+<span class="lineNum">     166 </span>            :           // Iterate independent components of the tensor
+<span class="lineNum">     167 </span>            :           for (size_t i = 0; i &lt; element_tensor_data.size(); i++) {
+<span class="lineNum">     168 </span>            :             const DataVector&amp; data_tensor_component =
+<span class="lineNum">     169 </span>            :                 get&lt;field_tag&gt;(all_tensor_data)[i];
+<span class="lineNum">     170 </span>            :             DataVector element_tensor_component{
+<span class="lineNum">     171 </span>            :                 element_data_offset_and_length.second};
+<span class="lineNum">     172 </span>            :             // Retrieve data from slice of the contigious dataset
+<span class="lineNum">     173 </span>            :             for (size_t j = 0; j &lt; element_tensor_component.size(); j++) {
+<span class="lineNum">     174 </span>            :               element_tensor_component[j] =
+<span class="lineNum">     175 </span>            :                   data_tensor_component[element_data_offset_and_length.first +
+<span class="lineNum">     176 </span>            :                                         j];
+<span class="lineNum">     177 </span>            :             }
+<span class="lineNum">     178 </span>            :             element_tensor_data[i] = element_tensor_component;
+<span class="lineNum">     179 </span>            :           }
+<span class="lineNum">     180 </span>            :         });
+<span class="lineNum">     181 </span>            :         // Pass the data to the element in a simple action
+<span class="lineNum">     182 </span>            :         const auto element_index =
+<span class="lineNum">     183 </span>            :             Parallel::ArrayIndex&lt;typename CallbackComponent::array_index&gt;(
+<span class="lineNum">     184 </span>            :                 raw_element_index)
+<span class="lineNum">     185 </span>            :                 .get_index();
+<span class="lineNum">     186 </span>            :         Parallel::simple_action&lt;CallbackAction&gt;(
+<span class="lineNum">     187 </span>            :             Parallel::get_parallel_component&lt;CallbackComponent&gt;(
+<span class="lineNum">     188 </span>            :                 cache)[element_index],
+<span class="lineNum">     189 </span>            :             std::move(element_data));
+<span class="lineNum">     190 </span>            :       }
+<span class="lineNum">     191 </span>            :     }
+<span class="lineNum">     192 </span>            :     Parallel::unlock(node_lock);
+<span class="lineNum">     193 </span>            :   }
+<span class="lineNum">     194 </span>            : };
+<span class="lineNum">     195 </span>            : 
+<span class="lineNum">     196 </span>            : }  // namespace ThreadedActions
+<span class="lineNum">     197 </span>            : }  // namespace importers
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

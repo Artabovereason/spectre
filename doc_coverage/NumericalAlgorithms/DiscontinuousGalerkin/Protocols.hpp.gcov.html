@@ -1,0 +1,202 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - NumericalAlgorithms/DiscontinuousGalerkin/Protocols.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">NumericalAlgorithms/DiscontinuousGalerkin</a> - Protocols.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">2</td>
+            <td class="headerCovTableEntry">3</td>
+            <td class="headerCovTableEntryLo">66.7 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #pragma once
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &quot;DataStructures/DataBox/DataBoxTag.hpp&quot;
+<span class="lineNum">       7 </span>            : #include &quot;Utilities/Gsl.hpp&quot;
+<span class="lineNum">       8 </span>            : #include &quot;Utilities/TMPL.hpp&quot;
+<span class="lineNum">       9 </span>            : #include &quot;Utilities/TypeTraits.hpp&quot;
+<span class="lineNum">      10 </span>            : #include &quot;Utilities/TypeTraits/CreateHasTypeAlias.hpp&quot;
+<span class="lineNum">      11 </span>            : #include &quot;Utilities/TypeTraits/CreateIsCallable.hpp&quot;
+<span class="lineNum">      12 </span>            : #include &quot;Utilities/TypeTraits/IsCallable.hpp&quot;
+<span class="lineNum">      13 </span>            : 
+<span class="lineNum">      14 </span>            : namespace dg {
+<span class="lineNum">      15 </span>            : /// \ref protocols related to Discontinuous Galerkin functionality
+<span class="lineNum">      16 </span><span class="lineCov">          1 : namespace protocols {</span>
+<span class="lineNum">      17 </span>            : 
+<span class="lineNum">      18 </span>            : namespace detail {
+<span class="lineNum">      19 </span>            : CREATE_HAS_TYPE_ALIAS(variables_tags)
+<span class="lineNum">      20 </span>            : CREATE_HAS_TYPE_ALIAS_V(variables_tags)
+<span class="lineNum">      21 </span>            : CREATE_HAS_TYPE_ALIAS(argument_tags)
+<span class="lineNum">      22 </span>            : CREATE_HAS_TYPE_ALIAS_V(argument_tags)
+<span class="lineNum">      23 </span>            : CREATE_HAS_TYPE_ALIAS(package_field_tags)
+<span class="lineNum">      24 </span>            : CREATE_HAS_TYPE_ALIAS_V(package_field_tags)
+<span class="lineNum">      25 </span>            : CREATE_HAS_TYPE_ALIAS(package_extra_tags)
+<span class="lineNum">      26 </span>            : CREATE_HAS_TYPE_ALIAS_V(package_extra_tags)
+<span class="lineNum">      27 </span>            : 
+<span class="lineNum">      28 </span>            : template &lt;typename NumericalFluxType, typename VariablesTags,
+<span class="lineNum">      29 </span>            :           typename PackageFieldTags, typename PackageExtraTags&gt;
+<span class="lineNum">      30 </span>            : struct IsNumericalFluxCallableImpl;
+<span class="lineNum">      31 </span>            : 
+<span class="lineNum">      32 </span>            : template &lt;typename NumericalFluxType, typename... VariablesTags,
+<span class="lineNum">      33 </span>            :           typename... PackageFieldTags, typename... PackageExtraTags&gt;
+<span class="lineNum">      34 </span>            : struct IsNumericalFluxCallableImpl&lt;
+<span class="lineNum">      35 </span>            :     NumericalFluxType, tmpl::list&lt;VariablesTags...&gt;,
+<span class="lineNum">      36 </span>            :     tmpl::list&lt;PackageFieldTags...&gt;, tmpl::list&lt;PackageExtraTags...&gt;&gt;
+<span class="lineNum">      37 </span>            :     : tt::is_callable_t&lt;NumericalFluxType,
+<span class="lineNum">      38 </span>            :                         gsl::not_null&lt;db::item_type&lt;VariablesTags&gt;*&gt;...,
+<span class="lineNum">      39 </span>            :                         db::const_item_type&lt;PackageFieldTags&gt;...,
+<span class="lineNum">      40 </span>            :                         db::const_item_type&lt;PackageExtraTags&gt;...,
+<span class="lineNum">      41 </span>            :                         db::const_item_type&lt;PackageFieldTags&gt;...,
+<span class="lineNum">      42 </span>            :                         db::const_item_type&lt;PackageExtraTags&gt;...&gt; {};
+<span class="lineNum">      43 </span>            : 
+<span class="lineNum">      44 </span>            : template &lt;typename NumericalFluxType&gt;
+<span class="lineNum">      45 </span>            : struct IsNumericalFluxCallable
+<span class="lineNum">      46 </span>            :     : IsNumericalFluxCallableImpl&lt;
+<span class="lineNum">      47 </span>            :           NumericalFluxType, typename NumericalFluxType::variables_tags,
+<span class="lineNum">      48 </span>            :           typename NumericalFluxType::package_field_tags,
+<span class="lineNum">      49 </span>            :           typename NumericalFluxType::package_extra_tags&gt; {};
+<span class="lineNum">      50 </span>            : }  // namespace detail
+<span class="lineNum">      51 </span>            : 
+<span class="lineNum">      52 </span>            : /*!
+<span class="lineNum">      53 </span>            :  * \ingroup ProtocolsGroup
+<span class="lineNum">      54 </span>            :  * \brief Defines the interface for DG numerical fluxes
+<span class="lineNum">      55 </span>            :  *
+<span class="lineNum">      56 </span>            :  * This protocol defines the interface that a class must conform to so that it
+<span class="lineNum">      57 </span>            :  * can be used as a numerical flux in DG boundary schemes. Essentially, the
+<span class="lineNum">      58 </span>            :  * class must be able to compute the quantity \f$G\f$ that appears, for example,
+<span class="lineNum">      59 </span>            :  * in the strong first-order DG boundary scheme
+<span class="lineNum">      60 </span>            :  * \f$G_\alpha(n_i^\mathrm{int}, u_\alpha^\mathrm{int}, n_i^\mathrm{ext},
+<span class="lineNum">      61 </span>            :  * u_\alpha^\mathrm{ext}) - n_i^\mathrm{int} F^{i,\mathrm{int}}_\alpha\f$
+<span class="lineNum">      62 </span>            :  * where \f$u_\alpha\f$ are the system variables and \f$F^i_\alpha\f$ their
+<span class="lineNum">      63 </span>            :  * corresponding fluxes. See also Eq. (2.20) in \cite Teukolsky2015ega where the
+<span class="lineNum">      64 </span>            :  * quantity \f$G\f$ is denoted \f$n_i F^{i*}\f$, which is why we occasionally
+<span class="lineNum">      65 </span>            :  * refer to it as the &quot;normal-dot-numerical-fluxes&quot;.
+<span class="lineNum">      66 </span>            :  *
+<span class="lineNum">      67 </span>            :  * Requires the `ConformingType` has these type aliases:
+<span class="lineNum">      68 </span>            :  * - `variables_tags`: A typelist of DataBox tags that the class computes
+<span class="lineNum">      69 </span>            :  * numerical fluxes for.
+<span class="lineNum">      70 </span>            :  * - `argument_tags`: A typelist of DataBox tags that will be retrieved on
+<span class="lineNum">      71 </span>            :  * interfaces and passed to the `package_data` function (see below). The
+<span class="lineNum">      72 </span>            :  * `ConformingType` may also have a `volume_tags` typelist that specifies the
+<span class="lineNum">      73 </span>            :  * subset of `argument_tags` that should be retrieved from the volume instead
+<span class="lineNum">      74 </span>            :  * of the interface.
+<span class="lineNum">      75 </span>            :  * - `package_field_tags`: A typelist of DataBox tags with `Tensor` types that
+<span class="lineNum">      76 </span>            :  * the `package_data` function will compute from the `argument_tags`. These
+<span class="lineNum">      77 </span>            :  * quantities will be made available on both sides of a mortar and passed to
+<span class="lineNum">      78 </span>            :  * the call operator to compute the numerical flux.
+<span class="lineNum">      79 </span>            :  * - `package_extra_tags`: Additional non-tensor tags that will be made
+<span class="lineNum">      80 </span>            :  * available on both sides of a mortar, e.g. geometric quantities.
+<span class="lineNum">      81 </span>            :  *
+<span class="lineNum">      82 </span>            :  * Requires the `ConformingType` has these member functions:
+<span class="lineNum">      83 </span>            :  * - `package_data`: Takes the types of the `package_field_tags` and the
+<span class="lineNum">      84 </span>            :  * `package_extra_tags` by `gsl::not_null` pointer, followed by the types of the
+<span class="lineNum">      85 </span>            :  * `argument_tags`.
+<span class="lineNum">      86 </span>            :  * - `operator()`: Takes the types of the `variables_tags` by `gsl::not_null`
+<span class="lineNum">      87 </span>            :  * pointer, followed by the types of the `package_field_tags` and the
+<span class="lineNum">      88 </span>            :  * `package_extra_tags` from the interior side of the mortar and from the
+<span class="lineNum">      89 </span>            :  * exterior side. Note that the data from the exterior side was computed
+<span class="lineNum">      90 </span>            :  * entirely with data from the neighboring element, including its interface
+<span class="lineNum">      91 </span>            :  * normal which is (at least when it's independent of the system variables)
+<span class="lineNum">      92 </span>            :  * opposite to the interior element's interface normal. Therefore, make sure to
+<span class="lineNum">      93 </span>            :  * take into account the sign flip for quantities that include the interface
+<span class="lineNum">      94 </span>            :  * normal.
+<span class="lineNum">      95 </span>            :  *
+<span class="lineNum">      96 </span>            :  * Here's an example for a simple &quot;central&quot; numerical flux
+<span class="lineNum">      97 </span>            :  * \f$G_\alpha(n_i^\mathrm{int}, u_\alpha^\mathrm{int}, n_i^\mathrm{ext},
+<span class="lineNum">      98 </span>            :  * u_\alpha^\mathrm{ext}) = \frac{1}{2}\left(n_i^\mathrm{int}
+<span class="lineNum">      99 </span>            :  * F^{i,\mathrm{int}}_\alpha - n_i^\mathrm{ext} F^{i,\mathrm{ext}}_\alpha
+<span class="lineNum">     100 </span>            :  * \right)\f$:
+<span class="lineNum">     101 </span>            :  *
+<span class="lineNum">     102 </span>            :  * \snippet DiscontinuousGalerkin/Test_Protocols.cpp numerical_flux_example
+<span class="lineNum">     103 </span>            :  *
+<span class="lineNum">     104 </span>            :  * Note that this numerical flux reduces to the interface average
+<span class="lineNum">     105 </span>            :  * \f$G_\alpha=\frac{n^\mathrm{int}_i}{2}\left(F^{i,\mathrm{int}}_\alpha +
+<span class="lineNum">     106 </span>            :  * F^{i,\mathrm{ext}}_\alpha\right)\f$ for the case where the interface normal
+<span class="lineNum">     107 </span>            :  * is independent of the system variables and therefore \f$n_i^\mathrm{ext} =
+<span class="lineNum">     108 </span>            :  * -n_i^\mathrm{int}\f$.
+<span class="lineNum">     109 </span>            :  */
+<span class="lineNum">     110 </span>            : template &lt;typename ConformingType&gt;
+<span class="lineNum">     111 </span><span class="lineCov">          1 : using NumericalFlux = std::conditional_t&lt;</span>
+<span class="lineNum">     112 </span>            :     tmpl2::flat_all_v&lt;detail::has_variables_tags_v&lt;ConformingType&gt;,
+<span class="lineNum">     113 </span>            :                       detail::has_argument_tags_v&lt;ConformingType&gt;,
+<span class="lineNum">     114 </span>            :                       detail::has_package_field_tags_v&lt;ConformingType&gt;,
+<span class="lineNum">     115 </span>            :                       detail::has_package_extra_tags_v&lt;ConformingType&gt;&gt;,
+<span class="lineNum">     116 </span>            :     // We can't currently check that the package_data function is callable
+<span class="lineNum">     117 </span>            :     // because the `argument_tags` may contain base tags and we can't resolve
+<span class="lineNum">     118 </span>            :     // their types.
+<span class="lineNum">     119 </span>            :     detail::IsNumericalFluxCallable&lt;ConformingType&gt;, std::false_type&gt;;
+<span class="lineNum">     120 </span>            : 
+<span class="lineNum">     121 </span>            : }  // namespace protocols
+<span class="lineNum">     122 </span>            : }  // namespace dg
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

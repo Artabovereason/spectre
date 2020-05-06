@@ -1,0 +1,249 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - NumericalAlgorithms/DiscontinuousGalerkin/BoundarySchemes/FirstOrder/FirstOrderScheme.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../../index.html">top level</a> - <a href="index.html">NumericalAlgorithms/DiscontinuousGalerkin/BoundarySchemes/FirstOrder</a> - FirstOrderScheme.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntry">16</td>
+            <td class="headerCovTableEntryLo">6.2 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #pragma once
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;cstddef&gt;
+<span class="lineNum">       7 </span>            : #include &lt;utility&gt;
+<span class="lineNum">       8 </span>            : 
+<span class="lineNum">       9 </span>            : #include &quot;DataStructures/DataBox/DataBoxTag.hpp&quot;
+<span class="lineNum">      10 </span>            : #include &quot;DataStructures/DataVector.hpp&quot;
+<span class="lineNum">      11 </span>            : #include &quot;DataStructures/Tensor/EagerMath/Magnitude.hpp&quot;
+<span class="lineNum">      12 </span>            : #include &quot;DataStructures/Tensor/Tensor.hpp&quot;
+<span class="lineNum">      13 </span>            : #include &quot;DataStructures/Variables.hpp&quot;
+<span class="lineNum">      14 </span>            : #include &quot;Domain/Direction.hpp&quot;
+<span class="lineNum">      15 </span>            : #include &quot;Domain/FaceNormal.hpp&quot;
+<span class="lineNum">      16 </span>            : #include &quot;Domain/InterfaceHelpers.hpp&quot;
+<span class="lineNum">      17 </span>            : #include &quot;Domain/Mesh.hpp&quot;
+<span class="lineNum">      18 </span>            : #include &quot;NumericalAlgorithms/DiscontinuousGalerkin/BoundarySchemes/FirstOrder/BoundaryData.hpp&quot;
+<span class="lineNum">      19 </span>            : #include &quot;NumericalAlgorithms/DiscontinuousGalerkin/BoundarySchemes/FirstOrder/BoundaryFlux.hpp&quot;
+<span class="lineNum">      20 </span>            : #include &quot;NumericalAlgorithms/DiscontinuousGalerkin/MortarHelpers.hpp&quot;
+<span class="lineNum">      21 </span>            : #include &quot;NumericalAlgorithms/DiscontinuousGalerkin/Protocols.hpp&quot;
+<span class="lineNum">      22 </span>            : #include &quot;NumericalAlgorithms/DiscontinuousGalerkin/SimpleMortarData.hpp&quot;
+<span class="lineNum">      23 </span>            : #include &quot;NumericalAlgorithms/DiscontinuousGalerkin/Tags.hpp&quot;
+<span class="lineNum">      24 </span>            : #include &quot;Utilities/ProtocolHelpers.hpp&quot;
+<span class="lineNum">      25 </span>            : #include &quot;Utilities/TMPL.hpp&quot;
+<span class="lineNum">      26 </span>            : 
+<span class="lineNum">      27 </span>            : namespace dg {
+<span class="lineNum">      28 </span>            : namespace FirstOrderScheme {
+<span class="lineNum">      29 </span>            : 
+<span class="lineNum">      30 </span>            : namespace detail {
+<span class="lineNum">      31 </span>            : 
+<span class="lineNum">      32 </span>            : template &lt;size_t Dim, typename VariablesTag, typename NumericalFluxComputerTag,
+<span class="lineNum">      33 </span>            :           typename NumericalFlux =
+<span class="lineNum">      34 </span>            :               db::const_item_type&lt;NumericalFluxComputerTag&gt;,
+<span class="lineNum">      35 </span>            :           typename ArgsTagsList = typename NumericalFlux::argument_tags&gt;
+<span class="lineNum">      36 </span>            : struct boundary_data_computer_impl;
+<span class="lineNum">      37 </span>            : 
+<span class="lineNum">      38 </span>            : template &lt;size_t Dim, typename VariablesTag, typename NumericalFluxComputerTag,
+<span class="lineNum">      39 </span>            :           typename NumericalFlux, typename... ArgsTags&gt;
+<span class="lineNum">      40 </span>            : struct boundary_data_computer_impl&lt;Dim, VariablesTag, NumericalFluxComputerTag,
+<span class="lineNum">      41 </span>            :                                    NumericalFlux, tmpl::list&lt;ArgsTags...&gt;&gt; {
+<span class="lineNum">      42 </span>            :   using n_dot_fluxes_tag =
+<span class="lineNum">      43 </span>            :       db::add_tag_prefix&lt;::Tags::NormalDotFlux, VariablesTag&gt;;
+<span class="lineNum">      44 </span>            :   using argument_tags =
+<span class="lineNum">      45 </span>            :       tmpl::list&lt;NumericalFluxComputerTag, domain::Tags::Mesh&lt;Dim - 1&gt;,
+<span class="lineNum">      46 </span>            :                  n_dot_fluxes_tag, ArgsTags...&gt;;
+<span class="lineNum">      47 </span>            :   using volume_tags = tmpl::append&lt;tmpl::list&lt;NumericalFluxComputerTag&gt;,
+<span class="lineNum">      48 </span>            :                                    get_volume_tags&lt;NumericalFlux&gt;&gt;;
+<span class="lineNum">      49 </span>            :   static auto apply(
+<span class="lineNum">      50 </span>            :       const NumericalFlux&amp; numerical_flux_computer,
+<span class="lineNum">      51 </span>            :       const Mesh&lt;Dim - 1&gt;&amp; face_mesh,
+<span class="lineNum">      52 </span>            :       const db::const_item_type&lt;n_dot_fluxes_tag&gt;&amp; normal_dot_fluxes,
+<span class="lineNum">      53 </span>            :       const db::const_item_type&lt;ArgsTags&gt;&amp;... args) noexcept {
+<span class="lineNum">      54 </span>            :     return dg::FirstOrderScheme::package_boundary_data(
+<span class="lineNum">      55 </span>            :         numerical_flux_computer, face_mesh, normal_dot_fluxes, args...);
+<span class="lineNum">      56 </span>            :   }
+<span class="lineNum">      57 </span>            : };
+<span class="lineNum">      58 </span>            : 
+<span class="lineNum">      59 </span>            : }  // namespace detail
+<span class="lineNum">      60 </span>            : 
+<span class="lineNum">      61 </span>            : /*!
+<span class="lineNum">      62 </span>            :  * \ingroup DiscontinuousGalerkinGroup
+<span class="lineNum">      63 </span>            :  * \brief Boundary contributions for a first-order DG scheme
+<span class="lineNum">      64 </span>            :  *
+<span class="lineNum">      65 </span>            :  * Computes Eq. (2.20) in \cite Teukolsky2015ega and lifts it to the
+<span class="lineNum">      66 </span>            :  * volume (see `dg::lift_flux`) on all mortars that touch an element. The
+<span class="lineNum">      67 </span>            :  * resulting boundary contributions are added to the DG operator data in
+<span class="lineNum">      68 </span>            :  * `db::add_tag_prefix&lt;TemporalIdTag::template step_prefix, VariablesTag&gt;`.
+<span class="lineNum">      69 </span>            :  */
+<span class="lineNum">      70 </span>            : template &lt;size_t Dim, typename VariablesTag, typename NumericalFluxComputerTag,
+<span class="lineNum">      71 </span>            :           typename TemporalIdTag&gt;
+<span class="lineNum">      72 </span><span class="lineCov">          1 : struct FirstOrderScheme {</span>
+<span class="lineNum">      73 </span><span class="lineNoCov">          0 :   static constexpr size_t volume_dim = Dim;</span>
+<span class="lineNum">      74 </span><span class="lineNoCov">          0 :   using variables_tag = VariablesTag;</span>
+<span class="lineNum">      75 </span><span class="lineNoCov">          0 :   using numerical_flux_computer_tag = NumericalFluxComputerTag;</span>
+<span class="lineNum">      76 </span><span class="lineNoCov">          0 :   using NumericalFlux = db::const_item_type&lt;NumericalFluxComputerTag&gt;;</span>
+<span class="lineNum">      77 </span><span class="lineNoCov">          0 :   using temporal_id_tag = TemporalIdTag;</span>
+<span class="lineNum">      78 </span><span class="lineNoCov">          0 :   using receive_temporal_id_tag = temporal_id_tag;</span>
+<span class="lineNum">      79 </span><span class="lineNoCov">          0 :   using dt_variables_tag =</span>
+<span class="lineNum">      80 </span>            :       db::add_tag_prefix&lt;TemporalIdTag::template step_prefix, variables_tag&gt;;
+<span class="lineNum">      81 </span>            : 
+<span class="lineNum">      82 </span>            :   static_assert(
+<span class="lineNum">      83 </span>            :       tt::conforms_to_v&lt;NumericalFlux, dg::protocols::NumericalFlux&gt;,
+<span class="lineNum">      84 </span>            :       &quot;The type held by the 'NumericalFluxComputerTag' must conform to the &quot;
+<span class="lineNum">      85 </span>            :       &quot;'dg::protocols::NumericalFlux'.&quot;);
+<span class="lineNum">      86 </span>            :   // We need the `VariablesTag` as an explicit template parameter only because
+<span class="lineNum">      87 </span>            :   // it may be prefixed.
+<span class="lineNum">      88 </span>            :   static_assert(std::is_same_v&lt;typename NumericalFlux::variables_tags,
+<span class="lineNum">      89 </span>            :                                db::get_variables_tags_list&lt;variables_tag&gt;&gt;,
+<span class="lineNum">      90 </span>            :                 &quot;The 'VariablesTag' and the 'NumericalFluxComputerTag' must &quot;
+<span class="lineNum">      91 </span>            :                 &quot;have the same list of variables.&quot;);
+<span class="lineNum">      92 </span>            : 
+<span class="lineNum">      93 </span><span class="lineNoCov">          0 :   using BoundaryData = dg::FirstOrderScheme::BoundaryData&lt;NumericalFlux&gt;;</span>
+<span class="lineNum">      94 </span><span class="lineNoCov">          0 :   using boundary_data_computer =</span>
+<span class="lineNum">      95 </span>            :       detail::boundary_data_computer_impl&lt;Dim, VariablesTag,
+<span class="lineNum">      96 </span>            :                                           NumericalFluxComputerTag&gt;;
+<span class="lineNum">      97 </span>            : 
+<span class="lineNum">      98 </span><span class="lineNoCov">          0 :   using mortar_data_tag =</span>
+<span class="lineNum">      99 </span>            :       Tags::SimpleMortarData&lt;db::const_item_type&lt;TemporalIdTag&gt;, BoundaryData,
+<span class="lineNum">     100 </span>            :                              BoundaryData&gt;;
+<span class="lineNum">     101 </span>            : 
+<span class="lineNum">     102 </span>            :   // Only a shortcut
+<span class="lineNum">     103 </span><span class="lineNoCov">          0 :   using magnitude_of_face_normal_tag =</span>
+<span class="lineNum">     104 </span>            :       ::Tags::Magnitude&lt;domain::Tags::UnnormalizedFaceNormal&lt;volume_dim&gt;&gt;;
+<span class="lineNum">     105 </span>            : 
+<span class="lineNum">     106 </span><span class="lineNoCov">          0 :   using return_tags =</span>
+<span class="lineNum">     107 </span>            :       tmpl::list&lt;dt_variables_tag, ::Tags::Mortars&lt;mortar_data_tag, Dim&gt;&gt;;
+<span class="lineNum">     108 </span><span class="lineNoCov">          0 :   using argument_tags = tmpl::list&lt;</span>
+<span class="lineNum">     109 </span>            :       domain::Tags::Mesh&lt;Dim&gt;,
+<span class="lineNum">     110 </span>            :       ::Tags::Mortars&lt;domain::Tags::Mesh&lt;Dim - 1&gt;, Dim&gt;,
+<span class="lineNum">     111 </span>            :       ::Tags::Mortars&lt;::Tags::MortarSize&lt;Dim - 1&gt;, Dim&gt;,
+<span class="lineNum">     112 </span>            :       NumericalFluxComputerTag,
+<span class="lineNum">     113 </span>            :       domain::Tags::Interface&lt;domain::Tags::InternalDirections&lt;Dim&gt;,
+<span class="lineNum">     114 </span>            :                               magnitude_of_face_normal_tag&gt;,
+<span class="lineNum">     115 </span>            :       domain::Tags::Interface&lt;domain::Tags::BoundaryDirectionsInterior&lt;Dim&gt;,
+<span class="lineNum">     116 </span>            :                               magnitude_of_face_normal_tag&gt;&gt;;
+<span class="lineNum">     117 </span>            : 
+<span class="lineNum">     118 </span><span class="lineNoCov">          0 :   static void apply(</span>
+<span class="lineNum">     119 </span>            :       const gsl::not_null&lt;db::item_type&lt;dt_variables_tag&gt;*&gt; dt_variables,
+<span class="lineNum">     120 </span>            :       const gsl::not_null&lt;db::item_type&lt;::Tags::Mortars&lt;mortar_data_tag, Dim&gt;&gt;*&gt;
+<span class="lineNum">     121 </span>            :           all_mortar_data,
+<span class="lineNum">     122 </span>            :       const Mesh&lt;Dim&gt;&amp; volume_mesh,
+<span class="lineNum">     123 </span>            :       const db::const_item_type&lt;
+<span class="lineNum">     124 </span>            :           ::Tags::Mortars&lt;domain::Tags::Mesh&lt;Dim - 1&gt;, Dim&gt;&gt;&amp; mortar_meshes,
+<span class="lineNum">     125 </span>            :       const db::const_item_type&lt;
+<span class="lineNum">     126 </span>            :           ::Tags::Mortars&lt;::Tags::MortarSize&lt;Dim - 1&gt;, Dim&gt;&gt;&amp; mortar_sizes,
+<span class="lineNum">     127 </span>            :       const NumericalFlux&amp; normal_dot_numerical_flux_computer,
+<span class="lineNum">     128 </span>            :       const db::const_item_type&lt;domain::Tags::Interface&lt;
+<span class="lineNum">     129 </span>            :           domain::Tags::InternalDirections&lt;Dim&gt;, magnitude_of_face_normal_tag&gt;&gt;&amp;
+<span class="lineNum">     130 </span>            :           face_normal_magnitudes_internal,
+<span class="lineNum">     131 </span>            :       const db::const_item_type&lt;
+<span class="lineNum">     132 </span>            :           domain::Tags::Interface&lt;domain::Tags::BoundaryDirectionsInterior&lt;Dim&gt;,
+<span class="lineNum">     133 </span>            :                                   magnitude_of_face_normal_tag&gt;&gt;&amp;
+<span class="lineNum">     134 </span>            :           face_normal_magnitudes_boundary) noexcept {
+<span class="lineNum">     135 </span>            :     // Iterate over all mortars
+<span class="lineNum">     136 </span>            :     for (auto&amp; mortar_id_and_data : *all_mortar_data) {
+<span class="lineNum">     137 </span>            :       // Retrieve mortar data
+<span class="lineNum">     138 </span>            :       const auto&amp; mortar_id = mortar_id_and_data.first;
+<span class="lineNum">     139 </span>            :       auto&amp; mortar_data = mortar_id_and_data.second;
+<span class="lineNum">     140 </span>            :       const auto&amp; direction = mortar_id.first;
+<span class="lineNum">     141 </span>            :       const size_t dimension = direction.dimension();
+<span class="lineNum">     142 </span>            : 
+<span class="lineNum">     143 </span>            :       // Extract local and remote data
+<span class="lineNum">     144 </span>            :       const auto extracted_mortar_data = mortar_data.extract();
+<span class="lineNum">     145 </span>            :       const auto&amp; local_data = extracted_mortar_data.first;
+<span class="lineNum">     146 </span>            :       const auto&amp; remote_data = extracted_mortar_data.second;
+<span class="lineNum">     147 </span>            : 
+<span class="lineNum">     148 </span>            :       const auto&amp; magnitude_of_face_normal =
+<span class="lineNum">     149 </span>            :           mortar_id.second == ElementId&lt;Dim&gt;::external_boundary_id()
+<span class="lineNum">     150 </span>            :               ? face_normal_magnitudes_boundary.at(direction)
+<span class="lineNum">     151 </span>            :               : face_normal_magnitudes_internal.at(direction);
+<span class="lineNum">     152 </span>            : 
+<span class="lineNum">     153 </span>            :       auto boundary_flux_on_slice =
+<span class="lineNum">     154 </span>            :           db::item_type&lt;dt_variables_tag&gt;(boundary_flux(
+<span class="lineNum">     155 </span>            :               local_data, remote_data, normal_dot_numerical_flux_computer,
+<span class="lineNum">     156 </span>            :               magnitude_of_face_normal, volume_mesh.extents(dimension),
+<span class="lineNum">     157 </span>            :               volume_mesh.slice_away(dimension), mortar_meshes.at(mortar_id),
+<span class="lineNum">     158 </span>            :               mortar_sizes.at(mortar_id)));
+<span class="lineNum">     159 </span>            : 
+<span class="lineNum">     160 </span>            :       // Add the flux contribution to the volume data
+<span class="lineNum">     161 </span>            :       add_slice_to_data(dt_variables, std::move(boundary_flux_on_slice),
+<span class="lineNum">     162 </span>            :                         volume_mesh.extents(), dimension,
+<span class="lineNum">     163 </span>            :                         index_to_slice_at(volume_mesh.extents(), direction));
+<span class="lineNum">     164 </span>            :     }
+<span class="lineNum">     165 </span>            :   }
+<span class="lineNum">     166 </span>            : };
+<span class="lineNum">     167 </span>            : 
+<span class="lineNum">     168 </span>            : }  // namespace FirstOrderScheme
+<span class="lineNum">     169 </span>            : }  // namespace dg
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

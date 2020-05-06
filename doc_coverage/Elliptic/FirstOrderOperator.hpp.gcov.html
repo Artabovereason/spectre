@@ -1,0 +1,298 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - Elliptic/FirstOrderOperator.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">Elliptic</a> - FirstOrderOperator.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">6</td>
+            <td class="headerCovTableEntry">14</td>
+            <td class="headerCovTableEntryLo">42.9 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #pragma once
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;cstddef&gt;
+<span class="lineNum">       7 </span>            : 
+<span class="lineNum">       8 </span>            : #include &quot;DataStructures/DataBox/PrefixHelpers.hpp&quot;
+<span class="lineNum">       9 </span>            : #include &quot;DataStructures/DataBox/Prefixes.hpp&quot;
+<span class="lineNum">      10 </span>            : #include &quot;DataStructures/Variables.hpp&quot;
+<span class="lineNum">      11 </span>            : #include &quot;NumericalAlgorithms/LinearOperators/Divergence.hpp&quot;
+<span class="lineNum">      12 </span>            : #include &quot;Utilities/Gsl.hpp&quot;
+<span class="lineNum">      13 </span>            : #include &quot;Utilities/MakeWithValue.hpp&quot;
+<span class="lineNum">      14 </span>            : #include &quot;Utilities/TMPL.hpp&quot;
+<span class="lineNum">      15 </span>            : 
+<span class="lineNum">      16 </span>            : namespace elliptic {
+<span class="lineNum">      17 </span>            : 
+<span class="lineNum">      18 </span>            : namespace first_order_operator_detail {
+<span class="lineNum">      19 </span>            : 
+<span class="lineNum">      20 </span>            : template &lt;size_t Dim, typename PrimalFields, typename AuxiliaryFields&gt;
+<span class="lineNum">      21 </span>            : struct FirstOrderFluxesImpl;
+<span class="lineNum">      22 </span>            : 
+<span class="lineNum">      23 </span>            : template &lt;size_t Dim, typename... PrimalFields, typename... AuxiliaryFields&gt;
+<span class="lineNum">      24 </span>            : struct FirstOrderFluxesImpl&lt;Dim, tmpl::list&lt;PrimalFields...&gt;,
+<span class="lineNum">      25 </span>            :                             tmpl::list&lt;AuxiliaryFields...&gt;&gt; {
+<span class="lineNum">      26 </span>            :   template &lt;typename VarsTags, typename FluxesComputer, typename... FluxesArgs&gt;
+<span class="lineNum">      27 </span>            :   static constexpr void apply(
+<span class="lineNum">      28 </span>            :       const gsl::not_null&lt;Variables&lt;db::wrap_tags_in&lt;
+<span class="lineNum">      29 </span>            :           ::Tags::Flux, VarsTags, tmpl::size_t&lt;Dim&gt;, Frame::Inertial&gt;&gt;*&gt;
+<span class="lineNum">      30 </span>            :           fluxes,
+<span class="lineNum">      31 </span>            :       const Variables&lt;VarsTags&gt;&amp; vars, const FluxesComputer&amp; fluxes_computer,
+<span class="lineNum">      32 </span>            :       const FluxesArgs&amp;... fluxes_args) noexcept {
+<span class="lineNum">      33 </span>            :     // Compute fluxes for primal fields
+<span class="lineNum">      34 </span>            :     fluxes_computer.apply(
+<span class="lineNum">      35 </span>            :         make_not_null(&amp;get&lt;::Tags::Flux&lt;PrimalFields, tmpl::size_t&lt;Dim&gt;,
+<span class="lineNum">      36 </span>            :                                         Frame::Inertial&gt;&gt;(*fluxes))...,
+<span class="lineNum">      37 </span>            :         fluxes_args..., get&lt;AuxiliaryFields&gt;(vars)...);
+<span class="lineNum">      38 </span>            :     // Compute fluxes for auxiliary fields
+<span class="lineNum">      39 </span>            :     fluxes_computer.apply(
+<span class="lineNum">      40 </span>            :         make_not_null(&amp;get&lt;::Tags::Flux&lt;AuxiliaryFields, tmpl::size_t&lt;Dim&gt;,
+<span class="lineNum">      41 </span>            :                                         Frame::Inertial&gt;&gt;(*fluxes))...,
+<span class="lineNum">      42 </span>            :         fluxes_args..., get&lt;PrimalFields&gt;(vars)...);
+<span class="lineNum">      43 </span>            :   }
+<span class="lineNum">      44 </span>            : };
+<span class="lineNum">      45 </span>            : 
+<span class="lineNum">      46 </span>            : template &lt;typename PrimalFields, typename AuxiliaryFields,
+<span class="lineNum">      47 </span>            :           typename SourcesComputer&gt;
+<span class="lineNum">      48 </span>            : struct FirstOrderSourcesImpl;
+<span class="lineNum">      49 </span>            : 
+<span class="lineNum">      50 </span>            : template &lt;typename... PrimalFields, typename... AuxiliaryFields,
+<span class="lineNum">      51 </span>            :           typename SourcesComputer&gt;
+<span class="lineNum">      52 </span>            : struct FirstOrderSourcesImpl&lt;tmpl::list&lt;PrimalFields...&gt;,
+<span class="lineNum">      53 </span>            :                              tmpl::list&lt;AuxiliaryFields...&gt;, SourcesComputer&gt; {
+<span class="lineNum">      54 </span>            :   template &lt;typename VarsTags, typename... SourcesArgs&gt;
+<span class="lineNum">      55 </span>            :   static constexpr void apply(
+<span class="lineNum">      56 </span>            :       const gsl::not_null&lt;
+<span class="lineNum">      57 </span>            :           Variables&lt;db::wrap_tags_in&lt;::Tags::Source, VarsTags&gt;&gt;*&gt;
+<span class="lineNum">      58 </span>            :           sources,
+<span class="lineNum">      59 </span>            :       const Variables&lt;VarsTags&gt;&amp; vars,
+<span class="lineNum">      60 </span>            :       const SourcesArgs&amp;... sources_args) noexcept {
+<span class="lineNum">      61 </span>            :     // Compute sources for primal fields
+<span class="lineNum">      62 </span>            :     SourcesComputer::apply(
+<span class="lineNum">      63 </span>            :         make_not_null(&amp;get&lt;::Tags::Source&lt;PrimalFields&gt;&gt;(*sources))...,
+<span class="lineNum">      64 </span>            :         sources_args..., get&lt;PrimalFields&gt;(vars)...);
+<span class="lineNum">      65 </span>            :     // Compute sources for auxiliary fields. They are just the auxiliary field
+<span class="lineNum">      66 </span>            :     // values.
+<span class="lineNum">      67 </span>            :     tmpl::for_each&lt;tmpl::list&lt;AuxiliaryFields...&gt;&gt;(
+<span class="lineNum">      68 </span>            :         [&amp;sources, &amp;vars ](const auto auxiliary_field_tag_v) noexcept {
+<span class="lineNum">      69 </span>            :           using auxiliary_field_tag =
+<span class="lineNum">      70 </span>            :               tmpl::type_from&lt;decltype(auxiliary_field_tag_v)&gt;;
+<span class="lineNum">      71 </span>            :           get&lt;::Tags::Source&lt;auxiliary_field_tag&gt;&gt;(*sources) =
+<span class="lineNum">      72 </span>            :               get&lt;auxiliary_field_tag&gt;(vars);
+<span class="lineNum">      73 </span>            :         });
+<span class="lineNum">      74 </span>            :   }
+<span class="lineNum">      75 </span>            : };
+<span class="lineNum">      76 </span>            : 
+<span class="lineNum">      77 </span>            : }  // namespace first_order_operator_detail
+<span class="lineNum">      78 </span>            : 
+<span class="lineNum">      79 </span>            : // @{
+<span class="lineNum">      80 </span>            : /*!
+<span class="lineNum">      81 </span>            :  * \brief Compute the fluxes \f$F^i(u)\f$ for the first-order formulation of
+<span class="lineNum">      82 </span>            :  * elliptic systems.
+<span class="lineNum">      83 </span>            :  *
+<span class="lineNum">      84 </span>            :  * \see `elliptic::first_order_operator`
+<span class="lineNum">      85 </span>            :  */
+<span class="lineNum">      86 </span>            : template &lt;size_t Dim, typename PrimalFields, typename AuxiliaryFields,
+<span class="lineNum">      87 </span>            :           typename VarsTags, typename FluxesComputer, typename... FluxesArgs&gt;
+<span class="lineNum">      88 </span><span class="lineCov">          1 : void first_order_fluxes(</span>
+<span class="lineNum">      89 </span>            :     gsl::not_null&lt;Variables&lt;db::wrap_tags_in&lt;
+<span class="lineNum">      90 </span>            :         ::Tags::Flux, VarsTags, tmpl::size_t&lt;Dim&gt;, Frame::Inertial&gt;&gt;*&gt;
+<span class="lineNum">      91 </span>            :         fluxes,
+<span class="lineNum">      92 </span>            :     const Variables&lt;VarsTags&gt;&amp; vars, const FluxesComputer&amp; fluxes_computer,
+<span class="lineNum">      93 </span>            :     const FluxesArgs&amp;... fluxes_args) noexcept {
+<span class="lineNum">      94 </span>            :   first_order_operator_detail::FirstOrderFluxesImpl&lt;
+<span class="lineNum">      95 </span>            :       Dim, PrimalFields, AuxiliaryFields&gt;::apply(std::move(fluxes), vars,
+<span class="lineNum">      96 </span>            :                                                  fluxes_computer,
+<span class="lineNum">      97 </span>            :                                                  fluxes_args...);
+<span class="lineNum">      98 </span>            : }
+<span class="lineNum">      99 </span>            : 
+<span class="lineNum">     100 </span>            : template &lt;size_t Dim, typename PrimalFields, typename AuxiliaryFields,
+<span class="lineNum">     101 </span>            :           typename VarsTags, typename FluxesComputer, typename... FluxesArgs&gt;
+<span class="lineNum">     102 </span><span class="lineCov">          1 : auto first_order_fluxes(const Variables&lt;VarsTags&gt;&amp; vars,</span>
+<span class="lineNum">     103 </span>            :                         const FluxesComputer&amp; fluxes_computer,
+<span class="lineNum">     104 </span>            :                         const FluxesArgs&amp;... fluxes_args) noexcept {
+<span class="lineNum">     105 </span>            :   Variables&lt;db::wrap_tags_in&lt;::Tags::Flux, VarsTags, tmpl::size_t&lt;Dim&gt;,
+<span class="lineNum">     106 </span>            :                              Frame::Inertial&gt;&gt;
+<span class="lineNum">     107 </span>            :       fluxes{vars.number_of_grid_points()};
+<span class="lineNum">     108 </span>            :   first_order_operator_detail::FirstOrderFluxesImpl&lt;
+<span class="lineNum">     109 </span>            :       Dim, PrimalFields, AuxiliaryFields&gt;::apply(make_not_null(&amp;fluxes), vars,
+<span class="lineNum">     110 </span>            :                                                  fluxes_computer,
+<span class="lineNum">     111 </span>            :                                                  fluxes_args...);
+<span class="lineNum">     112 </span>            :   return fluxes;
+<span class="lineNum">     113 </span>            : }
+<span class="lineNum">     114 </span>            : // @}
+<span class="lineNum">     115 </span>            : 
+<span class="lineNum">     116 </span>            : // @{
+<span class="lineNum">     117 </span>            : /*!
+<span class="lineNum">     118 </span>            :  * \brief Compute the sources \f$S(u)\f$ for the first-order formulation of
+<span class="lineNum">     119 </span>            :  * elliptic systems.
+<span class="lineNum">     120 </span>            :  *
+<span class="lineNum">     121 </span>            :  * \see `elliptic::first_order_operator`
+<span class="lineNum">     122 </span>            :  */
+<span class="lineNum">     123 </span>            : template &lt;typename PrimalFields, typename AuxiliaryFields,
+<span class="lineNum">     124 </span>            :           typename SourcesComputer, typename VarsTags, typename... SourcesArgs&gt;
+<span class="lineNum">     125 </span><span class="lineCov">          1 : void first_order_sources(</span>
+<span class="lineNum">     126 </span>            :     gsl::not_null&lt;Variables&lt;db::wrap_tags_in&lt;::Tags::Source, VarsTags&gt;&gt;*&gt;
+<span class="lineNum">     127 </span>            :         sources,
+<span class="lineNum">     128 </span>            :     const Variables&lt;VarsTags&gt;&amp; vars,
+<span class="lineNum">     129 </span>            :     const SourcesArgs&amp;... sources_args) noexcept {
+<span class="lineNum">     130 </span>            :   first_order_operator_detail::FirstOrderSourcesImpl&lt;
+<span class="lineNum">     131 </span>            :       PrimalFields, AuxiliaryFields, SourcesComputer&gt;::apply(std::move(sources),
+<span class="lineNum">     132 </span>            :                                                              vars,
+<span class="lineNum">     133 </span>            :                                                              sources_args...);
+<span class="lineNum">     134 </span>            : }
+<span class="lineNum">     135 </span>            : 
+<span class="lineNum">     136 </span>            : template &lt;typename PrimalFields, typename AuxiliaryFields,
+<span class="lineNum">     137 </span>            :           typename SourcesComputer, typename VarsTags, typename... SourcesArgs&gt;
+<span class="lineNum">     138 </span><span class="lineCov">          1 : auto first_order_sources(const Variables&lt;VarsTags&gt;&amp; vars,</span>
+<span class="lineNum">     139 </span>            :                          const SourcesArgs&amp;... sources_args) noexcept {
+<span class="lineNum">     140 </span>            :   Variables&lt;db::wrap_tags_in&lt;::Tags::Source, VarsTags&gt;&gt; sources{
+<span class="lineNum">     141 </span>            :       vars.number_of_grid_points()};
+<span class="lineNum">     142 </span>            :   first_order_operator_detail::FirstOrderSourcesImpl&lt;
+<span class="lineNum">     143 </span>            :       PrimalFields, AuxiliaryFields,
+<span class="lineNum">     144 </span>            :       SourcesComputer&gt;::apply(make_not_null(&amp;sources), vars, sources_args...);
+<span class="lineNum">     145 </span>            :   return sources;
+<span class="lineNum">     146 </span>            : }
+<span class="lineNum">     147 </span>            : // @}
+<span class="lineNum">     148 </span>            : 
+<span class="lineNum">     149 </span>            : /*!
+<span class="lineNum">     150 </span>            :  * \brief Compute the bulk contribution to the operator represented by the
+<span class="lineNum">     151 </span>            :  * `OperatorTags`.
+<span class="lineNum">     152 </span>            :  *
+<span class="lineNum">     153 </span>            :  * This function computes \f$A(u)=-\partial_i F^i(u) + S(u)\f$, where \f$F^i\f$
+<span class="lineNum">     154 </span>            :  * and \f$S\f$ are the fluxes and sources of the system of first-order PDEs,
+<span class="lineNum">     155 </span>            :  * respectively. They are defined such that \f$A(u(x))=f(x)\f$ is the full
+<span class="lineNum">     156 </span>            :  * system of equations, with \f$f(x)\f$ representing sources that are
+<span class="lineNum">     157 </span>            :  * independent of the variables \f$u\f$. In a DG setting, boundary contributions
+<span class="lineNum">     158 </span>            :  * can be added to \f$A(u)\f$ to build the full DG operator.
+<span class="lineNum">     159 </span>            :  */
+<span class="lineNum">     160 </span>            : template &lt;typename OperatorTags, typename DivFluxesTags, typename SourcesTags&gt;
+<span class="lineNum">     161 </span><span class="lineCov">          1 : void first_order_operator(</span>
+<span class="lineNum">     162 </span>            :     const gsl::not_null&lt;Variables&lt;OperatorTags&gt;*&gt; operator_applied_to_vars,
+<span class="lineNum">     163 </span>            :     const Variables&lt;DivFluxesTags&gt;&amp; div_fluxes,
+<span class="lineNum">     164 </span>            :     const Variables&lt;SourcesTags&gt;&amp; sources) noexcept {
+<span class="lineNum">     165 </span>            :   *operator_applied_to_vars = sources - div_fluxes;
+<span class="lineNum">     166 </span>            : }
+<span class="lineNum">     167 </span>            : 
+<span class="lineNum">     168 </span>            : /*!
+<span class="lineNum">     169 </span>            :  * \brief Mutating DataBox invokable to compute the bulk contribution to the
+<span class="lineNum">     170 </span>            :  * operator represented by the `OperatorTag` applied to the `VarsTag`
+<span class="lineNum">     171 </span>            :  *
+<span class="lineNum">     172 </span>            :  * \see `elliptic::first_order_operator`
+<span class="lineNum">     173 </span>            :  *
+<span class="lineNum">     174 </span>            :  * We generally build the operator \f$A(u)\f$ to perform elliptic solver
+<span class="lineNum">     175 </span>            :  * iterations. This invokable can be used to build operators for both the linear
+<span class="lineNum">     176 </span>            :  * solver and the nonlinear solver iterations by providing the appropriate
+<span class="lineNum">     177 </span>            :  * `OperatorTag` and `VarsTag`. For example, the `OperatorTag` for the linear
+<span class="lineNum">     178 </span>            :  * solver would typically be `LinearSolver::Tags::OperatorAppliedTo`. It is the
+<span class="lineNum">     179 </span>            :  * elliptic equivalent to the time derivative in evolution schemes. Instead of
+<span class="lineNum">     180 </span>            :  * using it to evolve the variables, the iterative linear solver uses it to
+<span class="lineNum">     181 </span>            :  * compute a better approximation to the equation \f$A(u)=f\f$ (as detailed
+<span class="lineNum">     182 </span>            :  * above).
+<span class="lineNum">     183 </span>            :  *
+<span class="lineNum">     184 </span>            :  * With:
+<span class="lineNum">     185 </span>            :  * - `operator_tag` = `db::add_tag_prefix&lt;OperatorTag, VarsTag&gt;`
+<span class="lineNum">     186 </span>            :  * - `fluxes_tag` = `db::add_tag_prefix&lt;::Tags::Flux, VarsTag,
+<span class="lineNum">     187 </span>            :  * tmpl::size_t&lt;Dim&gt;, Frame::Inertial&gt;`
+<span class="lineNum">     188 </span>            :  * - `div_fluxes_tag` = `db::add_tag_prefix&lt;Tags::div, fluxes_tag&gt;`
+<span class="lineNum">     189 </span>            :  * - `sources_tag` = `db::add_tag_prefix&lt;::Tags::Source, VarsTag&gt;`
+<span class="lineNum">     190 </span>            :  *
+<span class="lineNum">     191 </span>            :  * Uses:
+<span class="lineNum">     192 </span>            :  * - DataBox:
+<span class="lineNum">     193 </span>            :  *   - `div_fluxes_tag`
+<span class="lineNum">     194 </span>            :  *   - `sources_tag`
+<span class="lineNum">     195 </span>            :  *
+<span class="lineNum">     196 </span>            :  * DataBox changes:
+<span class="lineNum">     197 </span>            :  * - Modifies:
+<span class="lineNum">     198 </span>            :  *   - `operator_tag`
+<span class="lineNum">     199 </span>            :  */
+<span class="lineNum">     200 </span>            : template &lt;size_t Dim, template &lt;typename&gt; class OperatorTag, typename VarsTag&gt;
+<span class="lineNum">     201 </span><span class="lineCov">          1 : struct FirstOrderOperator {</span>
+<span class="lineNum">     202 </span>            :  private:
+<span class="lineNum">     203 </span><span class="lineNoCov">          0 :   using operator_tag = db::add_tag_prefix&lt;OperatorTag, VarsTag&gt;;</span>
+<span class="lineNum">     204 </span><span class="lineNoCov">          0 :   using fluxes_tag = db::add_tag_prefix&lt;::Tags::Flux, VarsTag,</span>
+<span class="lineNum">     205 </span>            :                                         tmpl::size_t&lt;Dim&gt;, Frame::Inertial&gt;;
+<span class="lineNum">     206 </span><span class="lineNoCov">          0 :   using div_fluxes_tag = db::add_tag_prefix&lt;::Tags::div, fluxes_tag&gt;;</span>
+<span class="lineNum">     207 </span><span class="lineNoCov">          0 :   using sources_tag = db::add_tag_prefix&lt;::Tags::Source, VarsTag&gt;;</span>
+<span class="lineNum">     208 </span>            : 
+<span class="lineNum">     209 </span>            :  public:
+<span class="lineNum">     210 </span><span class="lineNoCov">          0 :   using return_tags = tmpl::list&lt;operator_tag&gt;;</span>
+<span class="lineNum">     211 </span><span class="lineNoCov">          0 :   using argument_tags = tmpl::list&lt;div_fluxes_tag, sources_tag&gt;;</span>
+<span class="lineNum">     212 </span><span class="lineNoCov">          0 :   static constexpr auto apply =</span>
+<span class="lineNum">     213 </span>            :       &amp;first_order_operator&lt;db::get_variables_tags_list&lt;operator_tag&gt;,
+<span class="lineNum">     214 </span>            :                             db::get_variables_tags_list&lt;div_fluxes_tag&gt;,
+<span class="lineNum">     215 </span>            :                             db::get_variables_tags_list&lt;sources_tag&gt;&gt;;
+<span class="lineNum">     216 </span>            : };
+<span class="lineNum">     217 </span>            : 
+<span class="lineNum">     218 </span>            : }  // namespace elliptic
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

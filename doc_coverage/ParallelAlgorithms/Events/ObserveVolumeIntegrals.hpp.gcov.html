@@ -1,0 +1,257 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - ParallelAlgorithms/Events/ObserveVolumeIntegrals.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">ParallelAlgorithms/Events</a> - ObserveVolumeIntegrals.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntry">13</td>
+            <td class="headerCovTableEntryLo">7.7 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #pragma once
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;cstddef&gt;
+<span class="lineNum">       7 </span>            : #include &lt;pup.h&gt;
+<span class="lineNum">       8 </span>            : #include &lt;string&gt;
+<span class="lineNum">       9 </span>            : #include &lt;utility&gt;
+<span class="lineNum">      10 </span>            : #include &lt;vector&gt;
+<span class="lineNum">      11 </span>            : 
+<span class="lineNum">      12 </span>            : #include &quot;DataStructures/DataBox/DataBoxTag.hpp&quot;
+<span class="lineNum">      13 </span>            : #include &quot;DataStructures/DataBox/Prefixes.hpp&quot;
+<span class="lineNum">      14 </span>            : #include &quot;DataStructures/DataVector.hpp&quot;
+<span class="lineNum">      15 </span>            : #include &quot;Domain/Tags.hpp&quot;
+<span class="lineNum">      16 </span>            : #include &quot;IO/Observer/Helpers.hpp&quot;
+<span class="lineNum">      17 </span>            : #include &quot;IO/Observer/ObservationId.hpp&quot;
+<span class="lineNum">      18 </span>            : #include &quot;IO/Observer/ObserverComponent.hpp&quot;
+<span class="lineNum">      19 </span>            : #include &quot;IO/Observer/ReductionActions.hpp&quot;
+<span class="lineNum">      20 </span>            : #include &quot;NumericalAlgorithms/LinearOperators/DefiniteIntegral.hpp&quot;
+<span class="lineNum">      21 </span>            : #include &quot;Options/Options.hpp&quot;
+<span class="lineNum">      22 </span>            : #include &quot;Parallel/CharmPupable.hpp&quot;
+<span class="lineNum">      23 </span>            : #include &quot;Parallel/ConstGlobalCache.hpp&quot;
+<span class="lineNum">      24 </span>            : #include &quot;Parallel/Invoke.hpp&quot;
+<span class="lineNum">      25 </span>            : #include &quot;Parallel/Reduction.hpp&quot;
+<span class="lineNum">      26 </span>            : #include &quot;ParallelAlgorithms/EventsAndTriggers/Event.hpp&quot;
+<span class="lineNum">      27 </span>            : #include &quot;Utilities/ConstantExpressions.hpp&quot;
+<span class="lineNum">      28 </span>            : #include &quot;Utilities/Functional.hpp&quot;
+<span class="lineNum">      29 </span>            : #include &quot;Utilities/TMPL.hpp&quot;
+<span class="lineNum">      30 </span>            : #include &quot;Utilities/TaggedTuple.hpp&quot;
+<span class="lineNum">      31 </span>            : 
+<span class="lineNum">      32 </span>            : /// \cond
+<span class="lineNum">      33 </span>            : namespace Frame {
+<span class="lineNum">      34 </span>            : struct Inertial;
+<span class="lineNum">      35 </span>            : }  // namespace Frame
+<span class="lineNum">      36 </span>            : /// \endcond
+<span class="lineNum">      37 </span>            : 
+<span class="lineNum">      38 </span>            : namespace dg {
+<span class="lineNum">      39 </span>            : namespace Events {
+<span class="lineNum">      40 </span>            : template &lt;size_t VolumeDim, typename ObservationValueTag, typename Tensors,
+<span class="lineNum">      41 </span>            :           typename EventRegistrars&gt;
+<span class="lineNum">      42 </span><span class="lineNoCov">          0 : class ObserveVolumeIntegrals;</span>
+<span class="lineNum">      43 </span>            : 
+<span class="lineNum">      44 </span>            : namespace Registrars {
+<span class="lineNum">      45 </span>            : template &lt;size_t VolumeDim, typename ObservationValueTag, typename Tensors&gt;
+<span class="lineNum">      46 </span>            : // Presence of size_t template argument requires to define this struct
+<span class="lineNum">      47 </span>            : // instead of using Registration::Registrar alias.
+<span class="lineNum">      48 </span><span class="lineNoCov">          0 : struct ObserveVolumeIntegrals {</span>
+<span class="lineNum">      49 </span>            :   template &lt;typename RegistrarList&gt;
+<span class="lineNum">      50 </span><span class="lineNoCov">          0 :   using f = Events::ObserveVolumeIntegrals&lt;VolumeDim, ObservationValueTag,</span>
+<span class="lineNum">      51 </span>            :                                            Tensors, RegistrarList&gt;;
+<span class="lineNum">      52 </span>            : };
+<span class="lineNum">      53 </span>            : }  // namespace Registrars
+<span class="lineNum">      54 </span>            : 
+<span class="lineNum">      55 </span>            : template &lt;size_t VolumeDim, typename ObservationValueTag, typename Tensors,
+<span class="lineNum">      56 </span>            :           typename EventRegistrars =
+<span class="lineNum">      57 </span>            :               tmpl::list&lt;Registrars::ObserveVolumeIntegrals&lt;
+<span class="lineNum">      58 </span>            :                   VolumeDim, ObservationValueTag, Tensors&gt;&gt;&gt;
+<span class="lineNum">      59 </span>            : class ObserveVolumeIntegrals;
+<span class="lineNum">      60 </span>            : 
+<span class="lineNum">      61 </span>            : /*!
+<span class="lineNum">      62 </span>            :  * \ingroup DiscontinuousGalerkinGroup
+<span class="lineNum">      63 </span>            :  * \brief %Observe the volume integrals of the tensors over the domain.
+<span class="lineNum">      64 </span>            :  *
+<span class="lineNum">      65 </span>            :  * Writes reduction quantities:
+<span class="lineNum">      66 </span>            :  * - `ObservationValueTag`
+<span class="lineNum">      67 </span>            :  * - `Volume` = volume of the domain
+<span class="lineNum">      68 </span>            :  * - `VolumeIntegral(*)` = volume integral of the tensor
+<span class="lineNum">      69 </span>            :  *
+<span class="lineNum">      70 </span>            :  * \warning Currently, only one reduction observation event can be
+<span class="lineNum">      71 </span>            :  * triggered at a given observation value.  Causing multiple events to run at
+<span class="lineNum">      72 </span>            :  * once will produce unpredictable results.
+<span class="lineNum">      73 </span>            :  */
+<span class="lineNum">      74 </span>            : template &lt;size_t VolumeDim, typename ObservationValueTag, typename... Tensors,
+<span class="lineNum">      75 </span>            :           typename EventRegistrars&gt;
+<span class="lineNum">      76 </span>            : class ObserveVolumeIntegrals&lt;VolumeDim, ObservationValueTag,
+<span class="lineNum">      77 </span>            :                              tmpl::list&lt;Tensors...&gt;, EventRegistrars&gt;
+<span class="lineNum">      78 </span><span class="lineCov">          1 :     : public Event&lt;EventRegistrars&gt; {</span>
+<span class="lineNum">      79 </span>            :  private:
+<span class="lineNum">      80 </span><span class="lineNoCov">          0 :   using VolumeIntegralDatum =</span>
+<span class="lineNum">      81 </span>            :       Parallel::ReductionDatum&lt;std::vector&lt;double&gt;, funcl::VectorPlus&gt;;
+<span class="lineNum">      82 </span>            : 
+<span class="lineNum">      83 </span><span class="lineNoCov">          0 :   using ReductionData = tmpl::wrap&lt;</span>
+<span class="lineNum">      84 </span>            :       tmpl::list&lt;Parallel::ReductionDatum&lt;double, funcl::AssertEqual&lt;&gt;&gt;,
+<span class="lineNum">      85 </span>            :                  Parallel::ReductionDatum&lt;double, funcl::Plus&lt;&gt;&gt;,
+<span class="lineNum">      86 </span>            :                  VolumeIntegralDatum&gt;,
+<span class="lineNum">      87 </span>            :       Parallel::ReductionData&gt;;
+<span class="lineNum">      88 </span>            : 
+<span class="lineNum">      89 </span>            :  public:
+<span class="lineNum">      90 </span>            :   /// \cond
+<span class="lineNum">      91 </span>            :   explicit ObserveVolumeIntegrals(CkMigrateMessage* /*unused*/) noexcept {}
+<span class="lineNum">      92 </span>            :   using PUP::able::register_constructor;
+<span class="lineNum">      93 </span>            :   WRAPPED_PUPable_decl_template(ObserveVolumeIntegrals);  // NOLINT
+<span class="lineNum">      94 </span>            :   /// \endcond
+<span class="lineNum">      95 </span>            : 
+<span class="lineNum">      96 </span><span class="lineNoCov">          0 :   using options = tmpl::list&lt;&gt;;</span>
+<span class="lineNum">      97 </span><span class="lineNoCov">          0 :   static constexpr OptionString help =</span>
+<span class="lineNum">      98 </span>            :       &quot;Observe the volume integrals of the tensors over the domain.\n&quot;
+<span class="lineNum">      99 </span>            :       &quot;\n&quot;
+<span class="lineNum">     100 </span>            :       &quot;Writes reduction quantities:\n&quot;
+<span class="lineNum">     101 </span>            :       &quot; * ObservationValueTag\n&quot;
+<span class="lineNum">     102 </span>            :       &quot; * Volume = volume of the domain\n&quot;
+<span class="lineNum">     103 </span>            :       &quot; * VolumeIntegral(*) = volume integral of the tensor\n&quot;
+<span class="lineNum">     104 </span>            :       &quot;\n&quot;
+<span class="lineNum">     105 </span>            :       &quot;Warning: Currently, only one reduction observation event can be\n&quot;
+<span class="lineNum">     106 </span>            :       &quot;triggered at a given observation value.  Causing multiple events to\n&quot;
+<span class="lineNum">     107 </span>            :       &quot;run at once will produce unpredictable results.&quot;;
+<span class="lineNum">     108 </span>            : 
+<span class="lineNum">     109 </span><span class="lineNoCov">          0 :   ObserveVolumeIntegrals() = default;</span>
+<span class="lineNum">     110 </span>            : 
+<span class="lineNum">     111 </span><span class="lineNoCov">          0 :   using observed_reduction_data_tags =</span>
+<span class="lineNum">     112 </span>            :       observers::make_reduction_data_tags&lt;tmpl::list&lt;ReductionData&gt;&gt;;
+<span class="lineNum">     113 </span>            : 
+<span class="lineNum">     114 </span><span class="lineNoCov">          0 :   using argument_tags =</span>
+<span class="lineNum">     115 </span>            :       tmpl::list&lt;ObservationValueTag, domain::Tags::Mesh&lt;VolumeDim&gt;,
+<span class="lineNum">     116 </span>            :                  domain::Tags::DetInvJacobian&lt;Frame::Logical, Frame::Inertial&gt;,
+<span class="lineNum">     117 </span>            :                  Tensors...&gt;;
+<span class="lineNum">     118 </span>            : 
+<span class="lineNum">     119 </span>            :   template &lt;typename Metavariables, typename ArrayIndex,
+<span class="lineNum">     120 </span>            :             typename ParallelComponent&gt;
+<span class="lineNum">     121 </span><span class="lineNoCov">          0 :   void operator()(</span>
+<span class="lineNum">     122 </span>            :       const db::const_item_type&lt;ObservationValueTag&gt;&amp; observation_value,
+<span class="lineNum">     123 </span>            :       const Mesh&lt;VolumeDim&gt;&amp; mesh, const Scalar&lt;DataVector&gt;&amp; det_inv_jacobian,
+<span class="lineNum">     124 </span>            :       const db::const_item_type&lt;Tensors&gt;&amp;... tensors,
+<span class="lineNum">     125 </span>            :       Parallel::ConstGlobalCache&lt;Metavariables&gt;&amp; cache,
+<span class="lineNum">     126 </span>            :       const ArrayIndex&amp; /*array_index*/,
+<span class="lineNum">     127 </span>            :       const ParallelComponent* const /*meta*/) const noexcept {
+<span class="lineNum">     128 </span>            :     // Determinant of Jacobian is needed because integral is performed in
+<span class="lineNum">     129 </span>            :     // logical coords.
+<span class="lineNum">     130 </span>            :     const DataVector det_jacobian = 1.0 / get(det_inv_jacobian);
+<span class="lineNum">     131 </span>            :     const double local_volume = definite_integral(det_jacobian, mesh);
+<span class="lineNum">     132 </span>            : 
+<span class="lineNum">     133 </span>            :     std::vector&lt;double&gt; local_volume_integrals{};
+<span class="lineNum">     134 </span>            :     std::vector&lt;std::string&gt; reduction_names = {
+<span class="lineNum">     135 </span>            :         db::tag_name&lt;ObservationValueTag&gt;(), &quot;Volume&quot;};
+<span class="lineNum">     136 </span>            :     const auto record_integrals =
+<span class="lineNum">     137 </span>            :         [&amp;local_volume_integrals, &amp;reduction_names, &amp;det_jacobian, &amp;mesh ](
+<span class="lineNum">     138 </span>            :             const auto tensor_tag_v, const auto&amp; tensor) noexcept {
+<span class="lineNum">     139 </span>            :       using tensor_tag = tmpl::type_from&lt;decltype(tensor_tag_v)&gt;;
+<span class="lineNum">     140 </span>            :       for (size_t i = 0; i &lt; tensor.size(); ++i) {
+<span class="lineNum">     141 </span>            :         reduction_names.push_back(&quot;VolumeIntegral(&quot; +
+<span class="lineNum">     142 </span>            :                                   db::tag_name&lt;tensor_tag&gt;() +
+<span class="lineNum">     143 </span>            :                                   tensor.component_suffix(i) + &quot;)&quot;);
+<span class="lineNum">     144 </span>            :         local_volume_integrals.push_back(
+<span class="lineNum">     145 </span>            :             definite_integral(det_jacobian * tensor[i], mesh));
+<span class="lineNum">     146 </span>            :       }
+<span class="lineNum">     147 </span>            :       return 0;
+<span class="lineNum">     148 </span>            :     };
+<span class="lineNum">     149 </span>            :     EXPAND_PACK_LEFT_TO_RIGHT(
+<span class="lineNum">     150 </span>            :         record_integrals(tmpl::type_&lt;Tensors&gt;{}, tensors));
+<span class="lineNum">     151 </span>            : 
+<span class="lineNum">     152 </span>            :     // Send data to reduction observer
+<span class="lineNum">     153 </span>            :     auto&amp; local_observer =
+<span class="lineNum">     154 </span>            :         *Parallel::get_parallel_component&lt;observers::Observer&lt;Metavariables&gt;&gt;(
+<span class="lineNum">     155 </span>            :              cache)
+<span class="lineNum">     156 </span>            :              .ckLocalBranch();
+<span class="lineNum">     157 </span>            :     Parallel::simple_action&lt;observers::Actions::ContributeReductionData&gt;(
+<span class="lineNum">     158 </span>            :         local_observer,
+<span class="lineNum">     159 </span>            :         observers::ObservationId(
+<span class="lineNum">     160 </span>            :             observation_value,
+<span class="lineNum">     161 </span>            :             typename Metavariables::element_observation_type{}),
+<span class="lineNum">     162 </span>            :         std::string{&quot;/volume_integrals&quot;}, reduction_names,
+<span class="lineNum">     163 </span>            :         ReductionData{static_cast&lt;double&gt;(observation_value), local_volume,
+<span class="lineNum">     164 </span>            :                       local_volume_integrals});
+<span class="lineNum">     165 </span>            :   }
+<span class="lineNum">     166 </span>            : };
+<span class="lineNum">     167 </span>            : 
+<span class="lineNum">     168 </span>            : /// \cond
+<span class="lineNum">     169 </span>            : template &lt;size_t VolumeDim, typename ObservationValueTag, typename... Tensors,
+<span class="lineNum">     170 </span>            :           typename EventRegistrars&gt;
+<span class="lineNum">     171 </span>            : PUP::able::PUP_ID ObserveVolumeIntegrals&lt;VolumeDim, ObservationValueTag,
+<span class="lineNum">     172 </span>            :                                          tmpl::list&lt;Tensors...&gt;,
+<span class="lineNum">     173 </span>            :                                          EventRegistrars&gt;::my_PUP_ID =
+<span class="lineNum">     174 </span>            :     0;  // NOLINT
+<span class="lineNum">     175 </span>            : /// \endcond
+<span class="lineNum">     176 </span>            : }  // namespace Events
+<span class="lineNum">     177 </span>            : }  // namespace dg
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

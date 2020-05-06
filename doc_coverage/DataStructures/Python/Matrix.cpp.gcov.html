@@ -1,0 +1,159 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - DataStructures/Python/Matrix.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">DataStructures/Python</a> - Matrix.cpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #include &lt;array&gt;
+<span class="lineNum">       5 </span>            : #include &lt;cstddef&gt;
+<span class="lineNum">       6 </span>            : #include &lt;pybind11/pybind11.h&gt;
+<span class="lineNum">       7 </span>            : #include &lt;pybind11/stl.h&gt;
+<span class="lineNum">       8 </span>            : #include &lt;sstream&gt;
+<span class="lineNum">       9 </span>            : #include &lt;string&gt;
+<span class="lineNum">      10 </span>            : #include &lt;tuple&gt;
+<span class="lineNum">      11 </span>            : #include &lt;utility&gt;
+<span class="lineNum">      12 </span>            : 
+<span class="lineNum">      13 </span>            : #include &quot;DataStructures/Matrix.hpp&quot;
+<span class="lineNum">      14 </span>            : #include &quot;PythonBindings/BoundChecks.hpp&quot;
+<span class="lineNum">      15 </span>            : #include &quot;Utilities/MakeString.hpp&quot;
+<span class="lineNum">      16 </span>            : 
+<span class="lineNum">      17 </span>            : namespace py = pybind11;
+<span class="lineNum">      18 </span>            : 
+<span class="lineNum">      19 </span>            : namespace py_bindings {
+<span class="lineNum">      20 </span>            : 
+<span class="lineNum">      21 </span>            : void bind_matrix(py::module&amp; m) {  // NOLINT
+<span class="lineNum">      22 </span>            :   // Wrapper for basic Matrix operations
+<span class="lineNum">      23 </span>            :   py::class_&lt;Matrix&gt;(m, &quot;Matrix&quot;, py::buffer_protocol())
+<span class="lineNum">      24 </span>            :       .def(py::init&lt;size_t, size_t&gt;(), py::arg(&quot;rows&quot;), py::arg(&quot;columns&quot;))
+<span class="lineNum">      25 </span>            :       .def(py::init([](py::buffer buffer) {
+<span class="lineNum">      26 </span>            :              py::buffer_info info = buffer.request();
+<span class="lineNum">      27 </span>            :              // Sanity-check the buffer
+<span class="lineNum">      28 </span>            :              if (info.format != py::format_descriptor&lt;double&gt;::format()) {
+<span class="lineNum">      29 </span>            :                throw std::runtime_error(
+<span class="lineNum">      30 </span>            :                    &quot;Incompatible format: expected a double array.&quot;);
+<span class="lineNum">      31 </span>            :              }
+<span class="lineNum">      32 </span>            :              if (info.ndim != 2) {
+<span class="lineNum">      33 </span>            :                throw std::runtime_error(&quot;Incompatible dimension.&quot;);
+<span class="lineNum">      34 </span>            :              }
+<span class="lineNum">      35 </span>            :              const auto rows = static_cast&lt;size_t&gt;(info.shape[0]);
+<span class="lineNum">      36 </span>            :              const auto columns = static_cast&lt;size_t&gt;(info.shape[1]);
+<span class="lineNum">      37 </span>            :              auto data = static_cast&lt;double*&gt;(info.ptr);
+<span class="lineNum">      38 </span>            :              return Matrix(rows, columns, data);
+<span class="lineNum">      39 </span>            :            }),
+<span class="lineNum">      40 </span>            :            py::arg(&quot;buffer&quot;))
+<span class="lineNum">      41 </span>            :       // Expose the data as a Python buffer so it can be cast into Numpy arrays
+<span class="lineNum">      42 </span>            :       .def_buffer([](Matrix&amp; matrix) {
+<span class="lineNum">      43 </span>            :         return py::buffer_info(
+<span class="lineNum">      44 </span>            :             matrix.data(),
+<span class="lineNum">      45 </span>            :             // Size of one scalar
+<span class="lineNum">      46 </span>            :             sizeof(double), py::format_descriptor&lt;double&gt;::format(),
+<span class="lineNum">      47 </span>            :             // Number of dimensions
+<span class="lineNum">      48 </span>            :             2,
+<span class="lineNum">      49 </span>            :             // Size of the buffer
+<span class="lineNum">      50 </span>            :             {matrix.rows(), matrix.columns()},
+<span class="lineNum">      51 </span>            :             // Stride for each index (in bytes). Data is stored
+<span class="lineNum">      52 </span>            :             // in column-major layout (see `Matrix.hpp`).
+<span class="lineNum">      53 </span>            :             {sizeof(double), sizeof(double) * matrix.spacing()});
+<span class="lineNum">      54 </span>            :       })
+<span class="lineNum">      55 </span>            :       .def_property_readonly(
+<span class="lineNum">      56 </span>            :           &quot;shape&quot;,
+<span class="lineNum">      57 </span>            :           +[](const Matrix&amp; self) {
+<span class="lineNum">      58 </span>            :             return std::tuple&lt;size_t, size_t&gt;(self.rows(), self.columns());
+<span class="lineNum">      59 </span>            :           })
+<span class="lineNum">      60 </span>            :       // __getitem__ and __setitem__ are the subscript operators (M[*,*]).
+<span class="lineNum">      61 </span>            :       .def(
+<span class="lineNum">      62 </span>            :           &quot;__getitem__&quot;,
+<span class="lineNum">      63 </span>            :           +[](const Matrix&amp; self, const std::tuple&lt;size_t, size_t&gt;&amp; x) {
+<span class="lineNum">      64 </span>            :             matrix_bounds_check(self, std::get&lt;0&gt;(x), std::get&lt;1&gt;(x));
+<span class="lineNum">      65 </span>            :             return self(std::get&lt;0&gt;(x), std::get&lt;1&gt;(x));
+<span class="lineNum">      66 </span>            :           })
+<span class="lineNum">      67 </span>            :       // Need __str__ for converting to string/printing
+<span class="lineNum">      68 </span>            :       .def(
+<span class="lineNum">      69 </span>            :           &quot;__str__&quot;,
+<span class="lineNum">      70 </span>            :           +[](const Matrix&amp; self) { return std::string(MakeString{} &lt;&lt; self); })
+<span class="lineNum">      71 </span>            :       .def(
+<span class="lineNum">      72 </span>            :           &quot;__setitem__&quot;, +[](Matrix&amp; self, const std::tuple&lt;size_t, size_t&gt;&amp; x,
+<span class="lineNum">      73 </span>            :                              const double val) {
+<span class="lineNum">      74 </span>            :             matrix_bounds_check(self, std::get&lt;0&gt;(x), std::get&lt;1&gt;(x));
+<span class="lineNum">      75 </span>            :             self(std::get&lt;0&gt;(x), std::get&lt;1&gt;(x)) = val;
+<span class="lineNum">      76 </span>            :           });
+<span class="lineNum">      77 </span>            : }
+<span class="lineNum">      78 </span>            : 
+<span class="lineNum">      79 </span>            : }  // namespace py_bindings
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - /__w/spectre/spectre/docs/DevGuide/ImportingData.md</title>
+  <link rel="stylesheet" type="text/css" href="../../../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../../../index.html">top level</a> - <a href="index.html">__w/spectre/spectre/docs/DevGuide</a> - ImportingData.md</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : \cond NEVER</span>
+<span class="lineNum">       2 </span>            : Distributed under the MIT License.
+<span class="lineNum">       3 </span>            : See LICENSE.txt for details.
+<span class="lineNum">       4 </span>            : \endcond
+<span class="lineNum">       5 </span>            : # Importing data {#dev_guide_importing}
+<span class="lineNum">       6 </span>            : 
+<span class="lineNum">       7 </span>            : The `importers` namespace holds functionality for importing data into SpECTRE.
+<span class="lineNum">       8 </span>            : We currently support loading volume data files in the same format that is
+<span class="lineNum">       9 </span>            : written by the `observers`.
+<span class="lineNum">      10 </span>            : 
+<span class="lineNum">      11 </span>            : ## Importing volume data
+<span class="lineNum">      12 </span>            : 
+<span class="lineNum">      13 </span>            : The `importers::VolumeDataReader` parallel component is responsible for loading
+<span class="lineNum">      14 </span>            : volume data and distributing it to elements of one or multiple array parallel
+<span class="lineNum">      15 </span>            : components. As a first step, make sure you have added the
+<span class="lineNum">      16 </span>            : `importers::VolumeDataReader` to your `Metavariables::component_list`. Also make
+<span class="lineNum">      17 </span>            : sure you have a `Metavariables::Phase` in which you will perform registration
+<span class="lineNum">      18 </span>            : with the importer, and another for loading the data. Here's an example for such
+<span class="lineNum">      19 </span>            : `Metavariables`:
+<span class="lineNum">      20 </span>            : 
+<span class="lineNum">      21 </span>            : \snippet Test_VolumeDataReaderAlgorithm.hpp metavars
+<span class="lineNum">      22 </span>            : 
+<span class="lineNum">      23 </span>            : To register elements of your array parallel component for receiving volume data,
+<span class="lineNum">      24 </span>            : invoke the `importers::Actions::RegisterWithVolumeDataReader` action in the
+<span class="lineNum">      25 </span>            : `phase_dependent_action_list`. Here's an example:
+<span class="lineNum">      26 </span>            : 
+<span class="lineNum">      27 </span>            : \snippet Test_VolumeDataReaderAlgorithm.hpp register_action
+<span class="lineNum">      28 </span>            : 
+<span class="lineNum">      29 </span>            : Now you're all set to load a data file. To do so, invoke the
+<span class="lineNum">      30 </span>            : `importers::ThreadedActions::ReadVolumeData` action on the
+<span class="lineNum">      31 </span>            : `importers::VolumeDataReader`. A good place for this is the `execute_next_phase`
+<span class="lineNum">      32 </span>            : function of the array parallel component:
+<span class="lineNum">      33 </span>            : 
+<span class="lineNum">      34 </span>            : \snippet Test_VolumeDataReaderAlgorithm.hpp read_data_action
+<span class="lineNum">      35 </span>            : 
+<span class="lineNum">      36 </span>            : \snippet Test_VolumeDataReaderAlgorithm.hpp invoke_readvoldata
+<span class="lineNum">      37 </span>            : 
+<span class="lineNum">      38 </span>            : In the first snippet the `read_element_data_action` type alias is set to a
+<span class="lineNum">      39 </span>            : specialization of the `importers::ThreadedActions::ReadVolumeData` template.
+<span class="lineNum">      40 </span>            : Its first template parameter specifies an option group that determines the data
+<span class="lineNum">      41 </span>            : file to load, the second parameter is a typelist of the tags to import and fill
+<span class="lineNum">      42 </span>            : with the volume data, the third parameter is the action that is called upon
+<span class="lineNum">      43 </span>            : receiving the data on the array elements, and the last template parameter is the
+<span class="lineNum">      44 </span>            : parallel component on which the callback action will be invoked. See the
+<span class="lineNum">      45 </span>            : documentation of the `importers::ThreadedActions::ReadVolumeData` action for
+<span class="lineNum">      46 </span>            : details on these parameters. Here is more information on the parameters used in
+<span class="lineNum">      47 </span>            : the example above:
+<span class="lineNum">      48 </span>            : 
+<span class="lineNum">      49 </span>            : - The `VolumeDataOptions` in this example is an option group that supplies
+<span class="lineNum">      50 </span>            :   information such as the file name. You provide an option group that represents
+<span class="lineNum">      51 </span>            :   the data you want to import. For example, we have the
+<span class="lineNum">      52 </span>            :   `evolution::OptionTags::NumericInitialData` that represents numeric initial
+<span class="lineNum">      53 </span>            :   data for an evolution. In our example, we created a new class like this:
+<span class="lineNum">      54 </span>            : 
+<span class="lineNum">      55 </span>            :   \snippet Test_VolumeDataReaderAlgorithm.hpp option_group
+<span class="lineNum">      56 </span>            : 
+<span class="lineNum">      57 </span>            :   This results in a section in the input file that may look like this:
+<span class="lineNum">      58 </span>            : 
+<span class="lineNum">      59 </span>            :   \snippet Test_VolumeDataReaderAlgorithm2D.yaml importer_options
+<span class="lineNum">      60 </span>            : 
+<span class="lineNum">      61 </span>            : - The `::Actions::SetData` callback action in the example will be invoked to
+<span class="lineNum">      62 </span>            :   receive the data on each element. You can use this particular action to move
+<span class="lineNum">      63 </span>            :   the received data directly into the DataBox, but it's generally better to
+<span class="lineNum">      64 </span>            :   write a new action that does a few consistency checks on the data before
+<span class="lineNum">      65 </span>            :   moving it into the DataBox.
+<span class="lineNum">      66 </span>            : 
+<span class="lineNum">      67 </span>            : When the `importers::ThreadedActions::ReadVolumeData` is invoked, the data file
+<span class="lineNum">      68 </span>            : will be read and its data distributed to all elements of the array that have
+<span class="lineNum">      69 </span>            : been registered.
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

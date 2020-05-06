@@ -1,0 +1,444 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - PointwiseFunctions/AnalyticSolutions/GeneralRelativity/GaugeWave.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../index.html">top level</a> - <a href="index.html">PointwiseFunctions/AnalyticSolutions/GeneralRelativity</a> - GaugeWave.cpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #include &quot;PointwiseFunctions/AnalyticSolutions/GeneralRelativity/GaugeWave.hpp&quot;
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;cmath&gt;
+<span class="lineNum">       7 </span>            : #include &lt;cstddef&gt;
+<span class="lineNum">       8 </span>            : #include &lt;pup.h&gt;  // IWYU pragma: keep
+<span class="lineNum">       9 </span>            : 
+<span class="lineNum">      10 </span>            : #include &quot;DataStructures/DataBox/Prefixes.hpp&quot;  // IWYU pragma: keep
+<span class="lineNum">      11 </span>            : #include &quot;DataStructures/DataVector.hpp&quot;  // IWYU pragma: keep
+<span class="lineNum">      12 </span>            : #include &quot;DataStructures/Tensor/Tensor.hpp&quot;  // IWYU pragma: keep
+<span class="lineNum">      13 </span>            : #include &quot;DataStructures/Tensor/TypeAliases.hpp&quot;
+<span class="lineNum">      14 </span>            : #include &quot;PointwiseFunctions/GeneralRelativity/Tags.hpp&quot;
+<span class="lineNum">      15 </span>            : #include &quot;Utilities/GenerateInstantiations.hpp&quot;
+<span class="lineNum">      16 </span>            : #include &quot;Utilities/MakeWithValue.hpp&quot;
+<span class="lineNum">      17 </span>            : #include &quot;Utilities/TMPL.hpp&quot;
+<span class="lineNum">      18 </span>            : 
+<span class="lineNum">      19 </span>            : /// \cond
+<span class="lineNum">      20 </span>            : namespace {
+<span class="lineNum">      21 </span>            : // compute gauge wave H
+<span class="lineNum">      22 </span>            : template &lt;typename DataType, size_t Dim&gt;
+<span class="lineNum">      23 </span>            : DataType gauge_wave_h(const tnsr::I&lt;DataType, Dim&gt;&amp; x, const double t,
+<span class="lineNum">      24 </span>            :                       const double amplitude,
+<span class="lineNum">      25 </span>            :                       const double wavelength) noexcept {
+<span class="lineNum">      26 </span>            :   return {-1.0 * amplitude * sin((get&lt;0&gt;(x) - t) * (2.0 * M_PI / wavelength)) +
+<span class="lineNum">      27 </span>            :           1.0};
+<span class="lineNum">      28 </span>            : }
+<span class="lineNum">      29 </span>            : 
+<span class="lineNum">      30 </span>            : // compute gauge wave derivH: \partial_x H
+<span class="lineNum">      31 </span>            : template &lt;typename DataType, size_t Dim&gt;
+<span class="lineNum">      32 </span>            : DataType gauge_wave_deriv_h(const tnsr::I&lt;DataType, Dim&gt;&amp; x, const double t,
+<span class="lineNum">      33 </span>            :                             const double amplitude,
+<span class="lineNum">      34 </span>            :                             const double wavelength) noexcept {
+<span class="lineNum">      35 </span>            :   return {-1.0 * amplitude * (2.0 * M_PI / wavelength) *
+<span class="lineNum">      36 </span>            :           cos((get&lt;0&gt;(x) - t) * (2.0 * M_PI / wavelength))};
+<span class="lineNum">      37 </span>            : }
+<span class="lineNum">      38 </span>            : }  // namespace
+<span class="lineNum">      39 </span>            : 
+<span class="lineNum">      40 </span>            : namespace gr {
+<span class="lineNum">      41 </span>            : namespace Solutions {
+<span class="lineNum">      42 </span>            : template &lt;size_t Dim&gt;
+<span class="lineNum">      43 </span>            : GaugeWave&lt;Dim&gt;::GaugeWave(const double amplitude, const double wavelength,
+<span class="lineNum">      44 </span>            :                           const OptionContext&amp; context)
+<span class="lineNum">      45 </span>            :     : amplitude_(amplitude), wavelength_(wavelength) {
+<span class="lineNum">      46 </span>            :   if (abs(amplitude) &gt;= 1.0) {
+<span class="lineNum">      47 </span>            :     PARSE_ERROR(context,
+<span class="lineNum">      48 </span>            :                 &quot;Amplitude must be less than one. Given amplitude: &quot;
+<span class="lineNum">      49 </span>            :                 &lt;&lt; amplitude_);
+<span class="lineNum">      50 </span>            :   }
+<span class="lineNum">      51 </span>            :   if (wavelength &lt;= 0.0) {
+<span class="lineNum">      52 </span>            :     PARSE_ERROR(context,
+<span class="lineNum">      53 </span>            :                 &quot;Wavelength must be non-negative. Given wavelength: &quot;
+<span class="lineNum">      54 </span>            :                 &lt;&lt; wavelength_);
+<span class="lineNum">      55 </span>            :   }
+<span class="lineNum">      56 </span>            : }
+<span class="lineNum">      57 </span>            : 
+<span class="lineNum">      58 </span>            : template &lt;size_t Dim&gt;
+<span class="lineNum">      59 </span>            : void GaugeWave&lt;Dim&gt;::pup(PUP::er&amp; p) noexcept {
+<span class="lineNum">      60 </span>            :   p | amplitude_;
+<span class="lineNum">      61 </span>            :   p | wavelength_;
+<span class="lineNum">      62 </span>            : }
+<span class="lineNum">      63 </span>            : 
+<span class="lineNum">      64 </span>            : template &lt;size_t Dim&gt;
+<span class="lineNum">      65 </span>            : template &lt;typename DataType&gt;
+<span class="lineNum">      66 </span>            : GaugeWave&lt;Dim&gt;::IntermediateVars&lt;DataType&gt;::IntermediateVars(
+<span class="lineNum">      67 </span>            :     const double amplitude, const double wavelength,
+<span class="lineNum">      68 </span>            :     const tnsr::I&lt;DataType, volume_dim, Frame::Inertial&gt;&amp; x,
+<span class="lineNum">      69 </span>            :     const double t) noexcept {
+<span class="lineNum">      70 </span>            :   h = gauge_wave_h(x, t, amplitude, wavelength);
+<span class="lineNum">      71 </span>            :   dx_h = gauge_wave_deriv_h(x, t, amplitude, wavelength);
+<span class="lineNum">      72 </span>            :   sqrt_h = sqrt(h);
+<span class="lineNum">      73 </span>            :   dx_h_over_2_sqrt_h = 0.5 * dx_h / sqrt(h);
+<span class="lineNum">      74 </span>            : }
+<span class="lineNum">      75 </span>            : 
+<span class="lineNum">      76 </span>            : template &lt;size_t Dim&gt;
+<span class="lineNum">      77 </span>            : template &lt;typename DataType&gt;
+<span class="lineNum">      78 </span>            : auto GaugeWave&lt;Dim&gt;::variables(
+<span class="lineNum">      79 </span>            :     const tnsr::I&lt;DataType, volume_dim, Frame::Inertial&gt;&amp; /*x*/,
+<span class="lineNum">      80 </span>            :     const double /*t*/, const IntermediateVars&lt;DataType&gt;&amp; vars,
+<span class="lineNum">      81 </span>            :     tmpl::list&lt;gr::Tags::Lapse&lt;DataType&gt;&gt; /*meta*/) const noexcept
+<span class="lineNum">      82 </span>            :     -&gt; tuples::TaggedTuple&lt;gr::Tags::Lapse&lt;DataType&gt;&gt; {
+<span class="lineNum">      83 </span>            :   return {Scalar&lt;DataType&gt;{vars.sqrt_h}};
+<span class="lineNum">      84 </span>            : }
+<span class="lineNum">      85 </span>            : 
+<span class="lineNum">      86 </span>            : template &lt;size_t Dim&gt;
+<span class="lineNum">      87 </span>            : template &lt;typename DataType&gt;
+<span class="lineNum">      88 </span>            : auto GaugeWave&lt;Dim&gt;::variables(
+<span class="lineNum">      89 </span>            :     const tnsr::I&lt;DataType, volume_dim, Frame::Inertial&gt;&amp; /*x*/,
+<span class="lineNum">      90 </span>            :     const double /*t*/, const IntermediateVars&lt;DataType&gt;&amp; vars,
+<span class="lineNum">      91 </span>            :     tmpl::list&lt;::Tags::dt&lt;gr::Tags::Lapse&lt;DataType&gt;&gt;&gt; /*meta*/) const noexcept
+<span class="lineNum">      92 </span>            :     -&gt; tuples::TaggedTuple&lt;::Tags::dt&lt;gr::Tags::Lapse&lt;DataType&gt;&gt;&gt; {
+<span class="lineNum">      93 </span>            :   return {Scalar&lt;DataType&gt;{-1.0 * vars.dx_h_over_2_sqrt_h}};
+<span class="lineNum">      94 </span>            : }
+<span class="lineNum">      95 </span>            : 
+<span class="lineNum">      96 </span>            : template &lt;size_t Dim&gt;
+<span class="lineNum">      97 </span>            : template &lt;typename DataType&gt;
+<span class="lineNum">      98 </span>            : auto GaugeWave&lt;Dim&gt;::variables(
+<span class="lineNum">      99 </span>            :     const tnsr::I&lt;DataType, volume_dim, Frame::Inertial&gt;&amp; x, const double /*t*/,
+<span class="lineNum">     100 </span>            :     const IntermediateVars&lt;DataType&gt;&amp; vars,
+<span class="lineNum">     101 </span>            :     tmpl::list&lt;DerivLapse&lt;DataType&gt;&gt; /*meta*/) const noexcept
+<span class="lineNum">     102 </span>            :     -&gt; tuples::TaggedTuple&lt;DerivLapse&lt;DataType&gt;&gt; {
+<span class="lineNum">     103 </span>            :   // most parts of d_lapse are zero, so make_with_value() here
+<span class="lineNum">     104 </span>            :   auto d_lapse =
+<span class="lineNum">     105 </span>            :       make_with_value&lt;tnsr::i&lt;DataType, volume_dim, Frame::Inertial&gt;&gt;(x, 0.0);
+<span class="lineNum">     106 </span>            :   get&lt;0&gt;(d_lapse) = vars.dx_h_over_2_sqrt_h;
+<span class="lineNum">     107 </span>            :   return d_lapse;
+<span class="lineNum">     108 </span>            : }
+<span class="lineNum">     109 </span>            : 
+<span class="lineNum">     110 </span>            : template &lt;size_t Dim&gt;
+<span class="lineNum">     111 </span>            : template &lt;typename DataType&gt;
+<span class="lineNum">     112 </span>            : auto GaugeWave&lt;Dim&gt;::variables(
+<span class="lineNum">     113 </span>            :     const tnsr::I&lt;DataType, volume_dim, Frame::Inertial&gt;&amp; x, const double /*t*/,
+<span class="lineNum">     114 </span>            :     const IntermediateVars&lt;DataType&gt;&amp; /*vars*/,
+<span class="lineNum">     115 </span>            :     tmpl::list&lt;gr::Tags::Shift&lt;volume_dim, Frame::Inertial, DataType&gt;&gt; /*meta*/)
+<span class="lineNum">     116 </span>            :     const noexcept -&gt; tuples::TaggedTuple&lt;
+<span class="lineNum">     117 </span>            :         gr::Tags::Shift&lt;volume_dim, Frame::Inertial, DataType&gt;&gt; {
+<span class="lineNum">     118 </span>            :   return {
+<span class="lineNum">     119 </span>            :       make_with_value&lt;tnsr::I&lt;DataType, volume_dim, Frame::Inertial&gt;&gt;(x, 0.0)};
+<span class="lineNum">     120 </span>            : }
+<span class="lineNum">     121 </span>            : 
+<span class="lineNum">     122 </span>            : template &lt;size_t Dim&gt;
+<span class="lineNum">     123 </span>            : template &lt;typename DataType&gt;
+<span class="lineNum">     124 </span>            : auto GaugeWave&lt;Dim&gt;::variables(
+<span class="lineNum">     125 </span>            :     const tnsr::I&lt;DataType, volume_dim, Frame::Inertial&gt;&amp; x, const double /*t*/,
+<span class="lineNum">     126 </span>            :     const IntermediateVars&lt;DataType&gt;&amp; /*vars*/,
+<span class="lineNum">     127 </span>            :     tmpl::list&lt;::Tags::dt&lt;
+<span class="lineNum">     128 </span>            :         gr::Tags::Shift&lt;volume_dim, Frame::Inertial, DataType&gt;&gt;&gt; /*meta*/) const
+<span class="lineNum">     129 </span>            :     noexcept -&gt; tuples::TaggedTuple&lt;
+<span class="lineNum">     130 </span>            :         ::Tags::dt&lt;gr::Tags::Shift&lt;volume_dim, Frame::Inertial, DataType&gt;&gt;&gt; {
+<span class="lineNum">     131 </span>            :   return {
+<span class="lineNum">     132 </span>            :       make_with_value&lt;tnsr::I&lt;DataType, volume_dim, Frame::Inertial&gt;&gt;(x, 0.0)};
+<span class="lineNum">     133 </span>            : }
+<span class="lineNum">     134 </span>            : 
+<span class="lineNum">     135 </span>            : template &lt;size_t Dim&gt;
+<span class="lineNum">     136 </span>            : template &lt;typename DataType&gt;
+<span class="lineNum">     137 </span>            : auto GaugeWave&lt;Dim&gt;::variables(
+<span class="lineNum">     138 </span>            :     const tnsr::I&lt;DataType, volume_dim, Frame::Inertial&gt;&amp; x, const double /*t*/,
+<span class="lineNum">     139 </span>            :     const IntermediateVars&lt;DataType&gt;&amp; /*vars*/,
+<span class="lineNum">     140 </span>            :     tmpl::list&lt;DerivShift&lt;DataType&gt;&gt; /*meta*/) const noexcept
+<span class="lineNum">     141 </span>            :     -&gt; tuples::TaggedTuple&lt;DerivShift&lt;DataType&gt;&gt; {
+<span class="lineNum">     142 </span>            :   return {
+<span class="lineNum">     143 </span>            :       make_with_value&lt;tnsr::iJ&lt;DataType, volume_dim, Frame::Inertial&gt;&gt;(x, 0.0)};
+<span class="lineNum">     144 </span>            : }
+<span class="lineNum">     145 </span>            : 
+<span class="lineNum">     146 </span>            : template &lt;size_t Dim&gt;
+<span class="lineNum">     147 </span>            : template &lt;typename DataType&gt;
+<span class="lineNum">     148 </span>            : auto GaugeWave&lt;Dim&gt;::variables(
+<span class="lineNum">     149 </span>            :     const tnsr::I&lt;DataType, volume_dim, Frame::Inertial&gt;&amp; x, const double /*t*/,
+<span class="lineNum">     150 </span>            :     const IntermediateVars&lt;DataType&gt;&amp; vars,
+<span class="lineNum">     151 </span>            :     tmpl::list&lt;gr::Tags::SpatialMetric&lt;volume_dim, Frame::Inertial,
+<span class="lineNum">     152 </span>            :                                        DataType&gt;&gt; /*meta*/) const noexcept
+<span class="lineNum">     153 </span>            :     -&gt; tuples::TaggedTuple&lt;
+<span class="lineNum">     154 </span>            :         gr::Tags::SpatialMetric&lt;volume_dim, Frame::Inertial, DataType&gt;&gt; {
+<span class="lineNum">     155 </span>            :   auto spatial_metric =
+<span class="lineNum">     156 </span>            :       make_with_value&lt;tnsr::ii&lt;DataType, volume_dim, Frame::Inertial&gt;&gt;(x, 0.0);
+<span class="lineNum">     157 </span>            :   get&lt;0, 0&gt;(spatial_metric) = vars.h;
+<span class="lineNum">     158 </span>            :   for (size_t i = 1; i &lt; volume_dim; ++i) {
+<span class="lineNum">     159 </span>            :     spatial_metric.get(i, i) = 1.0;
+<span class="lineNum">     160 </span>            :   }
+<span class="lineNum">     161 </span>            :   return spatial_metric;
+<span class="lineNum">     162 </span>            : }
+<span class="lineNum">     163 </span>            : 
+<span class="lineNum">     164 </span>            : template &lt;size_t Dim&gt;
+<span class="lineNum">     165 </span>            : template &lt;typename DataType&gt;
+<span class="lineNum">     166 </span>            : auto GaugeWave&lt;Dim&gt;::variables(
+<span class="lineNum">     167 </span>            :     const tnsr::I&lt;DataType, volume_dim, Frame::Inertial&gt;&amp; x, const double /*t*/,
+<span class="lineNum">     168 </span>            :     const IntermediateVars&lt;DataType&gt;&amp; vars,
+<span class="lineNum">     169 </span>            :     tmpl::list&lt;::Tags::dt&lt;gr::Tags::SpatialMetric&lt;volume_dim, Frame::Inertial,
+<span class="lineNum">     170 </span>            :                                                   DataType&gt;&gt;&gt; /*meta*/) const
+<span class="lineNum">     171 </span>            :     noexcept -&gt; tuples::TaggedTuple&lt;::Tags::dt&lt;
+<span class="lineNum">     172 </span>            :         gr::Tags::SpatialMetric&lt;volume_dim, Frame::Inertial, DataType&gt;&gt;&gt; {
+<span class="lineNum">     173 </span>            :   auto dt_spatial_metric =
+<span class="lineNum">     174 </span>            :       make_with_value&lt;tnsr::ii&lt;DataType, volume_dim, Frame::Inertial&gt;&gt;(x, 0.0);
+<span class="lineNum">     175 </span>            :   get&lt;0, 0&gt;(dt_spatial_metric) = -1.0 * vars.dx_h;
+<span class="lineNum">     176 </span>            :   return dt_spatial_metric;
+<span class="lineNum">     177 </span>            : }
+<span class="lineNum">     178 </span>            : 
+<span class="lineNum">     179 </span>            : template &lt;size_t Dim&gt;
+<span class="lineNum">     180 </span>            : template &lt;typename DataType&gt;
+<span class="lineNum">     181 </span>            : auto GaugeWave&lt;Dim&gt;::variables(
+<span class="lineNum">     182 </span>            :     const tnsr::I&lt;DataType, volume_dim, Frame::Inertial&gt;&amp; x, const double /*t*/,
+<span class="lineNum">     183 </span>            :     const IntermediateVars&lt;DataType&gt;&amp; vars,
+<span class="lineNum">     184 </span>            :     tmpl::list&lt;DerivSpatialMetric&lt;DataType&gt;&gt; /*meta*/) const noexcept
+<span class="lineNum">     185 </span>            :     -&gt; tuples::TaggedTuple&lt;DerivSpatialMetric&lt;DataType&gt;&gt; {
+<span class="lineNum">     186 </span>            :   auto d_spatial_metric =
+<span class="lineNum">     187 </span>            :       make_with_value&lt;tnsr::ijj&lt;DataType, volume_dim, Frame::Inertial&gt;&gt;(x, 0.0);
+<span class="lineNum">     188 </span>            :   get&lt;0, 0, 0&gt;(d_spatial_metric) = vars.dx_h;
+<span class="lineNum">     189 </span>            :   return d_spatial_metric;
+<span class="lineNum">     190 </span>            : }
+<span class="lineNum">     191 </span>            : 
+<span class="lineNum">     192 </span>            : template &lt;size_t Dim&gt;
+<span class="lineNum">     193 </span>            : template &lt;typename DataType&gt;
+<span class="lineNum">     194 </span>            : auto GaugeWave&lt;Dim&gt;::variables(
+<span class="lineNum">     195 </span>            :     const tnsr::I&lt;DataType, volume_dim, Frame::Inertial&gt;&amp; /*x*/,
+<span class="lineNum">     196 </span>            :     const double /*t*/, const IntermediateVars&lt;DataType&gt;&amp; vars,
+<span class="lineNum">     197 </span>            :     tmpl::list&lt;gr::Tags::SqrtDetSpatialMetric&lt;DataType&gt;&gt; /*meta*/) const
+<span class="lineNum">     198 </span>            :     noexcept -&gt; tuples::TaggedTuple&lt;gr::Tags::SqrtDetSpatialMetric&lt;DataType&gt;&gt; {
+<span class="lineNum">     199 </span>            :   return {Scalar&lt;DataType&gt;{vars.sqrt_h}};
+<span class="lineNum">     200 </span>            : }
+<span class="lineNum">     201 </span>            : 
+<span class="lineNum">     202 </span>            : template &lt;size_t Dim&gt;
+<span class="lineNum">     203 </span>            : template &lt;typename DataType&gt;
+<span class="lineNum">     204 </span>            : auto GaugeWave&lt;Dim&gt;::variables(
+<span class="lineNum">     205 </span>            :     const tnsr::I&lt;DataType, volume_dim, Frame::Inertial&gt;&amp; x, const double /*t*/,
+<span class="lineNum">     206 </span>            :     const IntermediateVars&lt;DataType&gt;&amp; vars,
+<span class="lineNum">     207 </span>            :     tmpl::list&lt;gr::Tags::ExtrinsicCurvature&lt;volume_dim, Frame::Inertial,
+<span class="lineNum">     208 </span>            :                                             DataType&gt;&gt; /*meta*/) const noexcept
+<span class="lineNum">     209 </span>            :     -&gt; tuples::TaggedTuple&lt;
+<span class="lineNum">     210 </span>            :         gr::Tags::ExtrinsicCurvature&lt;volume_dim, Frame::Inertial, DataType&gt;&gt; {
+<span class="lineNum">     211 </span>            :   auto extrinsic_curvature =
+<span class="lineNum">     212 </span>            :       make_with_value&lt;tnsr::ii&lt;DataType, volume_dim, Frame::Inertial&gt;&gt;(x, 0.0);
+<span class="lineNum">     213 </span>            :   get&lt;0, 0&gt;(extrinsic_curvature) = vars.dx_h_over_2_sqrt_h;
+<span class="lineNum">     214 </span>            :   return extrinsic_curvature;
+<span class="lineNum">     215 </span>            : }
+<span class="lineNum">     216 </span>            : 
+<span class="lineNum">     217 </span>            : template &lt;size_t Dim&gt;
+<span class="lineNum">     218 </span>            : template &lt;typename DataType&gt;
+<span class="lineNum">     219 </span>            : auto GaugeWave&lt;Dim&gt;::variables(
+<span class="lineNum">     220 </span>            :     const tnsr::I&lt;DataType, volume_dim, Frame::Inertial&gt;&amp; x, const double /*t*/,
+<span class="lineNum">     221 </span>            :     const IntermediateVars&lt;DataType&gt;&amp; vars,
+<span class="lineNum">     222 </span>            :     tmpl::list&lt;gr::Tags::InverseSpatialMetric&lt;volume_dim, Frame::Inertial,
+<span class="lineNum">     223 </span>            :                                               DataType&gt;&gt; /*meta*/) const
+<span class="lineNum">     224 </span>            :     noexcept -&gt; tuples::TaggedTuple&lt;
+<span class="lineNum">     225 </span>            :         gr::Tags::InverseSpatialMetric&lt;volume_dim, Frame::Inertial, DataType&gt;&gt; {
+<span class="lineNum">     226 </span>            :   auto inverse_spatial_metric =
+<span class="lineNum">     227 </span>            :       make_with_value&lt;tnsr::II&lt;DataType, volume_dim, Frame::Inertial&gt;&gt;(x, 0.0);
+<span class="lineNum">     228 </span>            :   get&lt;0, 0&gt;(inverse_spatial_metric) = 1.0 / vars.h;
+<span class="lineNum">     229 </span>            :   for (size_t i = 1; i &lt; volume_dim; ++i) {
+<span class="lineNum">     230 </span>            :     inverse_spatial_metric.get(i, i) = 1.0;
+<span class="lineNum">     231 </span>            :   }
+<span class="lineNum">     232 </span>            :   return inverse_spatial_metric;
+<span class="lineNum">     233 </span>            : }
+<span class="lineNum">     234 </span>            : 
+<span class="lineNum">     235 </span>            : template &lt;size_t Dim&gt;
+<span class="lineNum">     236 </span>            : bool operator==(const GaugeWave&lt;Dim&gt;&amp; lhs, const GaugeWave&lt;Dim&gt;&amp; rhs) noexcept {
+<span class="lineNum">     237 </span>            :   return lhs.amplitude() == rhs.amplitude() and
+<span class="lineNum">     238 </span>            :          lhs.wavelength() == rhs.wavelength();
+<span class="lineNum">     239 </span>            : }
+<span class="lineNum">     240 </span>            : 
+<span class="lineNum">     241 </span>            : template &lt;size_t Dim&gt;
+<span class="lineNum">     242 </span>            : bool operator!=(const GaugeWave&lt;Dim&gt;&amp; lhs, const GaugeWave&lt;Dim&gt;&amp; rhs) noexcept {
+<span class="lineNum">     243 </span>            :   return not(lhs == rhs);
+<span class="lineNum">     244 </span>            : }
+<span class="lineNum">     245 </span>            : 
+<span class="lineNum">     246 </span>            : #define DIM(data) BOOST_PP_TUPLE_ELEM(0, data)
+<span class="lineNum">     247 </span>            : #define DTYPE(data) BOOST_PP_TUPLE_ELEM(1, data)
+<span class="lineNum">     248 </span>            : 
+<span class="lineNum">     249 </span>            : #define INSTANTIATE(_, data)                                                   \
+<span class="lineNum">     250 </span>            :   template GaugeWave&lt;DIM(data)&gt;::IntermediateVars&lt;DTYPE(data)&gt;::               \
+<span class="lineNum">     251 </span>            :       IntermediateVars(                                                        \
+<span class="lineNum">     252 </span>            :           const double amplitude, const double wavelength,                     \
+<span class="lineNum">     253 </span>            :           const tnsr::I&lt;DTYPE(data), DIM(data), Frame::Inertial&gt;&amp; x,           \
+<span class="lineNum">     254 </span>            :           const double t) noexcept;                                            \
+<span class="lineNum">     255 </span>            :   template tuples::TaggedTuple&lt;gr::Tags::Lapse&lt;DTYPE(data)&gt;&gt;                   \
+<span class="lineNum">     256 </span>            :   GaugeWave&lt;DIM(data)&gt;::variables(                                             \
+<span class="lineNum">     257 </span>            :       const tnsr::I&lt;DTYPE(data), DIM(data), Frame::Inertial&gt;&amp; /*x*/,           \
+<span class="lineNum">     258 </span>            :       const double /*t*/,                                                      \
+<span class="lineNum">     259 </span>            :       const GaugeWave&lt;DIM(data)&gt;::IntermediateVars&lt;DTYPE(data)&gt;&amp; vars,         \
+<span class="lineNum">     260 </span>            :       tmpl::list&lt;gr::Tags::Lapse&lt;DTYPE(data)&gt;&gt; /*meta*/) const noexcept;       \
+<span class="lineNum">     261 </span>            :   template tuples::TaggedTuple&lt;::Tags::dt&lt;gr::Tags::Lapse&lt;DTYPE(data)&gt;&gt;&gt;       \
+<span class="lineNum">     262 </span>            :   GaugeWave&lt;DIM(data)&gt;::variables(                                             \
+<span class="lineNum">     263 </span>            :       const tnsr::I&lt;DTYPE(data), DIM(data)&gt;&amp; /*x*/, const double /*t*/,        \
+<span class="lineNum">     264 </span>            :       const GaugeWave&lt;DIM(data)&gt;::IntermediateVars&lt;DTYPE(data)&gt;&amp; vars,         \
+<span class="lineNum">     265 </span>            :       tmpl::list&lt;::Tags::dt&lt;gr::Tags::Lapse&lt;DTYPE(data)&gt;&gt;&gt; /*meta*/)           \
+<span class="lineNum">     266 </span>            :       const noexcept;                                                          \
+<span class="lineNum">     267 </span>            :   template tuples::TaggedTuple&lt;::Tags::deriv&lt;                                  \
+<span class="lineNum">     268 </span>            :       gr::Tags::Lapse&lt;DTYPE(data)&gt;, tmpl::size_t&lt;DIM(data)&gt;, Frame::Inertial&gt;&gt; \
+<span class="lineNum">     269 </span>            :   GaugeWave&lt;DIM(data)&gt;::variables(                                             \
+<span class="lineNum">     270 </span>            :       const tnsr::I&lt;DTYPE(data), DIM(data)&gt;&amp; x, const double /*t*/,            \
+<span class="lineNum">     271 </span>            :       const GaugeWave&lt;DIM(data)&gt;::IntermediateVars&lt;DTYPE(data)&gt;&amp; vars,         \
+<span class="lineNum">     272 </span>            :       tmpl::list&lt;                                                              \
+<span class="lineNum">     273 </span>            :           ::Tags::deriv&lt;gr::Tags::Lapse&lt;DTYPE(data)&gt;, tmpl::size_t&lt;DIM(data)&gt;, \
+<span class="lineNum">     274 </span>            :                         Frame::Inertial&gt;&gt; /*meta*/) const noexcept;            \
+<span class="lineNum">     275 </span>            :   template tuples::TaggedTuple&lt;                                                \
+<span class="lineNum">     276 </span>            :       gr::Tags::Shift&lt;DIM(data), Frame::Inertial, DTYPE(data)&gt;&gt;                \
+<span class="lineNum">     277 </span>            :   GaugeWave&lt;DIM(data)&gt;::variables(                                             \
+<span class="lineNum">     278 </span>            :       const tnsr::I&lt;DTYPE(data), DIM(data)&gt;&amp; x, const double /*t*/,            \
+<span class="lineNum">     279 </span>            :       const GaugeWave&lt;DIM(data)&gt;::IntermediateVars&lt;DTYPE(data)&gt;&amp; vars,         \
+<span class="lineNum">     280 </span>            :       tmpl::list&lt;                                                              \
+<span class="lineNum">     281 </span>            :           gr::Tags::Shift&lt;DIM(data), Frame::Inertial, DTYPE(data)&gt;&gt; /*meta*/)  \
+<span class="lineNum">     282 </span>            :       const noexcept;                                                          \
+<span class="lineNum">     283 </span>            :   template tuples::TaggedTuple&lt;                                                \
+<span class="lineNum">     284 </span>            :       ::Tags::dt&lt;gr::Tags::Shift&lt;DIM(data), Frame::Inertial, DTYPE(data)&gt;&gt;&gt;    \
+<span class="lineNum">     285 </span>            :   GaugeWave&lt;DIM(data)&gt;::variables(                                             \
+<span class="lineNum">     286 </span>            :       const tnsr::I&lt;DTYPE(data), DIM(data)&gt;&amp; x, const double /*t*/,            \
+<span class="lineNum">     287 </span>            :       const GaugeWave&lt;DIM(data)&gt;::IntermediateVars&lt;DTYPE(data)&gt;&amp; vars,         \
+<span class="lineNum">     288 </span>            :       tmpl::list&lt;::Tags::dt&lt;                                                   \
+<span class="lineNum">     289 </span>            :           gr::Tags::Shift&lt;DIM(data), Frame::Inertial, DTYPE(data)&gt;&gt;&gt; /*meta*/) \
+<span class="lineNum">     290 </span>            :       const noexcept;                                                          \
+<span class="lineNum">     291 </span>            :   template tuples::TaggedTuple&lt;                                                \
+<span class="lineNum">     292 </span>            :       ::Tags::deriv&lt;gr::Tags::Shift&lt;DIM(data), Frame::Inertial, DTYPE(data)&gt;,  \
+<span class="lineNum">     293 </span>            :                     tmpl::size_t&lt;DIM(data)&gt;, Frame::Inertial&gt;&gt;                 \
+<span class="lineNum">     294 </span>            :   GaugeWave&lt;DIM(data)&gt;::variables(                                             \
+<span class="lineNum">     295 </span>            :       const tnsr::I&lt;DTYPE(data), DIM(data)&gt;&amp; x, const double /*t*/,            \
+<span class="lineNum">     296 </span>            :       const GaugeWave&lt;DIM(data)&gt;::IntermediateVars&lt;DTYPE(data)&gt;&amp; vars,         \
+<span class="lineNum">     297 </span>            :       tmpl::list&lt;::Tags::deriv&lt;                                                \
+<span class="lineNum">     298 </span>            :           gr::Tags::Shift&lt;DIM(data), Frame::Inertial, DTYPE(data)&gt;,            \
+<span class="lineNum">     299 </span>            :           tmpl::size_t&lt;DIM(data)&gt;, Frame::Inertial&gt;&gt; /*meta*/) const noexcept; \
+<span class="lineNum">     300 </span>            :   template tuples::TaggedTuple&lt;                                                \
+<span class="lineNum">     301 </span>            :       gr::Tags::SpatialMetric&lt;DIM(data), Frame::Inertial, DTYPE(data)&gt;&gt;        \
+<span class="lineNum">     302 </span>            :   GaugeWave&lt;DIM(data)&gt;::variables(                                             \
+<span class="lineNum">     303 </span>            :       const tnsr::I&lt;DTYPE(data), DIM(data)&gt;&amp; x, const double /*t*/,            \
+<span class="lineNum">     304 </span>            :       const GaugeWave&lt;DIM(data)&gt;::IntermediateVars&lt;DTYPE(data)&gt;&amp; vars,         \
+<span class="lineNum">     305 </span>            :       tmpl::list&lt;gr::Tags::SpatialMetric&lt;DIM(data), Frame::Inertial,           \
+<span class="lineNum">     306 </span>            :                                          DTYPE(data)&gt;&gt; /*meta*/)               \
+<span class="lineNum">     307 </span>            :       const noexcept;                                                          \
+<span class="lineNum">     308 </span>            :   template tuples::TaggedTuple&lt;::Tags::dt&lt;                                     \
+<span class="lineNum">     309 </span>            :       gr::Tags::SpatialMetric&lt;DIM(data), Frame::Inertial, DTYPE(data)&gt;&gt;&gt;       \
+<span class="lineNum">     310 </span>            :   GaugeWave&lt;DIM(data)&gt;::variables(                                             \
+<span class="lineNum">     311 </span>            :       const tnsr::I&lt;DTYPE(data), DIM(data)&gt;&amp; x, const double /*t*/,            \
+<span class="lineNum">     312 </span>            :       const GaugeWave&lt;DIM(data)&gt;::IntermediateVars&lt;DTYPE(data)&gt;&amp; vars,         \
+<span class="lineNum">     313 </span>            :       tmpl::list&lt;::Tags::dt&lt;gr::Tags::SpatialMetric&lt;                           \
+<span class="lineNum">     314 </span>            :           DIM(data), Frame::Inertial, DTYPE(data)&gt;&gt;&gt; /*meta*/) const noexcept; \
+<span class="lineNum">     315 </span>            :   template tuples::TaggedTuple&lt;::Tags::deriv&lt;                                  \
+<span class="lineNum">     316 </span>            :       gr::Tags::SpatialMetric&lt;DIM(data), Frame::Inertial, DTYPE(data)&gt;,        \
+<span class="lineNum">     317 </span>            :       tmpl::size_t&lt;DIM(data)&gt;, Frame::Inertial&gt;&gt;                               \
+<span class="lineNum">     318 </span>            :   GaugeWave&lt;DIM(data)&gt;::variables(                                             \
+<span class="lineNum">     319 </span>            :       const tnsr::I&lt;DTYPE(data), DIM(data)&gt;&amp; x, const double /*t*/,            \
+<span class="lineNum">     320 </span>            :       const GaugeWave&lt;DIM(data)&gt;::IntermediateVars&lt;DTYPE(data)&gt;&amp; vars,         \
+<span class="lineNum">     321 </span>            :       tmpl::list&lt;::Tags::deriv&lt;                                                \
+<span class="lineNum">     322 </span>            :           gr::Tags::SpatialMetric&lt;DIM(data), Frame::Inertial, DTYPE(data)&gt;,    \
+<span class="lineNum">     323 </span>            :           tmpl::size_t&lt;DIM(data)&gt;, Frame::Inertial&gt;&gt; /*meta*/) const noexcept; \
+<span class="lineNum">     324 </span>            :   template tuples::TaggedTuple&lt;                                                \
+<span class="lineNum">     325 </span>            :       gr::Tags::InverseSpatialMetric&lt;DIM(data), Frame::Inertial, DTYPE(data)&gt;&gt; \
+<span class="lineNum">     326 </span>            :   GaugeWave&lt;DIM(data)&gt;::variables(                                             \
+<span class="lineNum">     327 </span>            :       const tnsr::I&lt;DTYPE(data), DIM(data)&gt;&amp; x, const double /*t*/,            \
+<span class="lineNum">     328 </span>            :       const GaugeWave&lt;DIM(data)&gt;::IntermediateVars&lt;DTYPE(data)&gt;&amp; vars,         \
+<span class="lineNum">     329 </span>            :       tmpl::list&lt;gr::Tags::InverseSpatialMetric&lt;DIM(data), Frame::Inertial,    \
+<span class="lineNum">     330 </span>            :                                                 DTYPE(data)&gt;&gt; /*meta*/)        \
+<span class="lineNum">     331 </span>            :       const noexcept;                                                          \
+<span class="lineNum">     332 </span>            :   template tuples::TaggedTuple&lt;                                                \
+<span class="lineNum">     333 </span>            :       gr::Tags::ExtrinsicCurvature&lt;DIM(data), Frame::Inertial, DTYPE(data)&gt;&gt;   \
+<span class="lineNum">     334 </span>            :   GaugeWave&lt;DIM(data)&gt;::variables(                                             \
+<span class="lineNum">     335 </span>            :       const tnsr::I&lt;DTYPE(data), DIM(data)&gt;&amp; x, const double /*t*/,            \
+<span class="lineNum">     336 </span>            :       const GaugeWave&lt;DIM(data)&gt;::IntermediateVars&lt;DTYPE(data)&gt;&amp; vars,         \
+<span class="lineNum">     337 </span>            :       tmpl::list&lt;gr::Tags::ExtrinsicCurvature&lt;DIM(data), Frame::Inertial,      \
+<span class="lineNum">     338 </span>            :                                               DTYPE(data)&gt;&gt; /*meta*/)          \
+<span class="lineNum">     339 </span>            :       const noexcept;                                                          \
+<span class="lineNum">     340 </span>            :   template tuples::TaggedTuple&lt;gr::Tags::SqrtDetSpatialMetric&lt;DTYPE(data)&gt;&gt;    \
+<span class="lineNum">     341 </span>            :   GaugeWave&lt;DIM(data)&gt;::variables(                                             \
+<span class="lineNum">     342 </span>            :       const tnsr::I&lt;DTYPE(data), DIM(data)&gt;&amp; /*x*/, const double /*t*/,        \
+<span class="lineNum">     343 </span>            :       const GaugeWave&lt;DIM(data)&gt;::IntermediateVars&lt;DTYPE(data)&gt;&amp; vars,         \
+<span class="lineNum">     344 </span>            :       tmpl::list&lt;gr::Tags::SqrtDetSpatialMetric&lt;DTYPE(data)&gt;&gt; /*meta*/)        \
+<span class="lineNum">     345 </span>            :       const noexcept;
+<span class="lineNum">     346 </span>            : 
+<span class="lineNum">     347 </span>            : GENERATE_INSTANTIATIONS(INSTANTIATE, (1, 2, 3), (double, DataVector))
+<span class="lineNum">     348 </span>            : 
+<span class="lineNum">     349 </span>            : #undef INSTANTIATE
+<span class="lineNum">     350 </span>            : #define INSTANTIATE(_, data)                                          \
+<span class="lineNum">     351 </span>            :   template class GaugeWave&lt;DIM(data)&gt;;                                \
+<span class="lineNum">     352 </span>            :   template bool operator==(const GaugeWave&lt;DIM(data)&gt;&amp; lhs,           \
+<span class="lineNum">     353 </span>            :                            const GaugeWave&lt;DIM(data)&gt;&amp; rhs) noexcept; \
+<span class="lineNum">     354 </span>            :   template bool operator!=(const GaugeWave&lt;DIM(data)&gt;&amp; lhs,           \
+<span class="lineNum">     355 </span>            :                            const GaugeWave&lt;DIM(data)&gt;&amp; rhs) noexcept;
+<span class="lineNum">     356 </span>            : 
+<span class="lineNum">     357 </span>            : GENERATE_INSTANTIATIONS(INSTANTIATE, (1, 2, 3))
+<span class="lineNum">     358 </span>            : 
+<span class="lineNum">     359 </span>            : #undef INSTANTIATE
+<span class="lineNum">     360 </span>            : #undef DTYPE
+<span class="lineNum">     361 </span>            : #undef DIM
+<span class="lineNum">     362 </span>            : }  // namespace Solutions
+<span class="lineNum">     363 </span>            : }  // namespace gr
+<span class="lineNum">     364 </span>            : /// \endcond
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

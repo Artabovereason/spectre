@@ -1,0 +1,432 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - Evolution/Systems/GeneralizedHarmonic/GaugeSourceFunctions/DampedHarmonic.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../../index.html">top level</a> - <a href="index.html">Evolution/Systems/GeneralizedHarmonic/GaugeSourceFunctions</a> - DampedHarmonic.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">5</td>
+            <td class="headerCovTableEntry">11</td>
+            <td class="headerCovTableEntryLo">45.5 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineCov">          1 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : ///\file
+<span class="lineNum">       5 </span>            : /// Defines Functions for calculating damped harmonic gauge quantities from
+<span class="lineNum">       6 </span>            : /// 3+1 quantities
+<span class="lineNum">       7 </span>            : 
+<span class="lineNum">       8 </span>            : #pragma once
+<span class="lineNum">       9 </span>            : 
+<span class="lineNum">      10 </span>            : #include &lt;cstddef&gt;
+<span class="lineNum">      11 </span>            : 
+<span class="lineNum">      12 </span>            : #include &quot;DataStructures/DataBox/DataBoxTag.hpp&quot;
+<span class="lineNum">      13 </span>            : #include &quot;DataStructures/DataBox/Tag.hpp&quot;
+<span class="lineNum">      14 </span>            : #include &quot;DataStructures/Tensor/TypeAliases.hpp&quot;
+<span class="lineNum">      15 </span>            : #include &quot;Domain/Tags.hpp&quot;
+<span class="lineNum">      16 </span>            : #include &quot;Evolution/Systems/GeneralizedHarmonic/Tags.hpp&quot;
+<span class="lineNum">      17 </span>            : #include &quot;PointwiseFunctions/GeneralRelativity/TagsDeclarations.hpp&quot;
+<span class="lineNum">      18 </span>            : #include &quot;Time/Tags.hpp&quot;
+<span class="lineNum">      19 </span>            : #include &quot;Utilities/ContainerHelpers.hpp&quot;
+<span class="lineNum">      20 </span>            : #include &quot;Utilities/TMPL.hpp&quot;
+<span class="lineNum">      21 </span>            : 
+<span class="lineNum">      22 </span>            : /// \cond
+<span class="lineNum">      23 </span>            : class DataVector;
+<span class="lineNum">      24 </span>            : namespace gsl {
+<span class="lineNum">      25 </span>            : template &lt;class T&gt;
+<span class="lineNum">      26 </span>            : class not_null;
+<span class="lineNum">      27 </span>            : }  // namespace gsl
+<span class="lineNum">      28 </span>            : /// \endcond
+<span class="lineNum">      29 </span>            : 
+<span class="lineNum">      30 </span>            : // IWYU pragma: no_include &quot;PointwiseFunctions/GeneralRelativity/Tags.hpp&quot;
+<span class="lineNum">      31 </span>            : 
+<span class="lineNum">      32 </span>            : // IWYU pragma: no_forward_declare Tags::Time
+<span class="lineNum">      33 </span>            : // IWYU pragma: no_forward_declare Tags::Coordinates
+<span class="lineNum">      34 </span>            : // IWYU pragma: no_forward_declare Tags::deriv
+<span class="lineNum">      35 </span>            : // IWYU pragma: no_forward_declare Tensor
+<span class="lineNum">      36 </span>            : // IWYU pragma: no_forward_declare db::ComputeTag
+<span class="lineNum">      37 </span>            : // IWYU pragma: no_forward_declare gr::InverseSpatialMetric
+<span class="lineNum">      38 </span>            : // IWYU pragma: no_forward_declare gr::Tags::Lapse
+<span class="lineNum">      39 </span>            : // IWYU pragma: no_forward_declare gr::Tags::Shift
+<span class="lineNum">      40 </span>            : // IWYU pragma: no_forward_declare gr::Tags::SpacetimeMetric
+<span class="lineNum">      41 </span>            : // IWYU pragma: no_forward_declare gr::Tags::SpacetimeNormalOneForm
+<span class="lineNum">      42 </span>            : // IWYU pragma: no_forward_declare gr::Tags::SpacetimeNormalVector
+<span class="lineNum">      43 </span>            : // IWYU pragma: no_forward_declare gr::Tags::InverseSpatialMetric
+<span class="lineNum">      44 </span>            : // IWYU pragma: no_forward_declare gr::Tags::SqrtDetSpatialMetric
+<span class="lineNum">      45 </span>            : 
+<span class="lineNum">      46 </span>            : namespace GeneralizedHarmonic {
+<span class="lineNum">      47 </span>            : namespace gauges {
+<span class="lineNum">      48 </span>            : /*!
+<span class="lineNum">      49 </span>            :  * \brief Damped harmonic gauge source function.
+<span class="lineNum">      50 </span>            :  *
+<span class="lineNum">      51 </span>            :  * \details Computes the gauge source function designed for binary black hole
+<span class="lineNum">      52 </span>            :  * evolutions. These have been taken from \cite Szilagyi2009qz and
+<span class="lineNum">      53 </span>            :  * \cite Deppe2018uye.
+<span class="lineNum">      54 </span>            :  *
+<span class="lineNum">      55 </span>            :  * The covariant form of the source function \f$H_a\f$ is written as:
+<span class="lineNum">      56 </span>            :  *
+<span class="lineNum">      57 </span>            :  * \f{align*}
+<span class="lineNum">      58 </span>            :  * H_a :=  [1 - R_{H_\mathrm{init}}(t)] H_a^\mathrm{init} +
+<span class="lineNum">      59 </span>            :  *  [\mu_{L1} \mathrm{log}(\sqrt{g}/N) + \mu_{L2} \mathrm{log}(1/N)] t_a
+<span class="lineNum">      60 </span>            :  *   - \mu_S g_{ai} N^i / N
+<span class="lineNum">      61 </span>            :  * \f}
+<span class="lineNum">      62 </span>            :  *
+<span class="lineNum">      63 </span>            :  * where \f$N, N^k\f$ are the lapse and shift respectively, \f$t_a\f$ is the
+<span class="lineNum">      64 </span>            :  * unit normal one-form to the spatial slice, and \f$g_{ab}\f$ is
+<span class="lineNum">      65 </span>            :  * the spatial metric (obtained by projecting the spacetime metric onto the
+<span class="lineNum">      66 </span>            :  * 3-slice, i.e. \f$g_{ab} = \psi_{ab} + t_a t_b\f$). The prefactors are:
+<span class="lineNum">      67 </span>            :  *
+<span class="lineNum">      68 </span>            :  * \f{align*}
+<span class="lineNum">      69 </span>            :  *  \mu_{L1} &amp;= A_{L1} R_{L1}(t) W(x^i) \mathrm{log}(\sqrt{g}/N)^{e_{L1}}, \\
+<span class="lineNum">      70 </span>            :  *  \mu_{L2} &amp;= A_{L2} R_{L2}(t) W(x^i) \mathrm{log}(1/N)^{e_{L2}}, \\
+<span class="lineNum">      71 </span>            :  *  \mu_{S} &amp;= A_{S} R_{S}(t) W(x^i) \mathrm{log}(\sqrt{g}/N)^{e_{S}},
+<span class="lineNum">      72 </span>            :  * \f}
+<span class="lineNum">      73 </span>            :  *
+<span class="lineNum">      74 </span>            :  * temporal roll-on functions \f$ R_X(t)\f$ (for \f$ X = \{L1, L2, S\} \f$) are:
+<span class="lineNum">      75 </span>            :  *
+<span class="lineNum">      76 </span>            :  * \f{align*}
+<span class="lineNum">      77 </span>            :  * \begin{array}{ll}
+<span class="lineNum">      78 </span>            :  *     R_X(t) &amp; = 0, &amp; t&lt; t_{0,X} \\
+<span class="lineNum">      79 </span>            :  *             &amp; = 1 - \exp[-((t - t_{0,X})/ \sigma_t^X)^4], &amp; t\geq t_{0,X} \\
+<span class="lineNum">      80 </span>            :  * \end{array}
+<span class="lineNum">      81 </span>            :  * \f}
+<span class="lineNum">      82 </span>            :  *
+<span class="lineNum">      83 </span>            :  * and the spatial weight function is:
+<span class="lineNum">      84 </span>            :  *
+<span class="lineNum">      85 </span>            :  * \f{align*}
+<span class="lineNum">      86 </span>            :  * W(x^i) = \exp[-(r/\sigma_r)^2].
+<span class="lineNum">      87 </span>            :  * \f}
+<span class="lineNum">      88 </span>            :  * This weight function can be written with multiple constant factors in the
+<span class="lineNum">      89 </span>            :  * exponent in literature \cite Deppe2018uye, but we absorb them all into
+<span class="lineNum">      90 </span>            :  * \f$ \sigma_r\f$ here. The coordinate \f$ r\f$ is the Euclidean radius
+<span class="lineNum">      91 </span>            :  * in Inertial coordinates.
+<span class="lineNum">      92 </span>            :  *
+<span class="lineNum">      93 </span>            :  * Note that for the last three terms in \f$H_a\f$ (with \f$ X = \{L1, L2, S\}
+<span class="lineNum">      94 </span>            :  * \f$):
+<span class="lineNum">      95 </span>            :  *   - Amplitude factors \f$ A_{X} \f$ are taken as input here as `amp_coef_X`
+<span class="lineNum">      96 </span>            :  *   - Roll-on factor \f$ R_{X} \f$ is specified completely by \f$\{ t_{0,X},
+<span class="lineNum">      97 </span>            :  *     \sigma_t^X\}\f$, which are taken as input here as `t_start_X` and
+<span class="lineNum">      98 </span>            :  *     `sigma_t_X`.
+<span class="lineNum">      99 </span>            :  *   - Exponents \f$ e_X\f$ are taken as input here as `exp_X`.
+<span class="lineNum">     100 </span>            :  *   - Spatial weight function \f$W\f$ is specified completely by
+<span class="lineNum">     101 </span>            :  *     \f$\sigma_r\f$, which is taken as input here as `sigma_r`.
+<span class="lineNum">     102 </span>            :  */
+<span class="lineNum">     103 </span>            : template &lt;size_t SpatialDim, typename Frame&gt;
+<span class="lineNum">     104 </span><span class="lineCov">          1 : void damped_harmonic_h(</span>
+<span class="lineNum">     105 </span>            :     gsl::not_null&lt;db::item_type&lt;Tags::GaugeH&lt;SpatialDim, Frame&gt;&gt;*&gt; gauge_h,
+<span class="lineNum">     106 </span>            :     const db::const_item_type&lt;Tags::InitialGaugeH&lt;SpatialDim, Frame&gt;&gt;&amp;
+<span class="lineNum">     107 </span>            :         gauge_h_init,
+<span class="lineNum">     108 </span>            :     const Scalar&lt;DataVector&gt;&amp; lapse,
+<span class="lineNum">     109 </span>            :     const tnsr::I&lt;DataVector, SpatialDim, Frame&gt;&amp; shift,
+<span class="lineNum">     110 </span>            :     const Scalar&lt;DataVector&gt;&amp; sqrt_det_spatial_metric,
+<span class="lineNum">     111 </span>            :     const tnsr::aa&lt;DataVector, SpatialDim, Frame&gt;&amp; spacetime_metric,
+<span class="lineNum">     112 </span>            :     double time, const tnsr::I&lt;DataVector, SpatialDim, Frame&gt;&amp; coords,
+<span class="lineNum">     113 </span>            :     // Scaling coeffs in front of each term
+<span class="lineNum">     114 </span>            :     double amp_coef_L1, double amp_coef_L2, double amp_coef_S,
+<span class="lineNum">     115 </span>            :     // exponents
+<span class="lineNum">     116 </span>            :     int exp_L1, int exp_L2, int exp_S,
+<span class="lineNum">     117 </span>            :     // roll on function parameters for lapse / shift terms
+<span class="lineNum">     118 </span>            :     double t_start_h_init, double sigma_t_h_init, double t_start_L1,
+<span class="lineNum">     119 </span>            :     double sigma_t_L1, double t_start_L2, double sigma_t_L2, double t_start_S,
+<span class="lineNum">     120 </span>            :     double sigma_t_S,
+<span class="lineNum">     121 </span>            :     // weight function
+<span class="lineNum">     122 </span>            :     double sigma_r) noexcept;
+<span class="lineNum">     123 </span>            : 
+<span class="lineNum">     124 </span>            : /*!
+<span class="lineNum">     125 </span>            :  * \brief Damped harmonic gauge source function.
+<span class="lineNum">     126 </span>            :  *
+<span class="lineNum">     127 </span>            :  * \details See damped_harmonic_h() for details.
+<span class="lineNum">     128 </span>            :  *
+<span class="lineNum">     129 </span>            :  * \note This compute tag:
+<span class="lineNum">     130 </span>            :  *   1. fixes amplitude factors to  \f$ A_{L1} = A_{L2} = A_{S} = 1 \f$,
+<span class="lineNum">     131 </span>            :  *   2. fixes exponents to \f$ e_{L1} = e_{L2} = e_{S} = 4 \f$,
+<span class="lineNum">     132 </span>            :  *   3. fixes roll-on start time to be equal for all terms in \f$H_a\f$, i.e.
+<span class="lineNum">     133 </span>            :  *     \f$ t_{0,L1} = t_{0,L2} = t_{0,S} \f$,
+<span class="lineNum">     134 </span>            :  *   4. fixes roll-on timescale to be equal for all terms in \f$H_a\f$, i.e.
+<span class="lineNum">     135 </span>            :  *     \f$ \sigma_t^{L1} = \sigma_t^{L2} = \sigma_t^{S} \f$.
+<span class="lineNum">     136 </span>            :  * \note
+<span class="lineNum">     137 </span>            :  * The first two set of parameters are set to reproduce \cite Deppe2018uye, and
+<span class="lineNum">     138 </span>            :  * not through input options. They would need to be changed to reproduce,
+<span class="lineNum">     139 </span>            :  * for instance, the gauge source of \cite Szilagyi2009qz. Values of the last
+<span class="lineNum">     140 </span>            :  * two set of parameters are set through input options.
+<span class="lineNum">     141 </span>            :  */
+<span class="lineNum">     142 </span>            : template &lt;size_t SpatialDim, typename Frame&gt;
+<span class="lineNum">     143 </span>            : struct DampedHarmonicHCompute : Tags::GaugeH&lt;SpatialDim, Frame&gt;,
+<span class="lineNum">     144 </span><span class="lineCov">          1 :                                 db::ComputeTag {</span>
+<span class="lineNum">     145 </span><span class="lineNoCov">          0 :   using base = Tags::GaugeH&lt;SpatialDim, Frame&gt;;</span>
+<span class="lineNum">     146 </span><span class="lineNoCov">          0 :   using argument_tags = tmpl::list&lt;</span>
+<span class="lineNum">     147 </span>            :       Tags::InitialGaugeH&lt;SpatialDim, Frame&gt;, ::gr::Tags::Lapse&lt;DataVector&gt;,
+<span class="lineNum">     148 </span>            :       ::gr::Tags::Shift&lt;SpatialDim, Frame, DataVector&gt;,
+<span class="lineNum">     149 </span>            :       ::gr::Tags::SqrtDetSpatialMetric&lt;DataVector&gt;,
+<span class="lineNum">     150 </span>            :       ::gr::Tags::SpacetimeMetric&lt;SpatialDim, Frame, DataVector&gt;, ::Tags::Time,
+<span class="lineNum">     151 </span>            :       Tags::GaugeHRollOnStartTime, Tags::GaugeHRollOnTimeWindow,
+<span class="lineNum">     152 </span>            :       domain::Tags::Coordinates&lt;SpatialDim, Frame&gt;,
+<span class="lineNum">     153 </span>            :       Tags::GaugeHSpatialWeightDecayWidth&lt;Frame&gt;&gt;;
+<span class="lineNum">     154 </span>            : 
+<span class="lineNum">     155 </span>            :   static constexpr db::const_item_type&lt;Tags::GaugeH&lt;SpatialDim, Frame&gt;&gt;
+<span class="lineNum">     156 </span><span class="lineNoCov">          0 :   function(const db::const_item_type&lt;Tags::InitialGaugeH&lt;SpatialDim, Frame&gt;&gt;&amp;</span>
+<span class="lineNum">     157 </span>            :                gauge_h_init,
+<span class="lineNum">     158 </span>            :            const Scalar&lt;DataVector&gt;&amp; lapse,
+<span class="lineNum">     159 </span>            :            const tnsr::I&lt;DataVector, SpatialDim, Frame&gt;&amp; shift,
+<span class="lineNum">     160 </span>            :            const Scalar&lt;DataVector&gt;&amp; sqrt_det_spatial_metric,
+<span class="lineNum">     161 </span>            :            const tnsr::aa&lt;DataVector, SpatialDim, Frame&gt;&amp; spacetime_metric,
+<span class="lineNum">     162 </span>            :            const double time, const double t_start, const double sigma_t,
+<span class="lineNum">     163 </span>            :            const tnsr::I&lt;DataVector, SpatialDim, Frame&gt;&amp; coords,
+<span class="lineNum">     164 </span>            :            const double sigma_r) noexcept {
+<span class="lineNum">     165 </span>            :     db::item_type&lt;Tags::GaugeH&lt;SpatialDim, Frame&gt;&gt; gauge_h{
+<span class="lineNum">     166 </span>            :         get_size(get(lapse))};
+<span class="lineNum">     167 </span>            :     damped_harmonic_h&lt;SpatialDim, Frame&gt;(make_not_null(&amp;gauge_h), gauge_h_init,
+<span class="lineNum">     168 </span>            :                                          lapse, shift, sqrt_det_spatial_metric,
+<span class="lineNum">     169 </span>            :                                          spacetime_metric, time, coords, 1., 1.,
+<span class="lineNum">     170 </span>            :                                          1.,       // amp_coef_{L1, L2, S}
+<span class="lineNum">     171 </span>            :                                          4, 4, 4,  // exp_{L1, L2, S}
+<span class="lineNum">     172 </span>            :                                          t_start, sigma_t,  // _h_init
+<span class="lineNum">     173 </span>            :                                          t_start, sigma_t,  // _L1
+<span class="lineNum">     174 </span>            :                                          t_start, sigma_t,  // _L2
+<span class="lineNum">     175 </span>            :                                          t_start, sigma_t,  // _S
+<span class="lineNum">     176 </span>            :                                          sigma_r);
+<span class="lineNum">     177 </span>            :     return gauge_h;
+<span class="lineNum">     178 </span>            :   }
+<span class="lineNum">     179 </span>            : };
+<span class="lineNum">     180 </span>            : 
+<span class="lineNum">     181 </span>            : /*!
+<span class="lineNum">     182 </span>            :  * \brief Spacetime derivatives of the damped harmonic gauge source function.
+<span class="lineNum">     183 </span>            :  *
+<span class="lineNum">     184 </span>            :  * \details Compute spacetime derivatives, i.e. \f$\partial_a H_b\f$, of the
+<span class="lineNum">     185 </span>            :  * damped harmonic source function H. Using notation from damped_harmonic_h(),
+<span class="lineNum">     186 </span>            :  * we rewrite the same as: \f{align*}
+<span class="lineNum">     187 </span>            :  * \partial_a H_b =&amp; \partial_a T_1 + \partial_a T_2 + \partial_a T_3, \\
+<span class="lineNum">     188 </span>            :  * H_a =&amp; T_1 + T_2 + T_3,
+<span class="lineNum">     189 </span>            :  * \f}
+<span class="lineNum">     190 </span>            :  *
+<span class="lineNum">     191 </span>            :  * where:
+<span class="lineNum">     192 </span>            :  *
+<span class="lineNum">     193 </span>            :  * \f{align*}
+<span class="lineNum">     194 </span>            :  * T_1 =&amp; [1 - R_{H_\mathrm{init}}(t)] H_a^\mathrm{init}, \\
+<span class="lineNum">     195 </span>            :  * T_2 =&amp; [\mu_{L1} \mathrm{log}(\sqrt{g}/N) + \mu_{L2} \mathrm{log}(1/N)] t_a,
+<span class="lineNum">     196 </span>            :  * \\ T_3 =&amp; - \mu_S g_{ai} N^i / N. \f}
+<span class="lineNum">     197 </span>            :  *
+<span class="lineNum">     198 </span>            :  * Derivation:
+<span class="lineNum">     199 </span>            :  *
+<span class="lineNum">     200 </span>            :  * \f$\blacksquare\f$ For \f$ T_1 \f$, the derivatives are:
+<span class="lineNum">     201 </span>            :  * \f{align*}
+<span class="lineNum">     202 </span>            :  * \partial_a T_1 = (1 - R_{H_\mathrm{init}}(t))
+<span class="lineNum">     203 </span>            :  * \partial_a H_b^\mathrm{init}
+<span class="lineNum">     204 </span>            :  *                - H_b^\mathrm{init} \partial_a R_{H_\mathrm{init}}.
+<span class="lineNum">     205 </span>            :  * \f}
+<span class="lineNum">     206 </span>            :  *
+<span class="lineNum">     207 </span>            :  * \f$\blacksquare\f$ Write \f$ T_2 \equiv (\mu_1 + \mu_2) t_b \f$. Then:
+<span class="lineNum">     208 </span>            :  * \f{align*}
+<span class="lineNum">     209 </span>            :  * \partial_a T_2 =&amp; (\partial_a \mu_1 + \partial_a \mu_2) t_b \\
+<span class="lineNum">     210 </span>            :  *               +&amp; (\mu_1 + \mu_2) \partial_a t_b,
+<span class="lineNum">     211 </span>            :  * \f}
+<span class="lineNum">     212 </span>            :  * where
+<span class="lineNum">     213 </span>            :  * \f{align*}
+<span class="lineNum">     214 </span>            :  * \partial_a t_b =&amp; \left(-\partial_a N, 0, 0, 0\right) \\
+<span class="lineNum">     215 </span>            :  *
+<span class="lineNum">     216 </span>            :  * \partial_a \mu_1
+<span class="lineNum">     217 </span>            :  *  =&amp; \partial_a [A_{L1} R_{L1}(t) W(x^i) \mathrm{log}(\sqrt{g}/N)^{e_{L1} +
+<span class="lineNum">     218 </span>            :  * 1}], \\
+<span class="lineNum">     219 </span>            :  *  =&amp; A_{L1} R_{L1}(t) W(x^i) \partial_a [\mathrm{log}(\sqrt{g}/N)^{e_{L1} +
+<span class="lineNum">     220 </span>            :  * 1}] \\
+<span class="lineNum">     221 </span>            :  *   +&amp; A_{L1} \mathrm{log}(\sqrt{g}/N)^{e_{L1} + 1} \partial_a [R_{L1}(t)
+<span class="lineNum">     222 </span>            :  * W(x^i)],\\
+<span class="lineNum">     223 </span>            :  *
+<span class="lineNum">     224 </span>            :  * \partial_a \mu_2
+<span class="lineNum">     225 </span>            :  *  =&amp; \partial_a [A_{L2} R_{L2}(t) W(x^i) \mathrm{log}(1/N)^{e_{L2} + 1}], \\
+<span class="lineNum">     226 </span>            :  *  =&amp; A_{L2} R_{L2}(t) W(x^i) \partial_a [\mathrm{log}(1/N)^{e_{L2} + 1}] \\
+<span class="lineNum">     227 </span>            :  *     +&amp; A_{L2} \mathrm{log}(1/N)^{e_{L2} + 1} \partial_a [R_{L2}(t) W(x^i)],
+<span class="lineNum">     228 </span>            :  * \f}
+<span class="lineNum">     229 </span>            :  * where \f$\partial_a [R W] = \left(\partial_0 R(t), \partial_i
+<span class="lineNum">     230 </span>            :  * W(x^j)\right)\f$.
+<span class="lineNum">     231 </span>            :  *
+<span class="lineNum">     232 </span>            :  * \f$\blacksquare\f$ Finally, the derivatives of \f$ T_3 \f$ are:
+<span class="lineNum">     233 </span>            :  * \f[
+<span class="lineNum">     234 </span>            :  * \partial_a T_3 = -\partial_a(\mu_S/N) g_{bi} N^i
+<span class="lineNum">     235 </span>            :  *                  -(\mu_S/N) \partial_a(g_{bi}) N^i
+<span class="lineNum">     236 </span>            :  *                  -(\mu_S/N) g_{bi}\partial_a N^i,
+<span class="lineNum">     237 </span>            :  * \f]
+<span class="lineNum">     238 </span>            :  * where
+<span class="lineNum">     239 </span>            :  * \f{align*}
+<span class="lineNum">     240 </span>            :  * \partial_a(\mu_S / N) =&amp; (1/N)\partial_a \mu_S
+<span class="lineNum">     241 </span>            :  *                       - \frac{\mu_S}{N^2}\partial_a N, \,\,\mathrm{and}\\
+<span class="lineNum">     242 </span>            :  * \partial_a \mu_S =&amp; \partial_a [A_S R_S(t) W(x^i)
+<span class="lineNum">     243 </span>            :  * \mathrm{log}(\sqrt{g}/N)^{e_S}], \\
+<span class="lineNum">     244 </span>            :  *                  =&amp; A_S R_S(t) W(x^i) \partial_a
+<span class="lineNum">     245 </span>            :  * [\mathrm{log}(\sqrt{g}/N)^{e_S}] \\
+<span class="lineNum">     246 </span>            :  *                  +&amp; A_S \mathrm{log}(\sqrt{g} / N)^{e_S} \partial_a [R_S(t)
+<span class="lineNum">     247 </span>            :  * W(x^i)]. \f}
+<span class="lineNum">     248 </span>            :  *
+<span class="lineNum">     249 </span>            :  * See the list at the end of the documentation for damped_harmonic_h() for
+<span class="lineNum">     250 </span>            :  * mappings between coefficients used above and inputs to this function.
+<span class="lineNum">     251 </span>            :  */
+<span class="lineNum">     252 </span>            : template &lt;size_t SpatialDim, typename Frame&gt;
+<span class="lineNum">     253 </span><span class="lineCov">          1 : void spacetime_deriv_damped_harmonic_h(</span>
+<span class="lineNum">     254 </span>            :     gsl::not_null&lt;db::item_type&lt;Tags::SpacetimeDerivGaugeH&lt;SpatialDim, Frame&gt;&gt;*&gt;
+<span class="lineNum">     255 </span>            :         d4_gauge_h,
+<span class="lineNum">     256 </span>            :     const db::const_item_type&lt;Tags::InitialGaugeH&lt;SpatialDim, Frame&gt;&gt;&amp;
+<span class="lineNum">     257 </span>            :         gauge_h_init,
+<span class="lineNum">     258 </span>            :     const db::const_item_type&lt;
+<span class="lineNum">     259 </span>            :         Tags::SpacetimeDerivInitialGaugeH&lt;SpatialDim, Frame&gt;&gt;&amp; dgauge_h_init,
+<span class="lineNum">     260 </span>            :     const Scalar&lt;DataVector&gt;&amp; lapse,
+<span class="lineNum">     261 </span>            :     const tnsr::I&lt;DataVector, SpatialDim, Frame&gt;&amp; shift,
+<span class="lineNum">     262 </span>            :     const tnsr::a&lt;DataVector, SpatialDim, Frame&gt;&amp;
+<span class="lineNum">     263 </span>            :         spacetime_unit_normal_one_form,
+<span class="lineNum">     264 </span>            :     const Scalar&lt;DataVector&gt;&amp; sqrt_det_spatial_metric,
+<span class="lineNum">     265 </span>            :     const tnsr::II&lt;DataVector, SpatialDim, Frame&gt;&amp; inverse_spatial_metric,
+<span class="lineNum">     266 </span>            :     const tnsr::aa&lt;DataVector, SpatialDim, Frame&gt;&amp; spacetime_metric,
+<span class="lineNum">     267 </span>            :     const tnsr::aa&lt;DataVector, SpatialDim, Frame&gt;&amp; pi,
+<span class="lineNum">     268 </span>            :     const tnsr::iaa&lt;DataVector, SpatialDim, Frame&gt;&amp; phi, double time,
+<span class="lineNum">     269 </span>            :     const tnsr::I&lt;DataVector, SpatialDim, Frame&gt;&amp; coords,
+<span class="lineNum">     270 </span>            :     // Scaling coeffs in front of each term
+<span class="lineNum">     271 </span>            :     double amp_coef_L1, double amp_coef_L2, double amp_coef_S,
+<span class="lineNum">     272 </span>            :     // exponents
+<span class="lineNum">     273 </span>            :     int exp_L1, int exp_L2, int exp_S,
+<span class="lineNum">     274 </span>            :     // roll on function parameters for lapse / shift terms
+<span class="lineNum">     275 </span>            :     double t_start_h_init, double sigma_t_h_init, double t_start_L1,
+<span class="lineNum">     276 </span>            :     double sigma_t_L1, double t_start_L2, double sigma_t_L2, double t_start_S,
+<span class="lineNum">     277 </span>            :     double sigma_t_S,
+<span class="lineNum">     278 </span>            :     // weight function
+<span class="lineNum">     279 </span>            :     double sigma_r) noexcept;
+<span class="lineNum">     280 </span>            : 
+<span class="lineNum">     281 </span>            : /*!
+<span class="lineNum">     282 </span>            :  * \brief Spacetime derivatives of the damped harmonic gauge source function.
+<span class="lineNum">     283 </span>            :  *
+<span class="lineNum">     284 </span>            :  * \details See spacetime_deriv_damped_harmonic_h() for details.
+<span class="lineNum">     285 </span>            :  *
+<span class="lineNum">     286 </span>            :  * \note As `DampedHarmonicHCompute`, this compute tag also:
+<span class="lineNum">     287 </span>            :  *   1. fixes amplitude factors to  \f$ A_{L1} = A_{L2} = A_{S} = 1 \f$,
+<span class="lineNum">     288 </span>            :  *   2. fixes exponents to \f$ e_{L1} = e_{L2} = e_{S} = 4 \f$,
+<span class="lineNum">     289 </span>            :  *   3. fixes roll-on start time to be equal for all terms in \f$H_a\f$, i.e.
+<span class="lineNum">     290 </span>            :  *     \f$ t_{0,L1} = t_{0,L2} = t_{0,S} \f$,
+<span class="lineNum">     291 </span>            :  *   4. fixes roll-on timescale to be equal for all terms in \f$H_a\f$, i.e.
+<span class="lineNum">     292 </span>            :  *     \f$ \sigma_t^{L1} = \sigma_t^{L2} = \sigma_t^{S} \f$.
+<span class="lineNum">     293 </span>            :  * \note
+<span class="lineNum">     294 </span>            :  * The first two set of parameters are set to reproduce \cite Deppe2018uye, and
+<span class="lineNum">     295 </span>            :  * not through input options. They would need to be changed to reproduce,
+<span class="lineNum">     296 </span>            :  * for instance, the gauge source of \cite Szilagyi2009qz. Values of the last
+<span class="lineNum">     297 </span>            :  * two set of parameters are set through input options.
+<span class="lineNum">     298 </span>            :  */
+<span class="lineNum">     299 </span>            : template &lt;size_t SpatialDim, typename Frame&gt;
+<span class="lineNum">     300 </span>            : struct SpacetimeDerivDampedHarmonicHCompute
+<span class="lineNum">     301 </span>            :     : Tags::SpacetimeDerivGaugeH&lt;SpatialDim, Frame&gt;,
+<span class="lineNum">     302 </span><span class="lineCov">          1 :       db::ComputeTag {</span>
+<span class="lineNum">     303 </span><span class="lineNoCov">          0 :   using base = Tags::SpacetimeDerivGaugeH&lt;SpatialDim, Frame&gt;;</span>
+<span class="lineNum">     304 </span><span class="lineNoCov">          0 :   using argument_tags = tmpl::list&lt;</span>
+<span class="lineNum">     305 </span>            :       Tags::InitialGaugeH&lt;SpatialDim, Frame&gt;,
+<span class="lineNum">     306 </span>            :       Tags::SpacetimeDerivInitialGaugeH&lt;SpatialDim, Frame&gt;,
+<span class="lineNum">     307 </span>            :       ::gr::Tags::Lapse&lt;DataVector&gt;,
+<span class="lineNum">     308 </span>            :       ::gr::Tags::Shift&lt;SpatialDim, Frame, DataVector&gt;,
+<span class="lineNum">     309 </span>            :       ::gr::Tags::SpacetimeNormalOneForm&lt;SpatialDim, Frame, DataVector&gt;,
+<span class="lineNum">     310 </span>            :       ::gr::Tags::SqrtDetSpatialMetric&lt;DataVector&gt;,
+<span class="lineNum">     311 </span>            :       ::gr::Tags::InverseSpatialMetric&lt;SpatialDim, Frame, DataVector&gt;,
+<span class="lineNum">     312 </span>            :       ::gr::Tags::SpacetimeMetric&lt;SpatialDim, Frame, DataVector&gt;,
+<span class="lineNum">     313 </span>            :       Tags::Pi&lt;SpatialDim, Frame&gt;, Tags::Phi&lt;SpatialDim, Frame&gt;, ::Tags::Time,
+<span class="lineNum">     314 </span>            :       Tags::GaugeHRollOnStartTime, Tags::GaugeHRollOnTimeWindow,
+<span class="lineNum">     315 </span>            :       domain::Tags::Coordinates&lt;SpatialDim, Frame&gt;,
+<span class="lineNum">     316 </span>            :       Tags::GaugeHSpatialWeightDecayWidth&lt;Frame&gt;&gt;;
+<span class="lineNum">     317 </span>            : 
+<span class="lineNum">     318 </span>            :   static constexpr db::item_type&lt;Tags::SpacetimeDerivGaugeH&lt;SpatialDim, Frame&gt;&gt;
+<span class="lineNum">     319 </span><span class="lineNoCov">          0 :   function(</span>
+<span class="lineNum">     320 </span>            :       const db::item_type&lt;Tags::InitialGaugeH&lt;SpatialDim, Frame&gt;&gt;&amp; gauge_h_init,
+<span class="lineNum">     321 </span>            :       const db::item_type&lt;Tags::SpacetimeDerivInitialGaugeH&lt;SpatialDim, Frame&gt;&gt;&amp;
+<span class="lineNum">     322 </span>            :           dgauge_h_init,
+<span class="lineNum">     323 </span>            :       const Scalar&lt;DataVector&gt;&amp; lapse,
+<span class="lineNum">     324 </span>            :       const tnsr::I&lt;DataVector, SpatialDim, Frame&gt;&amp; shift,
+<span class="lineNum">     325 </span>            :       const tnsr::a&lt;DataVector, SpatialDim, Frame&gt;&amp;
+<span class="lineNum">     326 </span>            :           spacetime_unit_normal_one_form,
+<span class="lineNum">     327 </span>            :       const Scalar&lt;DataVector&gt;&amp; sqrt_det_spatial_metric,
+<span class="lineNum">     328 </span>            :       const tnsr::II&lt;DataVector, SpatialDim, Frame&gt;&amp; inverse_spatial_metric,
+<span class="lineNum">     329 </span>            :       const tnsr::aa&lt;DataVector, SpatialDim, Frame&gt;&amp; spacetime_metric,
+<span class="lineNum">     330 </span>            :       const tnsr::aa&lt;DataVector, SpatialDim, Frame&gt;&amp; pi,
+<span class="lineNum">     331 </span>            :       const tnsr::iaa&lt;DataVector, SpatialDim, Frame&gt;&amp; phi, const double time,
+<span class="lineNum">     332 </span>            :       const double t_start, const double sigma_t,
+<span class="lineNum">     333 </span>            :       const tnsr::I&lt;DataVector, SpatialDim, Frame&gt;&amp; coords,
+<span class="lineNum">     334 </span>            :       const double sigma_r) noexcept {
+<span class="lineNum">     335 </span>            :     db::item_type&lt;Tags::SpacetimeDerivGaugeH&lt;SpatialDim, Frame&gt;&gt; d4_gauge_h{
+<span class="lineNum">     336 </span>            :         get_size(get(lapse))};
+<span class="lineNum">     337 </span>            :     spacetime_deriv_damped_harmonic_h(
+<span class="lineNum">     338 </span>            :         make_not_null(&amp;d4_gauge_h), gauge_h_init, dgauge_h_init, lapse, shift,
+<span class="lineNum">     339 </span>            :         spacetime_unit_normal_one_form, sqrt_det_spatial_metric,
+<span class="lineNum">     340 </span>            :         inverse_spatial_metric, spacetime_metric, pi, phi, time, coords, 1., 1.,
+<span class="lineNum">     341 </span>            :         1.,                // amp_coef_{L1, L2, S}
+<span class="lineNum">     342 </span>            :         4, 4, 4,           // exp_{L1, L2, S}
+<span class="lineNum">     343 </span>            :         t_start, sigma_t,  // _h_init
+<span class="lineNum">     344 </span>            :         t_start, sigma_t,  // _L1
+<span class="lineNum">     345 </span>            :         t_start, sigma_t,  // _L2
+<span class="lineNum">     346 </span>            :         t_start, sigma_t,  // _S
+<span class="lineNum">     347 </span>            :         sigma_r);
+<span class="lineNum">     348 </span>            :     return d4_gauge_h;
+<span class="lineNum">     349 </span>            :   }
+<span class="lineNum">     350 </span>            : };
+<span class="lineNum">     351 </span>            : }  // namespace gauges
+<span class="lineNum">     352 </span>            : }  // namespace GeneralizedHarmonic
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

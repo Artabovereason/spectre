@@ -1,0 +1,562 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - Evolution/Systems/Cce/ReadBoundaryDataH5.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../index.html">top level</a> - <a href="index.html">Evolution/Systems/Cce</a> - ReadBoundaryDataH5.cpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #include &quot;Evolution/Systems/Cce/ReadBoundaryDataH5.hpp&quot;
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;algorithm&gt;
+<span class="lineNum">       7 </span>            : #include &lt;string&gt;
+<span class="lineNum">       8 </span>            : 
+<span class="lineNum">       9 </span>            : #include &quot;DataStructures/DataBox/Prefixes.hpp&quot;
+<span class="lineNum">      10 </span>            : #include &quot;DataStructures/Matrix.hpp&quot;
+<span class="lineNum">      11 </span>            : #include &quot;ErrorHandling/Assert.hpp&quot;
+<span class="lineNum">      12 </span>            : #include &quot;IO/H5/Dat.hpp&quot;
+<span class="lineNum">      13 </span>            : #include &quot;IO/H5/File.hpp&quot;
+<span class="lineNum">      14 </span>            : #include &quot;Parallel/CharmPupable.hpp&quot;
+<span class="lineNum">      15 </span>            : #include &quot;Utilities/Numeric.hpp&quot;
+<span class="lineNum">      16 </span>            : 
+<span class="lineNum">      17 </span>            : namespace Cce {
+<span class="lineNum">      18 </span>            : 
+<span class="lineNum">      19 </span>            : namespace detail {
+<span class="lineNum">      20 </span>            : std::pair&lt;size_t, size_t&gt; create_span_for_time_value(
+<span class="lineNum">      21 </span>            :     const double time, const size_t pad, const size_t interpolator_length,
+<span class="lineNum">      22 </span>            :     const size_t lower_bound, const size_t upper_bound,
+<span class="lineNum">      23 </span>            :     const DataVector&amp; time_buffer) noexcept {
+<span class="lineNum">      24 </span>            :   ASSERT(
+<span class="lineNum">      25 </span>            :       lower_bound &lt; upper_bound,
+<span class="lineNum">      26 </span>            :       &quot;The supplied `lower_bound` is greater than `upper_bound`, which is not &quot;
+<span class="lineNum">      27 </span>            :       &quot;permitted&quot;);
+<span class="lineNum">      28 </span>            :   ASSERT(2 * interpolator_length + pad &lt; upper_bound,
+<span class="lineNum">      29 </span>            :          &quot;The combined `interpolator_length` and `pad` is too large for the &quot;
+<span class="lineNum">      30 </span>            :          &quot;supplied `upper_bound`&quot;);
+<span class="lineNum">      31 </span>            : 
+<span class="lineNum">      32 </span>            :   size_t range_start = lower_bound;
+<span class="lineNum">      33 </span>            :   size_t range_end = upper_bound;
+<span class="lineNum">      34 </span>            :   while (range_end - range_start &gt; 1) {
+<span class="lineNum">      35 </span>            :     if (time_buffer[(range_start + range_end) / 2] &lt; time) {
+<span class="lineNum">      36 </span>            :       range_start = (range_start + range_end) / 2;
+<span class="lineNum">      37 </span>            :     } else {
+<span class="lineNum">      38 </span>            :       range_end = (range_start + range_end) / 2;
+<span class="lineNum">      39 </span>            :     }
+<span class="lineNum">      40 </span>            :   }
+<span class="lineNum">      41 </span>            :   // always keep the difference between start and end the same, even when
+<span class="lineNum">      42 </span>            :   // the interpolations starts to get worse
+<span class="lineNum">      43 </span>            :   size_t span_start = lower_bound;
+<span class="lineNum">      44 </span>            :   size_t span_end =
+<span class="lineNum">      45 </span>            :       std::min(interpolator_length * 2 + pad + lower_bound, upper_bound);
+<span class="lineNum">      46 </span>            :   if (range_end + interpolator_length + pad &gt; upper_bound) {
+<span class="lineNum">      47 </span>            :     span_start =
+<span class="lineNum">      48 </span>            :         std::max(upper_bound - (interpolator_length * 2 + pad), lower_bound);
+<span class="lineNum">      49 </span>            :     span_end = upper_bound;
+<span class="lineNum">      50 </span>            :   } else if (range_start + 1 &gt; lower_bound + interpolator_length) {
+<span class="lineNum">      51 </span>            :     span_start = range_start - interpolator_length;
+<span class="lineNum">      52 </span>            :     span_end = range_end + interpolator_length + pad - 1;
+<span class="lineNum">      53 </span>            :   }
+<span class="lineNum">      54 </span>            : 
+<span class="lineNum">      55 </span>            :   return std::make_pair(span_start, span_end);
+<span class="lineNum">      56 </span>            : }
+<span class="lineNum">      57 </span>            : }  // namespace detail
+<span class="lineNum">      58 </span>            : 
+<span class="lineNum">      59 </span>            : SpecWorldtubeH5BufferUpdater::SpecWorldtubeH5BufferUpdater(
+<span class="lineNum">      60 </span>            :     const std::string&amp; cce_data_filename) noexcept
+<span class="lineNum">      61 </span>            :     : cce_data_file_{cce_data_filename}, filename_{cce_data_filename} {
+<span class="lineNum">      62 </span>            :   get&lt;Tags::detail::InputDataSet&lt;Tags::detail::SpatialMetric&gt;&gt;(dataset_names_) =
+<span class="lineNum">      63 </span>            :       &quot;/g&quot;;
+<span class="lineNum">      64 </span>            :   get&lt;Tags::detail::InputDataSet&lt;
+<span class="lineNum">      65 </span>            :       Tags::detail::Dr&lt;Tags::detail::SpatialMetric&gt;&gt;&gt;(dataset_names_) = &quot;/Drg&quot;;
+<span class="lineNum">      66 </span>            :   get&lt;Tags::detail::InputDataSet&lt;::Tags::dt&lt;Tags::detail::SpatialMetric&gt;&gt;&gt;(
+<span class="lineNum">      67 </span>            :       dataset_names_) = &quot;/Dtg&quot;;
+<span class="lineNum">      68 </span>            : 
+<span class="lineNum">      69 </span>            :   get&lt;Tags::detail::InputDataSet&lt;Tags::detail::Shift&gt;&gt;(dataset_names_) =
+<span class="lineNum">      70 </span>            :       &quot;/Shift&quot;;
+<span class="lineNum">      71 </span>            :   get&lt;Tags::detail::InputDataSet&lt;Tags::detail::Dr&lt;Tags::detail::Shift&gt;&gt;&gt;(
+<span class="lineNum">      72 </span>            :       dataset_names_) = &quot;/DrShift&quot;;
+<span class="lineNum">      73 </span>            :   get&lt;Tags::detail::InputDataSet&lt;::Tags::dt&lt;Tags::detail::Shift&gt;&gt;&gt;(
+<span class="lineNum">      74 </span>            :       dataset_names_) = &quot;/DtShift&quot;;
+<span class="lineNum">      75 </span>            : 
+<span class="lineNum">      76 </span>            :   get&lt;Tags::detail::InputDataSet&lt;Tags::detail::Lapse&gt;&gt;(dataset_names_) =
+<span class="lineNum">      77 </span>            :       &quot;/Lapse&quot;;
+<span class="lineNum">      78 </span>            :   get&lt;Tags::detail::InputDataSet&lt;Tags::detail::Dr&lt;Tags::detail::Lapse&gt;&gt;&gt;(
+<span class="lineNum">      79 </span>            :       dataset_names_) = &quot;/DrLapse&quot;;
+<span class="lineNum">      80 </span>            :   get&lt;Tags::detail::InputDataSet&lt;::Tags::dt&lt;Tags::detail::Lapse&gt;&gt;&gt;(
+<span class="lineNum">      81 </span>            :       dataset_names_) = &quot;/DtLapse&quot;;
+<span class="lineNum">      82 </span>            : 
+<span class="lineNum">      83 </span>            :   // 'VersionHist' is a feature written by SpEC to indicate the details of the
+<span class="lineNum">      84 </span>            :   // file format. This line determines whether or not the radial derivatives
+<span class="lineNum">      85 </span>            :   // require renormalization based on whether the SpEC version that produced it
+<span class="lineNum">      86 </span>            :   // was an old one that had a particular normalization bug
+<span class="lineNum">      87 </span>            :   radial_derivatives_need_renormalization_ =
+<span class="lineNum">      88 </span>            :       not cce_data_file_.exists&lt;h5::Version&gt;(&quot;/VersionHist&quot;);
+<span class="lineNum">      89 </span>            : 
+<span class="lineNum">      90 </span>            :   // We assume that the filename has the extraction radius encoded as an
+<span class="lineNum">      91 </span>            :   // integer between the last occurrence of 'R' and the last occurrence of
+<span class="lineNum">      92 </span>            :   // '.'. This is the format provided by SpEC.
+<span class="lineNum">      93 </span>            :   const size_t r_pos = cce_data_filename.find_last_of('R');
+<span class="lineNum">      94 </span>            :   const size_t dot_pos = cce_data_filename.find_last_of('.');
+<span class="lineNum">      95 </span>            :   const std::string text_radius =
+<span class="lineNum">      96 </span>            :       cce_data_filename.substr(r_pos + 1, dot_pos - r_pos - 1);
+<span class="lineNum">      97 </span>            :   try {
+<span class="lineNum">      98 </span>            :     extraction_radius_ = stod(text_radius);
+<span class="lineNum">      99 </span>            :   } catch (const std::invalid_argument&amp;) {
+<span class="lineNum">     100 </span>            :     ERROR(
+<span class="lineNum">     101 </span>            :         &quot;The CCE filename must encode the extraction radius as an integer &quot;
+<span class="lineNum">     102 </span>            :         &quot;between the first instance of 'R' and the first instance of '.' (SpEC &quot;
+<span class="lineNum">     103 </span>            :         &quot;CCE filename format). Provided filename : &quot;
+<span class="lineNum">     104 </span>            :         &lt;&lt; cce_data_filename);
+<span class="lineNum">     105 </span>            :   }
+<span class="lineNum">     106 </span>            :   const auto&amp; lapse_data = cce_data_file_.get&lt;h5::Dat&gt;(&quot;/Lapse&quot;);
+<span class="lineNum">     107 </span>            :   const auto data_table_dimensions = lapse_data.get_dimensions();
+<span class="lineNum">     108 </span>            :   const Matrix time_matrix = lapse_data.get_data_subset(
+<span class="lineNum">     109 </span>            :       std::vector&lt;size_t&gt;{0}, 0, data_table_dimensions[0]);
+<span class="lineNum">     110 </span>            :   time_buffer_ = DataVector{data_table_dimensions[0]};
+<span class="lineNum">     111 </span>            :   for (size_t i = 0; i &lt; data_table_dimensions[0]; ++i) {
+<span class="lineNum">     112 </span>            :     time_buffer_[i] = time_matrix(i, 0);
+<span class="lineNum">     113 </span>            :   }
+<span class="lineNum">     114 </span>            :   l_max_ = sqrt(data_table_dimensions[1] / 2) - 1;
+<span class="lineNum">     115 </span>            :   cce_data_file_.close_current_object();
+<span class="lineNum">     116 </span>            : }
+<span class="lineNum">     117 </span>            : 
+<span class="lineNum">     118 </span>            : double SpecWorldtubeH5BufferUpdater::update_buffers_for_time(
+<span class="lineNum">     119 </span>            :     const gsl::not_null&lt;Variables&lt;detail::cce_input_tags&gt;*&gt; buffers,
+<span class="lineNum">     120 </span>            :     const gsl::not_null&lt;size_t*&gt; time_span_start,
+<span class="lineNum">     121 </span>            :     const gsl::not_null&lt;size_t*&gt; time_span_end, const double time,
+<span class="lineNum">     122 </span>            :     const size_t computation_l_max, const size_t interpolator_length,
+<span class="lineNum">     123 </span>            :     const size_t buffer_depth) const noexcept {
+<span class="lineNum">     124 </span>            :   if (*time_span_end &gt;= time_buffer_.size()) {
+<span class="lineNum">     125 </span>            :     return std::numeric_limits&lt;double&gt;::quiet_NaN();
+<span class="lineNum">     126 </span>            :   }
+<span class="lineNum">     127 </span>            :   if (*time_span_end &gt; interpolator_length and
+<span class="lineNum">     128 </span>            :       time_buffer_[*time_span_end - interpolator_length] &gt; time) {
+<span class="lineNum">     129 </span>            :     // the next time an update will be required
+<span class="lineNum">     130 </span>            :     return time_buffer_[*time_span_end - interpolator_length + 1];
+<span class="lineNum">     131 </span>            :   }
+<span class="lineNum">     132 </span>            :   // find the time spans that are needed
+<span class="lineNum">     133 </span>            :   auto new_span_pair = detail::create_span_for_time_value(
+<span class="lineNum">     134 </span>            :       time, buffer_depth, interpolator_length, 0, time_buffer_.size(),
+<span class="lineNum">     135 </span>            :       time_buffer_);
+<span class="lineNum">     136 </span>            :   *time_span_start = new_span_pair.first;
+<span class="lineNum">     137 </span>            :   *time_span_end = new_span_pair.second;
+<span class="lineNum">     138 </span>            :   // load the desired time spans into the buffers
+<span class="lineNum">     139 </span>            :   // spatial metric
+<span class="lineNum">     140 </span>            :   for (size_t i = 0; i &lt; 3; ++i) {
+<span class="lineNum">     141 </span>            :     for (size_t j = i; j &lt; 3; ++j) {
+<span class="lineNum">     142 </span>            :       tmpl::for_each&lt;tmpl::list&lt;Tags::detail::SpatialMetric,
+<span class="lineNum">     143 </span>            :                                 Tags::detail::Dr&lt;Tags::detail::SpatialMetric&gt;,
+<span class="lineNum">     144 </span>            :                                 ::Tags::dt&lt;Tags::detail::SpatialMetric&gt;&gt;&gt;([
+<span class="lineNum">     145 </span>            :         this, &amp;i, &amp;j, &amp;buffers, &amp;time_span_start, &amp;time_span_end, &amp;
+<span class="lineNum">     146 </span>            :         computation_l_max
+<span class="lineNum">     147 </span>            :       ](auto tag_v) noexcept {
+<span class="lineNum">     148 </span>            :         using tag = typename decltype(tag_v)::type;
+<span class="lineNum">     149 </span>            :         this-&gt;update_buffer(
+<span class="lineNum">     150 </span>            :             make_not_null(&amp;get&lt;tag&gt;(*buffers).get(i, j)),
+<span class="lineNum">     151 </span>            :             cce_data_file_.get&lt;h5::Dat&gt;(detail::dataset_name_for_component(
+<span class="lineNum">     152 </span>            :                 get&lt;Tags::detail::InputDataSet&lt;tag&gt;&gt;(dataset_names_), i, j)),
+<span class="lineNum">     153 </span>            :             computation_l_max, *time_span_start, *time_span_end);
+<span class="lineNum">     154 </span>            :         cce_data_file_.close_current_object();
+<span class="lineNum">     155 </span>            :       });
+<span class="lineNum">     156 </span>            :     }
+<span class="lineNum">     157 </span>            :     // shift
+<span class="lineNum">     158 </span>            :     tmpl::for_each&lt;
+<span class="lineNum">     159 </span>            :         tmpl::list&lt;Tags::detail::Shift, Tags::detail::Dr&lt;Tags::detail::Shift&gt;,
+<span class="lineNum">     160 </span>            :                    ::Tags::dt&lt;Tags::detail::Shift&gt;&gt;&gt;([
+<span class="lineNum">     161 </span>            :       this, &amp;i, &amp;buffers, &amp;time_span_start, &amp;time_span_end, &amp;computation_l_max
+<span class="lineNum">     162 </span>            :     ](auto tag_v) noexcept {
+<span class="lineNum">     163 </span>            :       using tag = typename decltype(tag_v)::type;
+<span class="lineNum">     164 </span>            :       this-&gt;update_buffer(
+<span class="lineNum">     165 </span>            :           make_not_null(&amp;get&lt;tag&gt;(*buffers).get(i)),
+<span class="lineNum">     166 </span>            :           cce_data_file_.get&lt;h5::Dat&gt;(detail::dataset_name_for_component(
+<span class="lineNum">     167 </span>            :               get&lt;Tags::detail::InputDataSet&lt;tag&gt;&gt;(dataset_names_), i)),
+<span class="lineNum">     168 </span>            :           computation_l_max, *time_span_start, *time_span_end);
+<span class="lineNum">     169 </span>            :       cce_data_file_.close_current_object();
+<span class="lineNum">     170 </span>            :     });
+<span class="lineNum">     171 </span>            :   }
+<span class="lineNum">     172 </span>            :   // lapse
+<span class="lineNum">     173 </span>            :   tmpl::for_each&lt;
+<span class="lineNum">     174 </span>            :       tmpl::list&lt;Tags::detail::Lapse, Tags::detail::Dr&lt;Tags::detail::Lapse&gt;,
+<span class="lineNum">     175 </span>            :                  ::Tags::dt&lt;Tags::detail::Lapse&gt;&gt;&gt;([
+<span class="lineNum">     176 </span>            :     this, &amp;buffers, &amp;time_span_start, &amp;time_span_end, &amp;computation_l_max
+<span class="lineNum">     177 </span>            :   ](auto tag_v) noexcept {
+<span class="lineNum">     178 </span>            :     using tag = typename decltype(tag_v)::type;
+<span class="lineNum">     179 </span>            :     this-&gt;update_buffer(
+<span class="lineNum">     180 </span>            :         make_not_null(&amp;get(get&lt;tag&gt;(*buffers))),
+<span class="lineNum">     181 </span>            :         cce_data_file_.get&lt;h5::Dat&gt;(detail::dataset_name_for_component(
+<span class="lineNum">     182 </span>            :             get&lt;Tags::detail::InputDataSet&lt;tag&gt;&gt;(dataset_names_))),
+<span class="lineNum">     183 </span>            :         computation_l_max, *time_span_start, *time_span_end);
+<span class="lineNum">     184 </span>            :     cce_data_file_.close_current_object();
+<span class="lineNum">     185 </span>            :   });
+<span class="lineNum">     186 </span>            :   // the next time an update will be required
+<span class="lineNum">     187 </span>            :   return time_buffer_[std::min(*time_span_end - interpolator_length + 1,
+<span class="lineNum">     188 </span>            :                                time_buffer_.size() - 1)];
+<span class="lineNum">     189 </span>            : }
+<span class="lineNum">     190 </span>            : 
+<span class="lineNum">     191 </span>            : std::unique_ptr&lt;WorldtubeBufferUpdater&gt;
+<span class="lineNum">     192 </span>            : SpecWorldtubeH5BufferUpdater::get_clone() const noexcept {
+<span class="lineNum">     193 </span>            :   return std::make_unique&lt;SpecWorldtubeH5BufferUpdater&gt;(
+<span class="lineNum">     194 </span>            :       SpecWorldtubeH5BufferUpdater{filename_});
+<span class="lineNum">     195 </span>            : }
+<span class="lineNum">     196 </span>            : 
+<span class="lineNum">     197 </span>            : bool SpecWorldtubeH5BufferUpdater::time_is_outside_range(
+<span class="lineNum">     198 </span>            :     const double time) const noexcept {
+<span class="lineNum">     199 </span>            :   return time &lt; time_buffer_[0] or time &gt; time_buffer_[time_buffer_.size() - 1];
+<span class="lineNum">     200 </span>            : }
+<span class="lineNum">     201 </span>            : 
+<span class="lineNum">     202 </span>            : void SpecWorldtubeH5BufferUpdater::pup(PUP::er&amp; p) noexcept {
+<span class="lineNum">     203 </span>            :   p | time_buffer_;
+<span class="lineNum">     204 </span>            :   p | filename_;
+<span class="lineNum">     205 </span>            :   p | l_max_;
+<span class="lineNum">     206 </span>            :   p | extraction_radius_;
+<span class="lineNum">     207 </span>            :   p | dataset_names_;
+<span class="lineNum">     208 </span>            :   if (p.isUnpacking()) {
+<span class="lineNum">     209 </span>            :     cce_data_file_ = h5::H5File&lt;h5::AccessType::ReadOnly&gt;{filename_};
+<span class="lineNum">     210 </span>            :   }
+<span class="lineNum">     211 </span>            : }
+<span class="lineNum">     212 </span>            : 
+<span class="lineNum">     213 </span>            : void SpecWorldtubeH5BufferUpdater::update_buffer(
+<span class="lineNum">     214 </span>            :     const gsl::not_null&lt;ComplexModalVector*&gt; buffer_to_update,
+<span class="lineNum">     215 </span>            :     const h5::Dat&amp; read_data, const size_t computation_l_max,
+<span class="lineNum">     216 </span>            :     const size_t time_span_start, const size_t time_span_end) const noexcept {
+<span class="lineNum">     217 </span>            :   const size_t number_of_columns = read_data.get_dimensions()[1];
+<span class="lineNum">     218 </span>            :   if (UNLIKELY(buffer_to_update-&gt;size() != (time_span_end - time_span_start) *
+<span class="lineNum">     219 </span>            :                                                square(computation_l_max + 1))) {
+<span class="lineNum">     220 </span>            :     ERROR(&quot;Incorrect storage size for the data to be loaded in.&quot;);
+<span class="lineNum">     221 </span>            :   }
+<span class="lineNum">     222 </span>            :   auto cols = alg::iota(std::vector&lt;size_t&gt;(number_of_columns - 1), 1u);
+<span class="lineNum">     223 </span>            :   const Matrix data_matrix = read_data.get_data_subset(
+<span class="lineNum">     224 </span>            :       cols, time_span_start, time_span_end - time_span_start);
+<span class="lineNum">     225 </span>            : 
+<span class="lineNum">     226 </span>            :   *buffer_to_update = 0.0;
+<span class="lineNum">     227 </span>            :   for (size_t time_row = 0; time_row &lt; time_span_end - time_span_start;
+<span class="lineNum">     228 </span>            :        ++time_row) {
+<span class="lineNum">     229 </span>            :     for (int l = 0; l &lt;= static_cast&lt;int&gt;(std::min(computation_l_max, l_max_));
+<span class="lineNum">     230 </span>            :          ++l) {
+<span class="lineNum">     231 </span>            :       for (int m = -l; m &lt;= l; ++m) {
+<span class="lineNum">     232 </span>            :         (*buffer_to_update)[Spectral::Swsh::goldberg_mode_index(
+<span class="lineNum">     233 </span>            :                                 computation_l_max, static_cast&lt;size_t&gt;(l), m) *
+<span class="lineNum">     234 </span>            :                                 (time_span_end - time_span_start) +
+<span class="lineNum">     235 </span>            :                             time_row] =
+<span class="lineNum">     236 </span>            :             // -m because SpEC format is stored in decending m.
+<span class="lineNum">     237 </span>            :             std::complex&lt;double&gt;(
+<span class="lineNum">     238 </span>            :                 data_matrix(time_row,
+<span class="lineNum">     239 </span>            :                             2 * Spectral::Swsh::goldberg_mode_index(
+<span class="lineNum">     240 </span>            :                                     l_max_, static_cast&lt;size_t&gt;(l), -m)),
+<span class="lineNum">     241 </span>            :                 data_matrix(time_row,
+<span class="lineNum">     242 </span>            :                             2 * Spectral::Swsh::goldberg_mode_index(
+<span class="lineNum">     243 </span>            :                                     l_max_, static_cast&lt;size_t&gt;(l), -m) +
+<span class="lineNum">     244 </span>            :                                 1));
+<span class="lineNum">     245 </span>            :       }
+<span class="lineNum">     246 </span>            :     }
+<span class="lineNum">     247 </span>            :   }
+<span class="lineNum">     248 </span>            : }
+<span class="lineNum">     249 </span>            : 
+<span class="lineNum">     250 </span>            : ReducedSpecWorldtubeH5BufferUpdater::ReducedSpecWorldtubeH5BufferUpdater(
+<span class="lineNum">     251 </span>            :     const std::string&amp; cce_data_filename) noexcept
+<span class="lineNum">     252 </span>            :     : cce_data_file_{cce_data_filename}, filename_{cce_data_filename} {
+<span class="lineNum">     253 </span>            :   get&lt;Tags::detail::InputDataSet&lt;
+<span class="lineNum">     254 </span>            :       Spectral::Swsh::Tags::SwshTransform&lt;Tags::BondiBeta&gt;&gt;&gt;(dataset_names_) =
+<span class="lineNum">     255 </span>            :       &quot;Beta&quot;;
+<span class="lineNum">     256 </span>            :   get&lt;Tags::detail::InputDataSet&lt;
+<span class="lineNum">     257 </span>            :       Spectral::Swsh::Tags::SwshTransform&lt;Tags::BondiU&gt;&gt;&gt;(dataset_names_) = &quot;U&quot;;
+<span class="lineNum">     258 </span>            :   get&lt;Tags::detail::InputDataSet&lt;
+<span class="lineNum">     259 </span>            :       Spectral::Swsh::Tags::SwshTransform&lt;Tags::BondiQ&gt;&gt;&gt;(dataset_names_) = &quot;Q&quot;;
+<span class="lineNum">     260 </span>            :   get&lt;Tags::detail::InputDataSet&lt;
+<span class="lineNum">     261 </span>            :       Spectral::Swsh::Tags::SwshTransform&lt;Tags::BondiW&gt;&gt;&gt;(dataset_names_) = &quot;W&quot;;
+<span class="lineNum">     262 </span>            :   get&lt;Tags::detail::InputDataSet&lt;
+<span class="lineNum">     263 </span>            :       Spectral::Swsh::Tags::SwshTransform&lt;Tags::BondiJ&gt;&gt;&gt;(dataset_names_) = &quot;J&quot;;
+<span class="lineNum">     264 </span>            :   get&lt;Tags::detail::InputDataSet&lt;
+<span class="lineNum">     265 </span>            :       Spectral::Swsh::Tags::SwshTransform&lt;Tags::Dr&lt;Tags::BondiJ&gt;&gt;&gt;&gt;(
+<span class="lineNum">     266 </span>            :       dataset_names_) = &quot;DrJ&quot;;
+<span class="lineNum">     267 </span>            :   get&lt;Tags::detail::InputDataSet&lt;
+<span class="lineNum">     268 </span>            :       Spectral::Swsh::Tags::SwshTransform&lt;Tags::Du&lt;Tags::BondiJ&gt;&gt;&gt;&gt;(
+<span class="lineNum">     269 </span>            :       dataset_names_) = &quot;H&quot;;
+<span class="lineNum">     270 </span>            :   get&lt;Tags::detail::InputDataSet&lt;
+<span class="lineNum">     271 </span>            :       Spectral::Swsh::Tags::SwshTransform&lt;Tags::BondiR&gt;&gt;&gt;(dataset_names_) = &quot;R&quot;;
+<span class="lineNum">     272 </span>            :   get&lt;Tags::detail::InputDataSet&lt;
+<span class="lineNum">     273 </span>            :       Spectral::Swsh::Tags::SwshTransform&lt;Tags::Du&lt;Tags::BondiR&gt;&gt;&gt;&gt;(
+<span class="lineNum">     274 </span>            :       dataset_names_) = &quot;DuR&quot;;
+<span class="lineNum">     275 </span>            : 
+<span class="lineNum">     276 </span>            :   // We assume that the filename has the extraction radius encoded as an
+<span class="lineNum">     277 </span>            :   // integer between the last occurrence of 'R' and the last occurrence of
+<span class="lineNum">     278 </span>            :   // '.'. This is the format provided by SpEC.
+<span class="lineNum">     279 </span>            :   const size_t r_pos = cce_data_filename.find_last_of('R');
+<span class="lineNum">     280 </span>            :   const size_t dot_pos = cce_data_filename.find_last_of('.');
+<span class="lineNum">     281 </span>            :   const std::string text_radius =
+<span class="lineNum">     282 </span>            :       cce_data_filename.substr(r_pos + 1, dot_pos - r_pos - 1);
+<span class="lineNum">     283 </span>            :   try {
+<span class="lineNum">     284 </span>            :     extraction_radius_ = stod(text_radius);
+<span class="lineNum">     285 </span>            :   } catch (const std::invalid_argument&amp;) {
+<span class="lineNum">     286 </span>            :     ERROR(
+<span class="lineNum">     287 </span>            :         &quot;The CCE filename must encode the extraction radius as an integer &quot;
+<span class="lineNum">     288 </span>            :         &quot;between the first instance of 'R' and the first instance of '.' (SpEC &quot;
+<span class="lineNum">     289 </span>            :         &quot;CCE filename format). Provided filename : &quot;
+<span class="lineNum">     290 </span>            :         &lt;&lt; cce_data_filename);
+<span class="lineNum">     291 </span>            :   }
+<span class="lineNum">     292 </span>            : 
+<span class="lineNum">     293 </span>            :   const auto&amp; u_data = cce_data_file_.get&lt;h5::Dat&gt;(&quot;/U&quot;);
+<span class="lineNum">     294 </span>            :   const auto data_table_dimensions = u_data.get_dimensions();
+<span class="lineNum">     295 </span>            :   const Matrix time_matrix = u_data.get_data_subset(std::vector&lt;size_t&gt;{0}, 0,
+<span class="lineNum">     296 </span>            :                                                     data_table_dimensions[0]);
+<span class="lineNum">     297 </span>            :   time_buffer_ = DataVector{data_table_dimensions[0]};
+<span class="lineNum">     298 </span>            :   for (size_t i = 0; i &lt; data_table_dimensions[0]; ++i) {
+<span class="lineNum">     299 </span>            :     time_buffer_[i] = time_matrix(i, 0);
+<span class="lineNum">     300 </span>            :   }
+<span class="lineNum">     301 </span>            :   l_max_ = sqrt(data_table_dimensions[1] / 2) - 1;
+<span class="lineNum">     302 </span>            :   cce_data_file_.close_current_object();
+<span class="lineNum">     303 </span>            : }
+<span class="lineNum">     304 </span>            : 
+<span class="lineNum">     305 </span>            : double ReducedSpecWorldtubeH5BufferUpdater::update_buffers_for_time(
+<span class="lineNum">     306 </span>            :     const gsl::not_null&lt;Variables&lt;detail::reduced_cce_input_tags&gt;*&gt; buffers,
+<span class="lineNum">     307 </span>            :     const gsl::not_null&lt;size_t*&gt; time_span_start,
+<span class="lineNum">     308 </span>            :     const gsl::not_null&lt;size_t*&gt; time_span_end, const double time,
+<span class="lineNum">     309 </span>            :     const size_t computation_l_max, const size_t interpolator_length,
+<span class="lineNum">     310 </span>            :     const size_t buffer_depth) const noexcept {
+<span class="lineNum">     311 </span>            :   if (*time_span_end &gt;= time_buffer_.size()) {
+<span class="lineNum">     312 </span>            :     return std::numeric_limits&lt;double&gt;::quiet_NaN();
+<span class="lineNum">     313 </span>            :   }
+<span class="lineNum">     314 </span>            :   if (*time_span_end &gt; interpolator_length and
+<span class="lineNum">     315 </span>            :       time_buffer_[*time_span_end - interpolator_length] &gt; time) {
+<span class="lineNum">     316 </span>            :     // the next time an update will be required
+<span class="lineNum">     317 </span>            :     return time_buffer_[*time_span_end - interpolator_length + 1];
+<span class="lineNum">     318 </span>            :   }
+<span class="lineNum">     319 </span>            :   // find the time spans that are needed
+<span class="lineNum">     320 </span>            :   auto new_span_pair = detail::create_span_for_time_value(
+<span class="lineNum">     321 </span>            :       time, buffer_depth, interpolator_length, 0, time_buffer_.size(),
+<span class="lineNum">     322 </span>            :       time_buffer_);
+<span class="lineNum">     323 </span>            :   *time_span_start = new_span_pair.first;
+<span class="lineNum">     324 </span>            :   *time_span_end = new_span_pair.second;
+<span class="lineNum">     325 </span>            :   // load the desired time spans into the buffers
+<span class="lineNum">     326 </span>            :   tmpl::for_each&lt;detail::reduced_cce_input_tags&gt;([
+<span class="lineNum">     327 </span>            :     this, &amp;buffers, &amp;time_span_start, &amp;time_span_end, &amp;computation_l_max
+<span class="lineNum">     328 </span>            :   ](auto tag_v) noexcept {
+<span class="lineNum">     329 </span>            :     using tag = typename decltype(tag_v)::type;
+<span class="lineNum">     330 </span>            :     this-&gt;update_buffer(
+<span class="lineNum">     331 </span>            :         make_not_null(&amp;get(get&lt;tag&gt;(*buffers)).data()),
+<span class="lineNum">     332 </span>            :         cce_data_file_.get&lt;h5::Dat&gt;(
+<span class="lineNum">     333 </span>            :             &quot;/&quot; + get&lt;Tags::detail::InputDataSet&lt;tag&gt;&gt;(dataset_names_)),
+<span class="lineNum">     334 </span>            :         computation_l_max, *time_span_start, *time_span_end,
+<span class="lineNum">     335 </span>            :         tag::type::type::spin == 0);
+<span class="lineNum">     336 </span>            :     cce_data_file_.close_current_object();
+<span class="lineNum">     337 </span>            :   });
+<span class="lineNum">     338 </span>            :   // the next time an update will be required
+<span class="lineNum">     339 </span>            :   return time_buffer_[std::min(*time_span_end - interpolator_length + 1,
+<span class="lineNum">     340 </span>            :                                time_buffer_.size() - 1)];
+<span class="lineNum">     341 </span>            : }
+<span class="lineNum">     342 </span>            : 
+<span class="lineNum">     343 </span>            : void ReducedSpecWorldtubeH5BufferUpdater::update_buffer(
+<span class="lineNum">     344 </span>            :     const gsl::not_null&lt;ComplexModalVector*&gt; buffer_to_update,
+<span class="lineNum">     345 </span>            :     const h5::Dat&amp; read_data, const size_t computation_l_max,
+<span class="lineNum">     346 </span>            :     const size_t time_span_start, const size_t time_span_end,
+<span class="lineNum">     347 </span>            :     const bool is_real) const noexcept {
+<span class="lineNum">     348 </span>            :   size_t number_of_columns = read_data.get_dimensions()[1];
+<span class="lineNum">     349 </span>            :   if (UNLIKELY(buffer_to_update-&gt;size() !=
+<span class="lineNum">     350 </span>            :                square(computation_l_max + 1) *
+<span class="lineNum">     351 </span>            :                    (time_span_end - time_span_start))) {
+<span class="lineNum">     352 </span>            :     ERROR(&quot;Incorrect storage size for the data to be loaded in.&quot;);
+<span class="lineNum">     353 </span>            :   }
+<span class="lineNum">     354 </span>            :   std::vector&lt;size_t&gt; cols(number_of_columns - 1);
+<span class="lineNum">     355 </span>            :   std::iota(cols.begin(), cols.end(), 1);
+<span class="lineNum">     356 </span>            :   Matrix data_matrix = read_data.get_data_subset(
+<span class="lineNum">     357 </span>            :       cols, time_span_start, time_span_end - time_span_start);
+<span class="lineNum">     358 </span>            :   *buffer_to_update = 0.0;
+<span class="lineNum">     359 </span>            :   for (size_t time_row = 0; time_row &lt; time_span_end - time_span_start;
+<span class="lineNum">     360 </span>            :        ++time_row) {
+<span class="lineNum">     361 </span>            :     for (int l = 0; l &lt;= static_cast&lt;int&gt;(std::min(computation_l_max, l_max_));
+<span class="lineNum">     362 </span>            :          ++l) {
+<span class="lineNum">     363 </span>            :       for (int m = -l; m &lt;= l; ++m) {
+<span class="lineNum">     364 </span>            :         if (is_real) {
+<span class="lineNum">     365 </span>            :           if (m == 0) {
+<span class="lineNum">     366 </span>            :             (*buffer_to_update)[Spectral::Swsh::goldberg_mode_index(
+<span class="lineNum">     367 </span>            :                                     computation_l_max, static_cast&lt;size_t&gt;(l),
+<span class="lineNum">     368 </span>            :                                     m) *
+<span class="lineNum">     369 </span>            :                                     (time_span_end - time_span_start) +
+<span class="lineNum">     370 </span>            :                                 time_row] =
+<span class="lineNum">     371 </span>            :                 std::complex&lt;double&gt;(
+<span class="lineNum">     372 </span>            :                     data_matrix(time_row, static_cast&lt;size_t&gt;(square(l))), 0.0);
+<span class="lineNum">     373 </span>            :           } else if (m &gt; 0) {
+<span class="lineNum">     374 </span>            :             (*buffer_to_update)[Spectral::Swsh::goldberg_mode_index(
+<span class="lineNum">     375 </span>            :                                     computation_l_max, static_cast&lt;size_t&gt;(l),
+<span class="lineNum">     376 </span>            :                                     m) *
+<span class="lineNum">     377 </span>            :                                     (time_span_end - time_span_start) +
+<span class="lineNum">     378 </span>            :                                 time_row] =
+<span class="lineNum">     379 </span>            :                 std::complex&lt;double&gt;(
+<span class="lineNum">     380 </span>            :                     data_matrix(time_row,
+<span class="lineNum">     381 </span>            :                                 static_cast&lt;size_t&gt;(square(l) + 2 * m - 1)),
+<span class="lineNum">     382 </span>            :                     data_matrix(
+<span class="lineNum">     383 </span>            :                         time_row,
+<span class="lineNum">     384 </span>            :                         static_cast&lt;size_t&gt;(square(l) + 2 * m)));  // NOLINT
+<span class="lineNum">     385 </span>            :           } else {
+<span class="lineNum">     386 </span>            :             (*buffer_to_update)[Spectral::Swsh::goldberg_mode_index(
+<span class="lineNum">     387 </span>            :                                     computation_l_max, static_cast&lt;size_t&gt;(l),
+<span class="lineNum">     388 </span>            :                                     m) *
+<span class="lineNum">     389 </span>            :                                     (time_span_end - time_span_start) +
+<span class="lineNum">     390 </span>            :                                 time_row] =
+<span class="lineNum">     391 </span>            :                 (-m % 2 == 0 ? 1.0 : -1.0) *
+<span class="lineNum">     392 </span>            :                 std::complex&lt;double&gt;(
+<span class="lineNum">     393 </span>            :                     data_matrix(time_row,
+<span class="lineNum">     394 </span>            :                                 static_cast&lt;size_t&gt;(square(l) + 2 * -m - 1)),
+<span class="lineNum">     395 </span>            :                     -data_matrix(
+<span class="lineNum">     396 </span>            :                         time_row,
+<span class="lineNum">     397 </span>            :                         static_cast&lt;size_t&gt;(square(l) + 2 * -m)));  // NOLINT
+<span class="lineNum">     398 </span>            :           }
+<span class="lineNum">     399 </span>            :         } else {
+<span class="lineNum">     400 </span>            :           (*buffer_to_update)[Spectral::Swsh::goldberg_mode_index(
+<span class="lineNum">     401 </span>            :                                   computation_l_max, static_cast&lt;size_t&gt;(l),
+<span class="lineNum">     402 </span>            :                                   m) *
+<span class="lineNum">     403 </span>            :                                   (time_span_end - time_span_start) +
+<span class="lineNum">     404 </span>            :                               time_row] =
+<span class="lineNum">     405 </span>            :               std::complex&lt;double&gt;(
+<span class="lineNum">     406 </span>            :                   data_matrix(time_row,
+<span class="lineNum">     407 </span>            :                               2 * Spectral::Swsh::goldberg_mode_index(
+<span class="lineNum">     408 </span>            :                                       l_max_, static_cast&lt;size_t&gt;(l), m)),
+<span class="lineNum">     409 </span>            :                   data_matrix(time_row,
+<span class="lineNum">     410 </span>            :                               2 * Spectral::Swsh::goldberg_mode_index(
+<span class="lineNum">     411 </span>            :                                       l_max_, static_cast&lt;size_t&gt;(l), m) +
+<span class="lineNum">     412 </span>            :                                   1));
+<span class="lineNum">     413 </span>            :         }
+<span class="lineNum">     414 </span>            :       }
+<span class="lineNum">     415 </span>            :     }
+<span class="lineNum">     416 </span>            :   }
+<span class="lineNum">     417 </span>            : }
+<span class="lineNum">     418 </span>            : 
+<span class="lineNum">     419 </span>            : void ReducedSpecWorldtubeH5BufferUpdater::pup(PUP::er&amp; p) noexcept {
+<span class="lineNum">     420 </span>            :   p | time_buffer_;
+<span class="lineNum">     421 </span>            :   p | filename_;
+<span class="lineNum">     422 </span>            :   p | l_max_;
+<span class="lineNum">     423 </span>            :   p | extraction_radius_;
+<span class="lineNum">     424 </span>            :   p | dataset_names_;
+<span class="lineNum">     425 </span>            :   if (p.isUnpacking()) {
+<span class="lineNum">     426 </span>            :     cce_data_file_ = h5::H5File&lt;h5::AccessType::ReadOnly&gt;{filename_};
+<span class="lineNum">     427 </span>            :   }
+<span class="lineNum">     428 </span>            : }
+<span class="lineNum">     429 </span>            : 
+<span class="lineNum">     430 </span>            : ReducedWorldtubeDataManager::ReducedWorldtubeDataManager(
+<span class="lineNum">     431 </span>            :     std::unique_ptr&lt;ReducedWorldtubeBufferUpdater&gt; buffer_updater,
+<span class="lineNum">     432 </span>            :     const size_t l_max, const size_t buffer_depth,
+<span class="lineNum">     433 </span>            :     std::unique_ptr&lt;intrp::SpanInterpolator&gt; interpolator) noexcept
+<span class="lineNum">     434 </span>            :     : buffer_updater_{std::move(buffer_updater)},
+<span class="lineNum">     435 </span>            :       l_max_{l_max},
+<span class="lineNum">     436 </span>            :       interpolated_coefficients_{
+<span class="lineNum">     437 </span>            :           Spectral::Swsh::size_of_libsharp_coefficient_vector(l_max)},
+<span class="lineNum">     438 </span>            :       buffer_depth_{buffer_depth},
+<span class="lineNum">     439 </span>            :       interpolator_{std::move(interpolator)} {
+<span class="lineNum">     440 </span>            :   if (UNLIKELY(buffer_updater_-&gt;get_time_buffer().size() &lt;
+<span class="lineNum">     441 </span>            :                2 * interpolator_-&gt;required_number_of_points_before_and_after() +
+<span class="lineNum">     442 </span>            :                    buffer_depth)) {
+<span class="lineNum">     443 </span>            :     ERROR(
+<span class="lineNum">     444 </span>            :         &quot;The specified buffer updater doesn't have enough time points to &quot;
+<span class="lineNum">     445 </span>            :         &quot;supply the requested interpolation buffer. This almost certainly &quot;
+<span class="lineNum">     446 </span>            :         &quot;indicates that the corresponding file hasn't been created properly, &quot;
+<span class="lineNum">     447 </span>            :         &quot;but might indicate that the `buffer_depth` template parameter is &quot;
+<span class="lineNum">     448 </span>            :         &quot;too large or the specified SpanInterpolator requests too many &quot;
+<span class="lineNum">     449 </span>            :         &quot;points&quot;);
+<span class="lineNum">     450 </span>            :   }
+<span class="lineNum">     451 </span>            :   coefficients_buffers_ = Variables&lt;detail::reduced_cce_input_tags&gt;{
+<span class="lineNum">     452 </span>            :       square(l_max + 1) *
+<span class="lineNum">     453 </span>            :       (buffer_depth +
+<span class="lineNum">     454 </span>            :        2 * interpolator_-&gt;required_number_of_points_before_and_after())};
+<span class="lineNum">     455 </span>            : }
+<span class="lineNum">     456 </span>            : 
+<span class="lineNum">     457 </span>            : void ReducedWorldtubeDataManager::pup(PUP::er&amp; p) noexcept {
+<span class="lineNum">     458 </span>            :   p | buffer_updater_;
+<span class="lineNum">     459 </span>            :   p | time_span_start_;
+<span class="lineNum">     460 </span>            :   p | time_span_end_;
+<span class="lineNum">     461 </span>            :   p | l_max_;
+<span class="lineNum">     462 </span>            :   p | buffer_depth_;
+<span class="lineNum">     463 </span>            :   p | interpolator_;
+<span class="lineNum">     464 </span>            :   if (p.isUnpacking()) {
+<span class="lineNum">     465 </span>            :     time_span_start_ = 0;
+<span class="lineNum">     466 </span>            :     time_span_end_ = 0;
+<span class="lineNum">     467 </span>            :     const size_t size_of_buffer =
+<span class="lineNum">     468 </span>            :         square(l_max_ + 1) *
+<span class="lineNum">     469 </span>            :         (buffer_depth_ +
+<span class="lineNum">     470 </span>            :          2 * interpolator_-&gt;required_number_of_points_before_and_after());
+<span class="lineNum">     471 </span>            :     coefficients_buffers_ =
+<span class="lineNum">     472 </span>            :         Variables&lt;detail::reduced_cce_input_tags&gt;{size_of_buffer};
+<span class="lineNum">     473 </span>            :     interpolated_coefficients_ = Variables&lt;detail::reduced_cce_input_tags&gt;{
+<span class="lineNum">     474 </span>            :         Spectral::Swsh::size_of_libsharp_coefficient_vector(l_max_)};
+<span class="lineNum">     475 </span>            :   }
+<span class="lineNum">     476 </span>            : }
+<span class="lineNum">     477 </span>            : 
+<span class="lineNum">     478 </span>            : /// \cond
+<span class="lineNum">     479 </span>            : PUP::able::PUP_ID Cce::SpecWorldtubeH5BufferUpdater::my_PUP_ID = 0;
+<span class="lineNum">     480 </span>            : PUP::able::PUP_ID Cce::ReducedSpecWorldtubeH5BufferUpdater::my_PUP_ID = 0;
+<span class="lineNum">     481 </span>            : /// \endcond
+<span class="lineNum">     482 </span>            : }  // namespace Cce
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

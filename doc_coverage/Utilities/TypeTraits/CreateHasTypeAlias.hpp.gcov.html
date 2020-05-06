@@ -1,0 +1,123 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - Utilities/TypeTraits/CreateHasTypeAlias.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">Utilities/TypeTraits</a> - CreateHasTypeAlias.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">2</td>
+            <td class="headerCovTableEntry">3</td>
+            <td class="headerCovTableEntryLo">66.7 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #pragma once
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;type_traits&gt;
+<span class="lineNum">       7 </span>            : 
+<span class="lineNum">       8 </span>            : #include &quot;Utilities/NoSuchType.hpp&quot;
+<span class="lineNum">       9 </span>            : 
+<span class="lineNum">      10 </span>            : // @{
+<span class="lineNum">      11 </span>            : /*!
+<span class="lineNum">      12 </span>            :  * \ingroup TypeTraitsGroup
+<span class="lineNum">      13 </span>            :  * \brief Generate a type trait to check if a class has a type alias with a
+<span class="lineNum">      14 </span>            :  * particular name, optionally also checking its type.
+<span class="lineNum">      15 </span>            :  *
+<span class="lineNum">      16 </span>            :  * To generate the corresponding `_v` metafunction, call
+<span class="lineNum">      17 </span>            :  * `CREATE_HAS_TYPE_ALIAS` first and then `CREATE_HAS_TYPE_ALIAS_V`.
+<span class="lineNum">      18 </span>            :  *
+<span class="lineNum">      19 </span>            :  * \example
+<span class="lineNum">      20 </span>            :  * \snippet Test_CreateHasTypeAlias.cpp CREATE_HAS_TYPE_ALIAS
+<span class="lineNum">      21 </span>            :  *
+<span class="lineNum">      22 </span>            :  * \see `CREATE_IS_CALLABLE`
+<span class="lineNum">      23 </span>            :  */
+<span class="lineNum">      24 </span>            : // Use `NoSuchType*****` to represent any `AliasType`, i.e. not checking the
+<span class="lineNum">      25 </span>            : // alias type at all. If someone has that many pointers to a thing that isn't
+<span class="lineNum">      26 </span>            : // useful, it's their fault...
+<span class="lineNum">      27 </span><span class="lineCov">          1 : #define CREATE_HAS_TYPE_ALIAS(ALIAS_NAME)                                 \</span>
+<span class="lineNum">      28 </span>            :   template &lt;typename CheckingType, typename AliasType = NoSuchType*****,  \
+<span class="lineNum">      29 </span>            :             typename = std::void_t&lt;&gt;&gt;                                     \
+<span class="lineNum">      30 </span>            :   struct has_##ALIAS_NAME : std::false_type {};                           \
+<span class="lineNum">      31 </span>            :                                                                           \
+<span class="lineNum">      32 </span>            :   template &lt;typename CheckingType, typename AliasType&gt;                    \
+<span class="lineNum">      33 </span>            :   struct has_##ALIAS_NAME&lt;CheckingType, AliasType,                        \
+<span class="lineNum">      34 </span>            :                           std::void_t&lt;typename CheckingType::ALIAS_NAME&gt;&gt; \
+<span class="lineNum">      35 </span>            :       : std::bool_constant&lt;                                               \
+<span class="lineNum">      36 </span>            :             std::is_same_v&lt;AliasType, NoSuchType*****&gt; or                 \
+<span class="lineNum">      37 </span>            :             std::is_same_v&lt;typename CheckingType::ALIAS_NAME, AliasType&gt;&gt; {};
+<span class="lineNum">      38 </span>            : // Separate macros to avoid compiler warnings about unused variables
+<span class="lineNum">      39 </span><span class="lineCov">          1 : #define CREATE_HAS_TYPE_ALIAS_V(ALIAS_NAME)                              \</span>
+<span class="lineNum">      40 </span>            :   template &lt;typename CheckingType, typename AliasType = NoSuchType*****&gt; \
+<span class="lineNum">      41 </span>            :   static constexpr const bool has_##ALIAS_NAME##_v =                     \
+<span class="lineNum">      42 </span>            :       has_##ALIAS_NAME&lt;CheckingType, AliasType&gt;::value;
+<span class="lineNum">      43 </span>            : // @}
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

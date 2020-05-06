@@ -1,0 +1,714 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - NumericalAlgorithms/Spectral/SwshInterpolation.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">NumericalAlgorithms/Spectral</a> - SwshInterpolation.cpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #include &quot;NumericalAlgorithms/Spectral/SwshInterpolation.hpp&quot;
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;array&gt;
+<span class="lineNum">       7 </span>            : #include &lt;boost/math/special_functions/binomial.hpp&gt;
+<span class="lineNum">       8 </span>            : #include &lt;cmath&gt;
+<span class="lineNum">       9 </span>            : #include &lt;complex&gt;
+<span class="lineNum">      10 </span>            : #include &lt;cstddef&gt;
+<span class="lineNum">      11 </span>            : 
+<span class="lineNum">      12 </span>            : #include &quot;DataStructures/ComplexDataVector.hpp&quot;
+<span class="lineNum">      13 </span>            : #include &quot;DataStructures/ComplexModalVector.hpp&quot;
+<span class="lineNum">      14 </span>            : #include &quot;DataStructures/DataVector.hpp&quot;
+<span class="lineNum">      15 </span>            : #include &quot;DataStructures/SpinWeighted.hpp&quot;
+<span class="lineNum">      16 </span>            : #include &quot;NumericalAlgorithms/Spectral/SwshCoefficients.hpp&quot;
+<span class="lineNum">      17 </span>            : #include &quot;NumericalAlgorithms/Spectral/SwshCollocation.hpp&quot;
+<span class="lineNum">      18 </span>            : #include &quot;NumericalAlgorithms/Spectral/SwshTransform.hpp&quot;
+<span class="lineNum">      19 </span>            : #include &quot;Utilities/GenerateInstantiations.hpp&quot;
+<span class="lineNum">      20 </span>            : #include &quot;Utilities/Gsl.hpp&quot;
+<span class="lineNum">      21 </span>            : #include &quot;Utilities/StaticCache.hpp&quot;
+<span class="lineNum">      22 </span>            : #include &quot;Utilities/TMPL.hpp&quot;
+<span class="lineNum">      23 </span>            : 
+<span class="lineNum">      24 </span>            : /// \cond
+<span class="lineNum">      25 </span>            : 
+<span class="lineNum">      26 </span>            : namespace Spectral {
+<span class="lineNum">      27 </span>            : namespace Swsh {
+<span class="lineNum">      28 </span>            : 
+<span class="lineNum">      29 </span>            : SpinWeightedSphericalHarmonic::SpinWeightedSphericalHarmonic(
+<span class="lineNum">      30 </span>            :     const int spin, const size_t l, const int m) noexcept
+<span class="lineNum">      31 </span>            :     : spin_{spin}, l_{l}, m_{m} {
+<span class="lineNum">      32 </span>            :   overall_prefactor_ = 1.0;
+<span class="lineNum">      33 </span>            :   const double double_l = l;
+<span class="lineNum">      34 </span>            :   const double double_m = m;
+<span class="lineNum">      35 </span>            :   const double double_spin = spin;
+<span class="lineNum">      36 </span>            :   if (std::abs(m) &gt; std::abs(spin)) {
+<span class="lineNum">      37 </span>            :     for (size_t i = 0; i &lt; static_cast&lt;size_t&gt;(std::abs(m) - std::abs(spin));
+<span class="lineNum">      38 </span>            :          ++i) {
+<span class="lineNum">      39 </span>            :       const double double_i = i;
+<span class="lineNum">      40 </span>            :       overall_prefactor_ *= (double_l + std::abs(double_m) - double_i) /
+<span class="lineNum">      41 </span>            :                             (double_l - (std::abs(double_spin) + double_i));
+<span class="lineNum">      42 </span>            :     }
+<span class="lineNum">      43 </span>            :   } else if (std::abs(spin) &gt; std::abs(m)) {
+<span class="lineNum">      44 </span>            :     for (size_t i = 0; i &lt; static_cast&lt;size_t&gt;(std::abs(spin) - std::abs(m));
+<span class="lineNum">      45 </span>            :          ++i) {
+<span class="lineNum">      46 </span>            :       const double double_i = i;
+<span class="lineNum">      47 </span>            :       overall_prefactor_ *= (double_l - (std::abs(double_m) + double_i)) /
+<span class="lineNum">      48 </span>            :                             (double_l + std::abs(double_spin) - double_i);
+<span class="lineNum">      49 </span>            :     }
+<span class="lineNum">      50 </span>            :   }
+<span class="lineNum">      51 </span>            :   // if neither is greater (they are equal), then the prefactor is 1.0
+<span class="lineNum">      52 </span>            :   overall_prefactor_ *= (2.0 * l + 1.0) / (4.0 * M_PI);
+<span class="lineNum">      53 </span>            :   overall_prefactor_ = sqrt(overall_prefactor_);
+<span class="lineNum">      54 </span>            :   overall_prefactor_ *= (m % 2) == 0 ? 1.0 : -1.0;
+<span class="lineNum">      55 </span>            : 
+<span class="lineNum">      56 </span>            :   // gcc warns about the casts in ways that are impossible to satisfy
+<span class="lineNum">      57 </span>            : #pragma GCC diagnostic push
+<span class="lineNum">      58 </span>            : #pragma GCC diagnostic ignored &quot;-Wsign-conversion&quot;
+<span class="lineNum">      59 </span>            :   if (static_cast&lt;int&gt;(l) &lt; std::abs(spin)) {
+<span class="lineNum">      60 </span>            :     if (spin &lt; 0) {
+<span class="lineNum">      61 </span>            :       r_prefactors_ =
+<span class="lineNum">      62 </span>            :           std::vector&lt;double&gt;(l + static_cast&lt;size_t&gt;(std::abs(spin)) + 1, 0.0);
+<span class="lineNum">      63 </span>            :     }
+<span class="lineNum">      64 </span>            :   } else {
+<span class="lineNum">      65 </span>            :     // the casts in the reserve are in correct order, but clang-format
+<span class="lineNum">      66 </span>            :     // erroneously requests a change
+<span class="lineNum">      67 </span>            :     // NOLINTNEXTLINE(misc-misplaced-widening-cast)
+<span class="lineNum">      68 </span>            :     r_prefactors_.reserve(static_cast&lt;size_t&gt;(static_cast&lt;int&gt;(l) - spin + 1));
+<span class="lineNum">      69 </span>            :     for (int r = 0; r &lt;= (static_cast&lt;int&gt;(l) - spin); ++r) {
+<span class="lineNum">      70 </span>            :       if (r + spin - m &gt;= 0 and static_cast&lt;int&gt;(l) - r + m &gt;= 0) {
+<span class="lineNum">      71 </span>            :         r_prefactors_.push_back(
+<span class="lineNum">      72 </span>            :             boost::math::binomial_coefficient&lt;double&gt;(
+<span class="lineNum">      73 </span>            :                 static_cast&lt;size_t&gt;(static_cast&lt;int&gt;(l) - spin),
+<span class="lineNum">      74 </span>            :                 static_cast&lt;size_t&gt;(r)) *
+<span class="lineNum">      75 </span>            :             boost::math::binomial_coefficient&lt;double&gt;(
+<span class="lineNum">      76 </span>            :                 static_cast&lt;size_t&gt;(static_cast&lt;int&gt;(l) + spin),
+<span class="lineNum">      77 </span>            :                 static_cast&lt;size_t&gt;(spin - m + r)) *
+<span class="lineNum">      78 </span>            :             (((static_cast&lt;int&gt;(l) - r - spin) % 2) == 0 ? 1.0 : -1.0));
+<span class="lineNum">      79 </span>            :       } else {
+<span class="lineNum">      80 </span>            :         r_prefactors_.push_back(0.0);
+<span class="lineNum">      81 </span>            :       }
+<span class="lineNum">      82 </span>            :     }
+<span class="lineNum">      83 </span>            :   }
+<span class="lineNum">      84 </span>            : #pragma GCC diagnostic pop
+<span class="lineNum">      85 </span>            : }
+<span class="lineNum">      86 </span>            : 
+<span class="lineNum">      87 </span>            : void SpinWeightedSphericalHarmonic::evaluate(
+<span class="lineNum">      88 </span>            :     const gsl::not_null&lt;ComplexDataVector*&gt; result, const DataVector&amp; theta,
+<span class="lineNum">      89 </span>            :     const DataVector&amp; phi, const DataVector&amp; sin_theta_over_2,
+<span class="lineNum">      90 </span>            :     const DataVector&amp; cos_theta_over_2) const noexcept {
+<span class="lineNum">      91 </span>            :   result-&gt;destructive_resize(theta.size());
+<span class="lineNum">      92 </span>            :   *result = 0.0;
+<span class="lineNum">      93 </span>            :   DataVector theta_factor{theta.size()};
+<span class="lineNum">      94 </span>            :   for (int r = 0; r &lt;= (static_cast&lt;int&gt;(l_) - spin_); ++r) {
+<span class="lineNum">      95 </span>            :     if (2 * static_cast&lt;int&gt;(l_) &gt; 2 * r + spin_ - m_) {
+<span class="lineNum">      96 </span>            :       theta_factor = pow(cos_theta_over_2, 2 * r + spin_ - m_) *
+<span class="lineNum">      97 </span>            :                      pow(sin_theta_over_2,
+<span class="lineNum">      98 </span>            :                          2 * static_cast&lt;int&gt;(l_) - (2 * r + spin_ - m_));
+<span class="lineNum">      99 </span>            :     } else if (2 * static_cast&lt;int&gt;(l_) &lt; 2 * r + spin_ - m_) {
+<span class="lineNum">     100 </span>            :       theta_factor = pow(cos_theta_over_2 / sin_theta_over_2,
+<span class="lineNum">     101 </span>            :                          2 * r + spin_ - m_ - 2 * static_cast&lt;int&gt;(l_)) *
+<span class="lineNum">     102 </span>            :                      pow(cos_theta_over_2, 2 * l_);
+<span class="lineNum">     103 </span>            :     } else {
+<span class="lineNum">     104 </span>            :       theta_factor = pow(cos_theta_over_2, 2 * l_);
+<span class="lineNum">     105 </span>            :     }
+<span class="lineNum">     106 </span>            :     *result += gsl::at(r_prefactors_, r) * theta_factor;
+<span class="lineNum">     107 </span>            :   }
+<span class="lineNum">     108 </span>            :   // optimization note: this has not been compared with a complex `exp`
+<span class="lineNum">     109 </span>            :   // function, and it is not obvious which should be faster in practice.
+<span class="lineNum">     110 </span>            :   *result *=
+<span class="lineNum">     111 </span>            :       overall_prefactor_ *
+<span class="lineNum">     112 </span>            :       (std::complex&lt;double&gt;(1.0, 0.0) * cos(static_cast&lt;double&gt;(m_) * phi) +
+<span class="lineNum">     113 </span>            :        std::complex&lt;double&gt;(0.0, 1.0) * sin(static_cast&lt;double&gt;(m_) * phi));
+<span class="lineNum">     114 </span>            : }
+<span class="lineNum">     115 </span>            : 
+<span class="lineNum">     116 </span>            : ComplexDataVector SpinWeightedSphericalHarmonic::evaluate(
+<span class="lineNum">     117 </span>            :     const DataVector&amp; theta, const DataVector&amp; phi,
+<span class="lineNum">     118 </span>            :     const DataVector&amp; sin_theta_over_2,
+<span class="lineNum">     119 </span>            :     const DataVector&amp; cos_theta_over_2) const noexcept {
+<span class="lineNum">     120 </span>            :   ComplexDataVector result{theta.size(), 0.0};
+<span class="lineNum">     121 </span>            :   evaluate(make_not_null(&amp;result), theta, phi, sin_theta_over_2,
+<span class="lineNum">     122 </span>            :            cos_theta_over_2);
+<span class="lineNum">     123 </span>            :   return result;
+<span class="lineNum">     124 </span>            : }
+<span class="lineNum">     125 </span>            : 
+<span class="lineNum">     126 </span>            : std::complex&lt;double&gt; SpinWeightedSphericalHarmonic::evaluate(
+<span class="lineNum">     127 </span>            :     const double theta, const double phi) const noexcept {
+<span class="lineNum">     128 </span>            :   std::complex&lt;double&gt; accumulator = 0.0;
+<span class="lineNum">     129 </span>            :   const double cos_theta_over_two = cos(0.5 * theta);
+<span class="lineNum">     130 </span>            :   const double sin_theta_over_two = sin(0.5 * theta);
+<span class="lineNum">     131 </span>            :   double theta_factor;
+<span class="lineNum">     132 </span>            :   for (int r = 0; r &lt;= (static_cast&lt;int&gt;(l_) - spin_); ++r) {
+<span class="lineNum">     133 </span>            :     if (2 * static_cast&lt;int&gt;(l_) &gt; 2 * r + spin_ - m_) {
+<span class="lineNum">     134 </span>            :       theta_factor = pow(cos_theta_over_two, 2 * r + spin_ - m_) *
+<span class="lineNum">     135 </span>            :                      pow(sin_theta_over_two,
+<span class="lineNum">     136 </span>            :                          2 * static_cast&lt;int&gt;(l_) - (2 * r + spin_ - m_));
+<span class="lineNum">     137 </span>            :     } else if (2 * static_cast&lt;int&gt;(l_) &lt; 2 * r + spin_ - m_) {
+<span class="lineNum">     138 </span>            :       theta_factor = pow(cos_theta_over_two / sin_theta_over_two,
+<span class="lineNum">     139 </span>            :                          2 * r + spin_ - m_ - 2 * static_cast&lt;int&gt;(l_)) *
+<span class="lineNum">     140 </span>            :                      pow(cos_theta_over_two, 2 * l_);
+<span class="lineNum">     141 </span>            :     } else {
+<span class="lineNum">     142 </span>            :       theta_factor = pow(cos_theta_over_two, 2 * l_);
+<span class="lineNum">     143 </span>            :     }
+<span class="lineNum">     144 </span>            :     accumulator += gsl::at(r_prefactors_, r) *
+<span class="lineNum">     145 </span>            :                    std::complex&lt;double&gt;(cos(static_cast&lt;double&gt;(m_) * phi),
+<span class="lineNum">     146 </span>            :                                         sin(static_cast&lt;double&gt;(m_) * phi)) *
+<span class="lineNum">     147 </span>            :                    theta_factor;
+<span class="lineNum">     148 </span>            :   }
+<span class="lineNum">     149 </span>            :   accumulator *= overall_prefactor_;
+<span class="lineNum">     150 </span>            :   return accumulator;
+<span class="lineNum">     151 </span>            : }
+<span class="lineNum">     152 </span>            : 
+<span class="lineNum">     153 </span>            : void SpinWeightedSphericalHarmonic::pup(PUP::er&amp; p) noexcept {
+<span class="lineNum">     154 </span>            :   p | spin_;
+<span class="lineNum">     155 </span>            :   p | l_;
+<span class="lineNum">     156 </span>            :   p | m_;
+<span class="lineNum">     157 </span>            :   p | overall_prefactor_;
+<span class="lineNum">     158 </span>            :   p | r_prefactors_;
+<span class="lineNum">     159 </span>            : }
+<span class="lineNum">     160 </span>            : 
+<span class="lineNum">     161 </span>            : // A function for indexing a desired element in one of the caches stored
+<span class="lineNum">     162 </span>            : // in `ClenshawRecurrenceConstants`.
+<span class="lineNum">     163 </span>            : // Useful for accessing the `beta_constant`, `alpha_constant`, or
+<span class="lineNum">     164 </span>            : // `alpha_prefactor` recurrence constants.
+<span class="lineNum">     165 </span>            : size_t clenshaw_cache_index(const size_t l_max, const int spin, const int l,
+<span class="lineNum">     166 </span>            :                             const int m) noexcept {
+<span class="lineNum">     167 </span>            :   return goldberg_mode_index(l_max - 2, static_cast&lt;size_t&gt;(l - 2), m) -
+<span class="lineNum">     168 </span>            :          static_cast&lt;size_t&gt;(square(spin));
+<span class="lineNum">     169 </span>            : }
+<span class="lineNum">     170 </span>            : 
+<span class="lineNum">     171 </span>            : // see the detailed doxygen for `SwshInterpolator` for full mathematical details
+<span class="lineNum">     172 </span>            : // of the recurrence constant computations
+<span class="lineNum">     173 </span>            : template &lt;int Spin&gt;
+<span class="lineNum">     174 </span>            : struct ClenshawRecurrenceConstants {
+<span class="lineNum">     175 </span>            :   ClenshawRecurrenceConstants() = default;
+<span class="lineNum">     176 </span>            : 
+<span class="lineNum">     177 </span>            :   explicit ClenshawRecurrenceConstants(size_t l_max) noexcept
+<span class="lineNum">     178 </span>            :       : alpha_prefactor{square(l_max + 1) -
+<span class="lineNum">     179 </span>            :                         square(static_cast&lt;size_t&gt;(std::abs(Spin)))},
+<span class="lineNum">     180 </span>            :         alpha_constant{square(l_max + 1) -
+<span class="lineNum">     181 </span>            :                        square(static_cast&lt;size_t&gt;(std::abs(Spin)))},
+<span class="lineNum">     182 </span>            :         beta_constant{square(l_max + 1) -
+<span class="lineNum">     183 </span>            :                       square(static_cast&lt;size_t&gt;(std::abs(Spin)))},
+<span class="lineNum">     184 </span>            :         harmonic_at_l_min_prefactors{2 * l_max + 1},
+<span class="lineNum">     185 </span>            :         harmonic_at_l_min_plus_one_recurrence_prefactors{2 * l_max + 1},
+<span class="lineNum">     186 </span>            :         harmonic_m_recurrence_prefactors{2 * l_max + 1} {
+<span class="lineNum">     187 </span>            :     ASSERT(static_cast&lt;int&gt;(l_max) &gt; Spin,
+<span class="lineNum">     188 </span>            :            &quot;l_max must be greater than the spin-weight when computing &quot;
+<span class="lineNum">     189 </span>            :            &quot;ClenshawRecurrenceConstants&quot;);
+<span class="lineNum">     190 </span>            :     double l_plus_k;
+<span class="lineNum">     191 </span>            :     double l_min_plus_k;
+<span class="lineNum">     192 </span>            :     double a;
+<span class="lineNum">     193 </span>            :     double b;
+<span class="lineNum">     194 </span>            :     int l_min;
+<span class="lineNum">     195 </span>            :     double prefactor_accumulator;
+<span class="lineNum">     196 </span>            :     lambda.reserve(2 * l_max + 1);
+<span class="lineNum">     197 </span>            :     for (int m = -static_cast&lt;int&gt;(l_max); m &lt;= static_cast&lt;int&gt;(l_max); ++m) {
+<span class="lineNum">     198 </span>            :       a = static_cast&lt;double&gt;(std::abs(Spin + m));
+<span class="lineNum">     199 </span>            :       b = static_cast&lt;double&gt;(std::abs(Spin - m));
+<span class="lineNum">     200 </span>            :       l_min = std::max(std::abs(m), std::abs(Spin));
+<span class="lineNum">     201 </span>            : 
+<span class="lineNum">     202 </span>            :       // gcc warns about an optimization that doesn't work if we overflow. None
+<span class="lineNum">     203 </span>            :       // of this will overflow provided l_max is not unreasonably high (less
+<span class="lineNum">     204 </span>            :       // than ~10^5 will not overflow).
+<span class="lineNum">     205 </span>            :       for (int l = l_min + 2; l &lt;= static_cast&lt;int&gt;(l_max); ++l) {
+<span class="lineNum">     206 </span>            :         // start caching at 2 greater than the l_min for a given m. Those are
+<span class="lineNum">     207 </span>            :         // the last terms needed by (descending) Clenshaw sum.
+<span class="lineNum">     208 </span>            :         l_plus_k = static_cast&lt;double&gt;(l) - 0.5 * (a + b);
+<span class="lineNum">     209 </span>            :         alpha_prefactor[clenshaw_cache_index(l_max, Spin, l, m)] =
+<span class="lineNum">     210 </span>            :             0.5 * sqrt((2.0 * l + 1.0) * (2.0 * l - 1.0) /
+<span class="lineNum">     211 </span>            :                        (l_plus_k * (l_plus_k + a + b) * (l_plus_k + a) *
+<span class="lineNum">     212 </span>            :                         (l_plus_k + b)));
+<span class="lineNum">     213 </span>            :         alpha_constant[clenshaw_cache_index(l_max, Spin, l, m)] =
+<span class="lineNum">     214 </span>            :             alpha_prefactor[clenshaw_cache_index(l_max, Spin, l, m)] *
+<span class="lineNum">     215 </span>            :             ((square(a) - square(b)) / (2.0 * l - 2.0));
+<span class="lineNum">     216 </span>            :         alpha_prefactor[clenshaw_cache_index(l_max, Spin, l, m)] *= (2.0 * l);
+<span class="lineNum">     217 </span>            :         beta_constant[clenshaw_cache_index(l_max, Spin, l, m)] =
+<span class="lineNum">     218 </span>            :             -sqrt((2.0 * l + 1.0) * (l_plus_k + a - 1.0) *
+<span class="lineNum">     219 </span>            :                   (l_plus_k + b - 1.0) * (l_plus_k - 1.0) *
+<span class="lineNum">     220 </span>            :                   (l_plus_k + a + b - 1.0) /
+<span class="lineNum">     221 </span>            :                   ((2.0 * l - 3.0) * l_plus_k * (l_plus_k + a + b) *
+<span class="lineNum">     222 </span>            :                    (l_plus_k + a) * (l_plus_k + b))) *
+<span class="lineNum">     223 </span>            :             (2.0 * l) / (2.0 * l - 2.0);
+<span class="lineNum">     224 </span>            :       }
+<span class="lineNum">     225 </span>            :       lambda.push_back(Spin &gt;= -m ? 0 : Spin + m);
+<span class="lineNum">     226 </span>            : 
+<span class="lineNum">     227 </span>            :       // pre-compute the prefactors for the lowest order harmonics for each m
+<span class="lineNum">     228 </span>            :       prefactor_accumulator = 1.0;
+<span class="lineNum">     229 </span>            :       l_min_plus_k = -0.5 * (std::abs(Spin + m) + b) + l_min;
+<span class="lineNum">     230 </span>            :       for (int i = 1; i &lt;= b; ++i) {
+<span class="lineNum">     231 </span>            :         if (l_min_plus_k + a + i &gt; 0.0) {
+<span class="lineNum">     232 </span>            :           prefactor_accumulator *= static_cast&lt;double&gt;(l_min_plus_k + a + i);
+<span class="lineNum">     233 </span>            :         }
+<span class="lineNum">     234 </span>            :         if (l_min_plus_k + i &gt; 0.0) {
+<span class="lineNum">     235 </span>            :           prefactor_accumulator /= static_cast&lt;double&gt;(l_min_plus_k + i);
+<span class="lineNum">     236 </span>            :         }
+<span class="lineNum">     237 </span>            :       }
+<span class="lineNum">     238 </span>            :       prefactor_accumulator =
+<span class="lineNum">     239 </span>            :           sqrt(prefactor_accumulator * (2.0 * l_min + 1.0) / (4.0 * M_PI));
+<span class="lineNum">     240 </span>            :       prefactor_accumulator *=
+<span class="lineNum">     241 </span>            :           ((m + gsl::at(lambda, m + static_cast&lt;int&gt;(l_max))) % 2) == 0 ? 1.0
+<span class="lineNum">     242 </span>            :                                                                         : -1.0;
+<span class="lineNum">     243 </span>            :       // this is the right order of the casts, other orders give the wrong
+<span class="lineNum">     244 </span>            :       // answer NOLINTNEXTLINE(misc-misplaced-widening-cast)
+<span class="lineNum">     245 </span>            :       harmonic_at_l_min_prefactors[static_cast&lt;size_t&gt;(
+<span class="lineNum">     246 </span>            :           m + static_cast&lt;int&gt;(l_max))] = prefactor_accumulator;
+<span class="lineNum">     247 </span>            : 
+<span class="lineNum">     248 </span>            :       // pre-compute the prefactors for bootstrapping the second-to-lowest order
+<span class="lineNum">     249 </span>            :       // harmonics for each m
+<span class="lineNum">     250 </span>            : 
+<span class="lineNum">     251 </span>            :       // this is the right order of the casts, other orders give the wrong
+<span class="lineNum">     252 </span>            :       // answer NOLINTNEXTLINE(misc-misplaced-widening-cast)
+<span class="lineNum">     253 </span>            :       harmonic_at_l_min_plus_one_recurrence_prefactors[static_cast&lt;size_t&gt;(
+<span class="lineNum">     254 </span>            :           m + static_cast&lt;int&gt;(l_max))] =
+<span class="lineNum">     255 </span>            :           sqrt((2.0 * (l_min) + 3.0) * (l_min_plus_k + 1.0) *
+<span class="lineNum">     256 </span>            :                (l_min_plus_k + a + b + 1.0) /
+<span class="lineNum">     257 </span>            :                ((2.0 * (l_min) + 1.0) * (l_min_plus_k + a + 1.0) *
+<span class="lineNum">     258 </span>            :                 (l_min_plus_k + b + 1.0)));
+<span class="lineNum">     259 </span>            :     }
+<span class="lineNum">     260 </span>            :     // separate loop because we'll need the lambdas entirely populated for this
+<span class="lineNum">     261 </span>            :     // set of prefactors
+<span class="lineNum">     262 </span>            :     int lambda_difference;
+<span class="lineNum">     263 </span>            :     for (int m = -static_cast&lt;int&gt;(l_max); m &lt;= static_cast&lt;int&gt;(l_max); ++m) {
+<span class="lineNum">     264 </span>            :       if (std::abs(m) &gt; std::abs(Spin)) {
+<span class="lineNum">     265 </span>            :         l_min = std::max(std::abs(m), std::abs(Spin));
+<span class="lineNum">     266 </span>            :         a = std::abs(Spin + m);
+<span class="lineNum">     267 </span>            :         b = std::abs(Spin - m);
+<span class="lineNum">     268 </span>            :         l_min_plus_k = -0.5 * (std::abs(Spin + m) + b) + l_min;
+<span class="lineNum">     269 </span>            : 
+<span class="lineNum">     270 </span>            :         prefactor_accumulator =
+<span class="lineNum">     271 </span>            :             sqrt((2.0 * std::abs(m) + 1.0) * (l_min_plus_k + a + b - 1.0) *
+<span class="lineNum">     272 </span>            :                  (l_min_plus_k + a + b) /
+<span class="lineNum">     273 </span>            :                  ((2.0 * std::abs(m) - 1.0) * (l_min_plus_k + a) *
+<span class="lineNum">     274 </span>            :                   (l_min_plus_k + b)));
+<span class="lineNum">     275 </span>            :         // there is an extra `1` in these expressions to account for the -1 out
+<span class="lineNum">     276 </span>            :         // front of the recurrence relations.
+<span class="lineNum">     277 </span>            :         lambda_difference = gsl::at(lambda, m + static_cast&lt;int&gt;(l_max)) + 1;
+<span class="lineNum">     278 </span>            :         if (m &gt; 0) {
+<span class="lineNum">     279 </span>            :           lambda_difference -= gsl::at(lambda, m - 1 + static_cast&lt;int&gt;(l_max));
+<span class="lineNum">     280 </span>            :         } else {
+<span class="lineNum">     281 </span>            :           lambda_difference -= gsl::at(lambda, m + 1 + static_cast&lt;int&gt;(l_max));
+<span class="lineNum">     282 </span>            :         }
+<span class="lineNum">     283 </span>            :         prefactor_accumulator *= lambda_difference % 2 == 0 ? 1.0 : -1.0;
+<span class="lineNum">     284 </span>            :         // this is the right order of the casts, other orders give the wrong
+<span class="lineNum">     285 </span>            :         // answer NOLINTNEXTLINE(misc-misplaced-widening-cast)
+<span class="lineNum">     286 </span>            :         harmonic_m_recurrence_prefactors[static_cast&lt;size_t&gt;(
+<span class="lineNum">     287 </span>            :             m + static_cast&lt;int&gt;(l_max))] = prefactor_accumulator;
+<span class="lineNum">     288 </span>            :       }
+<span class="lineNum">     289 </span>            :     }
+<span class="lineNum">     290 </span>            :   }
+<span class="lineNum">     291 </span>            : 
+<span class="lineNum">     292 </span>            :   /// Serialization for Charm++.
+<span class="lineNum">     293 </span>            :   void pup(PUP::er&amp; p) noexcept {  // NOLINT
+<span class="lineNum">     294 </span>            :     p | alpha_prefactor;
+<span class="lineNum">     295 </span>            :     p | alpha_constant;
+<span class="lineNum">     296 </span>            :     p | beta_constant;
+<span class="lineNum">     297 </span>            :     p | lambda;
+<span class="lineNum">     298 </span>            :     p | harmonic_at_l_min_prefactors;
+<span class="lineNum">     299 </span>            :     p | harmonic_at_l_min_plus_one_recurrence_prefactors;
+<span class="lineNum">     300 </span>            :     p | harmonic_m_recurrence_prefactors;
+<span class="lineNum">     301 </span>            :   }
+<span class="lineNum">     302 </span>            : 
+<span class="lineNum">     303 </span>            :   // Tables are stored in a triangular Goldberg style
+<span class="lineNum">     304 </span>            :   DataVector alpha_prefactor;
+<span class="lineNum">     305 </span>            :   DataVector alpha_constant;
+<span class="lineNum">     306 </span>            :   DataVector beta_constant;
+<span class="lineNum">     307 </span>            :   std::vector&lt;int&gt; lambda;
+<span class="lineNum">     308 </span>            :   DataVector harmonic_at_l_min_prefactors;
+<span class="lineNum">     309 </span>            :   DataVector harmonic_at_l_min_plus_one_recurrence_prefactors;
+<span class="lineNum">     310 </span>            :   DataVector harmonic_m_recurrence_prefactors;
+<span class="lineNum">     311 </span>            : };
+<span class="lineNum">     312 </span>            : 
+<span class="lineNum">     313 </span>            : // A lazy static cache interface for retrieving `ClenshawRecurrenceConstants`.
+<span class="lineNum">     314 </span>            : template &lt;int Spin&gt;
+<span class="lineNum">     315 </span>            : const ClenshawRecurrenceConstants&lt;Spin&gt;&amp; cached_clenshaw_factors(
+<span class="lineNum">     316 </span>            :     const size_t l_max) noexcept {
+<span class="lineNum">     317 </span>            :   const static auto lazy_clenshaw_cache =
+<span class="lineNum">     318 </span>            :       make_static_cache&lt;CacheRange&lt;0, collocation_maximum_l_max&gt;&gt;(
+<span class="lineNum">     319 </span>            :           [](const size_t local_l_max) noexcept {
+<span class="lineNum">     320 </span>            :             return ClenshawRecurrenceConstants&lt;Spin&gt;{local_l_max};
+<span class="lineNum">     321 </span>            :           });
+<span class="lineNum">     322 </span>            :   return lazy_clenshaw_cache(l_max);
+<span class="lineNum">     323 </span>            : }
+<span class="lineNum">     324 </span>            : 
+<span class="lineNum">     325 </span>            : SwshInterpolator::SwshInterpolator(const DataVector&amp; theta,
+<span class="lineNum">     326 </span>            :                                    const DataVector&amp; phi,
+<span class="lineNum">     327 </span>            :                                    const size_t l_max) noexcept
+<span class="lineNum">     328 </span>            :     : l_max_{l_max},
+<span class="lineNum">     329 </span>            :       raw_libsharp_coefficient_buffer_{
+<span class="lineNum">     330 </span>            :           size_of_libsharp_coefficient_vector(l_max)},
+<span class="lineNum">     331 </span>            :       raw_goldberg_coefficient_buffer_{square(l_max + 1)} {
+<span class="lineNum">     332 </span>            :   cos_m_phi_ = std::vector&lt;DataVector&gt;(l_max + 1);
+<span class="lineNum">     333 </span>            :   sin_m_phi_ = std::vector&lt;DataVector&gt;(l_max + 1);
+<span class="lineNum">     334 </span>            :   cos_theta_ = cos(theta);
+<span class="lineNum">     335 </span>            :   sin_theta_ = sin(theta);
+<span class="lineNum">     336 </span>            :   cos_theta_over_two_ = cos(0.5 * theta);
+<span class="lineNum">     337 </span>            :   sin_theta_over_two_ = sin(0.5 * theta);
+<span class="lineNum">     338 </span>            :   // evaluate cos(m phi) and sin(m phi) via recurrence
+<span class="lineNum">     339 </span>            :   cos_m_phi_[0] = DataVector{phi.size(), 1.0};
+<span class="lineNum">     340 </span>            :   sin_m_phi_[0] = DataVector{phi.size(), 0.0};
+<span class="lineNum">     341 </span>            :   const DataVector m_phi_beta = sin(phi);
+<span class="lineNum">     342 </span>            :   const DataVector m_phi_alpha = 2.0 * square(sin(0.5 * phi));
+<span class="lineNum">     343 </span>            :   for (size_t m = 1; m &lt;= l_max; ++m) {
+<span class="lineNum">     344 </span>            :     cos_m_phi_[m] = cos_m_phi_[m - 1] - (m_phi_alpha * cos_m_phi_[m - 1] +
+<span class="lineNum">     345 </span>            :                                          m_phi_beta * sin_m_phi_[m - 1]);
+<span class="lineNum">     346 </span>            :     sin_m_phi_[m] = sin_m_phi_[m - 1] - (m_phi_alpha * sin_m_phi_[m - 1] -
+<span class="lineNum">     347 </span>            :                                          m_phi_beta * cos_m_phi_[m - 1]);
+<span class="lineNum">     348 </span>            :   }
+<span class="lineNum">     349 </span>            : }
+<span class="lineNum">     350 </span>            : 
+<span class="lineNum">     351 </span>            : template &lt;int Spin&gt;
+<span class="lineNum">     352 </span>            : void SwshInterpolator::interpolate(
+<span class="lineNum">     353 </span>            :     const gsl::not_null&lt;SpinWeighted&lt;ComplexDataVector, Spin&gt;*&gt; interpolated,
+<span class="lineNum">     354 </span>            :     const SpinWeighted&lt;ComplexModalVector, Spin&gt;&amp; goldberg_modes) const
+<span class="lineNum">     355 </span>            :     noexcept {
+<span class="lineNum">     356 </span>            :   interpolated-&gt;destructive_resize(cos_theta_.size());
+<span class="lineNum">     357 </span>            :   interpolated-&gt;data() = 0.0;
+<span class="lineNum">     358 </span>            : 
+<span class="lineNum">     359 </span>            :   // used only if s=0;
+<span class="lineNum">     360 </span>            :   SpinWeighted&lt;ComplexDataVector, Spin&gt; cached_base_harmonic;
+<span class="lineNum">     361 </span>            : 
+<span class="lineNum">     362 </span>            :   // used during both recurrence legs
+<span class="lineNum">     363 </span>            :   SpinWeighted&lt;ComplexDataVector, Spin&gt; current_cached_harmonic;
+<span class="lineNum">     364 </span>            :   SpinWeighted&lt;ComplexDataVector, Spin&gt; current_cached_harmonic_l_plus_one;
+<span class="lineNum">     365 </span>            : 
+<span class="lineNum">     366 </span>            :   // perform the Clenshaw sums over positive m &gt;= 0.
+<span class="lineNum">     367 </span>            :   for (int m = 0; m &lt;= static_cast&lt;int&gt;(l_max_); ++m) {
+<span class="lineNum">     368 </span>            :     if (std::abs(Spin) &gt;= std::abs(m)) {
+<span class="lineNum">     369 </span>            :       direct_evaluation_swsh_at_l_min(make_not_null(&amp;current_cached_harmonic),
+<span class="lineNum">     370 </span>            :                                       m);
+<span class="lineNum">     371 </span>            :       evaluate_swsh_at_l_min_plus_one(
+<span class="lineNum">     372 </span>            :           make_not_null(&amp;current_cached_harmonic_l_plus_one),
+<span class="lineNum">     373 </span>            :           current_cached_harmonic, m);
+<span class="lineNum">     374 </span>            :     } else {
+<span class="lineNum">     375 </span>            :       evaluate_swsh_m_recurrence_at_l_min(
+<span class="lineNum">     376 </span>            :           make_not_null(&amp;current_cached_harmonic), m);
+<span class="lineNum">     377 </span>            :       evaluate_swsh_at_l_min_plus_one(
+<span class="lineNum">     378 </span>            :           make_not_null(&amp;current_cached_harmonic_l_plus_one),
+<span class="lineNum">     379 </span>            :           current_cached_harmonic, m);
+<span class="lineNum">     380 </span>            :     }
+<span class="lineNum">     381 </span>            :     if (Spin == 0 and m == 0) {
+<span class="lineNum">     382 </span>            :       cached_base_harmonic = current_cached_harmonic;
+<span class="lineNum">     383 </span>            :     }
+<span class="lineNum">     384 </span>            :     clenshaw_sum(interpolated, current_cached_harmonic,
+<span class="lineNum">     385 </span>            :                  current_cached_harmonic_l_plus_one, goldberg_modes, m);
+<span class="lineNum">     386 </span>            :   }
+<span class="lineNum">     387 </span>            :   // perform the Clenshaw sums over m &lt; 0.
+<span class="lineNum">     388 </span>            :   for (int m = -1; m &gt;= -static_cast&lt;int&gt;(l_max_); --m) {
+<span class="lineNum">     389 </span>            :     // initialize the recurrence for negative m
+<span class="lineNum">     390 </span>            :     if (m == -1 and Spin == 0) {
+<span class="lineNum">     391 </span>            :       current_cached_harmonic = cached_base_harmonic;
+<span class="lineNum">     392 </span>            :     }
+<span class="lineNum">     393 </span>            :     if (std::abs(Spin) &gt;= std::abs(m)) {
+<span class="lineNum">     394 </span>            :       direct_evaluation_swsh_at_l_min(make_not_null(&amp;current_cached_harmonic),
+<span class="lineNum">     395 </span>            :                                       m);
+<span class="lineNum">     396 </span>            :       evaluate_swsh_at_l_min_plus_one(
+<span class="lineNum">     397 </span>            :           make_not_null(&amp;current_cached_harmonic_l_plus_one),
+<span class="lineNum">     398 </span>            :           current_cached_harmonic, m);
+<span class="lineNum">     399 </span>            :     } else {
+<span class="lineNum">     400 </span>            :       evaluate_swsh_m_recurrence_at_l_min(
+<span class="lineNum">     401 </span>            :           make_not_null(&amp;current_cached_harmonic), m);
+<span class="lineNum">     402 </span>            :       evaluate_swsh_at_l_min_plus_one(
+<span class="lineNum">     403 </span>            :           make_not_null(&amp;current_cached_harmonic_l_plus_one),
+<span class="lineNum">     404 </span>            :           current_cached_harmonic, m);
+<span class="lineNum">     405 </span>            :     }
+<span class="lineNum">     406 </span>            :     clenshaw_sum(interpolated, current_cached_harmonic,
+<span class="lineNum">     407 </span>            :                  current_cached_harmonic_l_plus_one, goldberg_modes, m);
+<span class="lineNum">     408 </span>            :   }
+<span class="lineNum">     409 </span>            : }
+<span class="lineNum">     410 </span>            : 
+<span class="lineNum">     411 </span>            : template &lt;int Spin&gt;
+<span class="lineNum">     412 </span>            : void SwshInterpolator::interpolate(
+<span class="lineNum">     413 </span>            :     const gsl::not_null&lt;SpinWeighted&lt;ComplexDataVector, Spin&gt;*&gt; interpolated,
+<span class="lineNum">     414 </span>            :     const SpinWeighted&lt;ComplexDataVector, Spin&gt;&amp; libsharp_collocation) const
+<span class="lineNum">     415 </span>            :     noexcept {
+<span class="lineNum">     416 </span>            :   SpinWeighted&lt;ComplexModalVector, Spin&gt; libsharp_modes;
+<span class="lineNum">     417 </span>            :   // this function is 'const', but modifies the internal buffer. The reason to
+<span class="lineNum">     418 </span>            :   // allow it to be 'const' anyways is that no interface makes any assumption
+<span class="lineNum">     419 </span>            :   // about the starting state of the internal buffer; it is kept exclusively to
+<span class="lineNum">     420 </span>            :   // save allocations.
+<span class="lineNum">     421 </span>            :   libsharp_modes.set_data_ref(raw_libsharp_coefficient_buffer_.data(),
+<span class="lineNum">     422 </span>            :                               raw_libsharp_coefficient_buffer_.size());
+<span class="lineNum">     423 </span>            :   swsh_transform(l_max_, 1, make_not_null(&amp;libsharp_modes),
+<span class="lineNum">     424 </span>            :                  libsharp_collocation);
+<span class="lineNum">     425 </span>            :   SpinWeighted&lt;ComplexModalVector, Spin&gt; goldberg_modes;
+<span class="lineNum">     426 </span>            :   libsharp_to_goldberg_modes(make_not_null(&amp;goldberg_modes), libsharp_modes,
+<span class="lineNum">     427 </span>            :                              l_max_);
+<span class="lineNum">     428 </span>            :   interpolate(interpolated, goldberg_modes);
+<span class="lineNum">     429 </span>            : }
+<span class="lineNum">     430 </span>            : 
+<span class="lineNum">     431 </span>            : template &lt;int Spin&gt;
+<span class="lineNum">     432 </span>            : void SwshInterpolator::direct_evaluation_swsh_at_l_min(
+<span class="lineNum">     433 </span>            :     const gsl::not_null&lt;SpinWeighted&lt;ComplexDataVector, Spin&gt;*&gt; harmonic,
+<span class="lineNum">     434 </span>            :     const int m) const noexcept {
+<span class="lineNum">     435 </span>            :   const auto&amp; clenshaw_factors = cached_clenshaw_factors&lt;Spin&gt;(l_max_);
+<span class="lineNum">     436 </span>            :   // for this evaluation, we don't worry about recurrence because it will only
+<span class="lineNum">     437 </span>            :   // be called for m between -s and +s, and s should always be small. In
+<span class="lineNum">     438 </span>            :   // principle, it is probably true that a more complicated recurrence exists
+<span class="lineNum">     439 </span>            :   // for this case, but would require a bit of derivation work
+<span class="lineNum">     440 </span>            :   harmonic-&gt;data() =
+<span class="lineNum">     441 </span>            :       // clang-tidy: this is the right order of the casts, other orders give the
+<span class="lineNum">     442 </span>            :       // wrong answer
+<span class="lineNum">     443 </span>            :       // NOLINTNEXTLINE(misc-misplaced-widening-cast)
+<span class="lineNum">     444 </span>            :       clenshaw_factors.harmonic_at_l_min_prefactors[static_cast&lt;size_t&gt;(
+<span class="lineNum">     445 </span>            :           m + static_cast&lt;int&gt;(l_max_))] *
+<span class="lineNum">     446 </span>            :       (std::complex&lt;double&gt;(1.0, 0.0) * gsl::at(cos_m_phi_, std::abs(m)) +
+<span class="lineNum">     447 </span>            :        std::complex&lt;double&gt;(0.0, 1.0) * (m &gt;= 0 ? 1.0 : -1.0) *
+<span class="lineNum">     448 </span>            :            gsl::at(sin_m_phi_, std::abs(m))) *
+<span class="lineNum">     449 </span>            :       pow(sin_theta_over_two_, static_cast&lt;size_t&gt;(std::abs(Spin + m))) *
+<span class="lineNum">     450 </span>            :       pow(cos_theta_over_two_, static_cast&lt;size_t&gt;(std::abs(Spin - m)));
+<span class="lineNum">     451 </span>            : }
+<span class="lineNum">     452 </span>            : 
+<span class="lineNum">     453 </span>            : template &lt;int Spin&gt;
+<span class="lineNum">     454 </span>            : void SwshInterpolator::evaluate_swsh_at_l_min_plus_one(
+<span class="lineNum">     455 </span>            :     const gsl::not_null&lt;SpinWeighted&lt;ComplexDataVector, Spin&gt;*&gt; harmonic,
+<span class="lineNum">     456 </span>            :     const SpinWeighted&lt;ComplexDataVector, Spin&gt;&amp; harmonic_at_l_min,
+<span class="lineNum">     457 </span>            :     const int m) const noexcept {
+<span class="lineNum">     458 </span>            :   const auto&amp; clenshaw_factors = cached_clenshaw_factors&lt;Spin&gt;(l_max_);
+<span class="lineNum">     459 </span>            :   const double a = std::abs(Spin + m);
+<span class="lineNum">     460 </span>            :   const double b = std::abs(Spin - m);
+<span class="lineNum">     461 </span>            :   harmonic-&gt;data() =
+<span class="lineNum">     462 </span>            :       clenshaw_factors
+<span class="lineNum">     463 </span>            :           // clang-tidy: this is the right order of the casts, other orders give
+<span class="lineNum">     464 </span>            :           // the wrong answer
+<span class="lineNum">     465 </span>            :           // NOLINTNEXTLINE(misc-misplaced-widening-cast)
+<span class="lineNum">     466 </span>            :           .harmonic_at_l_min_plus_one_recurrence_prefactors[static_cast&lt;size_t&gt;(
+<span class="lineNum">     467 </span>            :               m + static_cast&lt;int&gt;(l_max_))] *
+<span class="lineNum">     468 </span>            :       harmonic_at_l_min.data() *
+<span class="lineNum">     469 </span>            :       (a + 1.0 + 0.5 * (a + b + 2.0) * (cos_theta_ - 1.0));
+<span class="lineNum">     470 </span>            : }
+<span class="lineNum">     471 </span>            : 
+<span class="lineNum">     472 </span>            : template &lt;int Spin&gt;
+<span class="lineNum">     473 </span>            : void SwshInterpolator::evaluate_swsh_m_recurrence_at_l_min(
+<span class="lineNum">     474 </span>            :     const gsl::not_null&lt;SpinWeighted&lt;ComplexDataVector, Spin&gt;*&gt; harmonic,
+<span class="lineNum">     475 </span>            :     const int m) const noexcept {
+<span class="lineNum">     476 </span>            :   const auto&amp; clenshaw_factors = cached_clenshaw_factors&lt;Spin&gt;(l_max_);
+<span class="lineNum">     477 </span>            :   harmonic-&gt;data() =
+<span class="lineNum">     478 </span>            :       // this is the right order of the casts, other orders give the wrong
+<span class="lineNum">     479 </span>            :       // answer
+<span class="lineNum">     480 </span>            :       // NOLINTNEXTLINE(misc-misplaced-widening-cast)
+<span class="lineNum">     481 </span>            :       clenshaw_factors.harmonic_m_recurrence_prefactors[static_cast&lt;size_t&gt;(
+<span class="lineNum">     482 </span>            :           m + static_cast&lt;int&gt;(l_max_))] *
+<span class="lineNum">     483 </span>            :       (sin_theta_ / 2.0) * harmonic-&gt;data();
+<span class="lineNum">     484 </span>            :   if (m &gt; 0) {
+<span class="lineNum">     485 </span>            :     harmonic-&gt;data() *= (std::complex&lt;double&gt;(1.0, 0.0) * cos_m_phi_[1] +
+<span class="lineNum">     486 </span>            :                          std::complex&lt;double&gt;(0.0, 1.0) * sin_m_phi_[1]);
+<span class="lineNum">     487 </span>            :   } else {
+<span class="lineNum">     488 </span>            :     harmonic-&gt;data() *= (std::complex&lt;double&gt;(1.0, 0.0) * cos_m_phi_[1] -
+<span class="lineNum">     489 </span>            :                          std::complex&lt;double&gt;(0.0, 1.0) * sin_m_phi_[1]);
+<span class="lineNum">     490 </span>            :   }
+<span class="lineNum">     491 </span>            : }
+<span class="lineNum">     492 </span>            : 
+<span class="lineNum">     493 </span>            : template &lt;int Spin&gt;
+<span class="lineNum">     494 </span>            : void SwshInterpolator::clenshaw_sum(
+<span class="lineNum">     495 </span>            :     const gsl::not_null&lt;SpinWeighted&lt;ComplexDataVector, Spin&gt;*&gt; interpolation,
+<span class="lineNum">     496 </span>            :     const SpinWeighted&lt;ComplexDataVector, Spin&gt;&amp; l_min_harmonic,
+<span class="lineNum">     497 </span>            :     const SpinWeighted&lt;ComplexDataVector, Spin&gt;&amp; l_min_plus_one_harmonic,
+<span class="lineNum">     498 </span>            :     const SpinWeighted&lt;ComplexModalVector, Spin&gt;&amp; goldberg_modes,
+<span class="lineNum">     499 </span>            :     const int m) const noexcept {
+<span class="lineNum">     500 </span>            :   // Since we need various combinations of the three-term recurrence constants
+<span class="lineNum">     501 </span>            :   // up to two orders higher, we write recurrence results to a cyclic
+<span class="lineNum">     502 </span>            :   // three-element cache
+<span class="lineNum">     503 </span>            :   std::array&lt;ComplexDataVector, 3&gt; recurrence_cache;
+<span class="lineNum">     504 </span>            :   recurrence_cache[2] = ComplexDataVector{interpolation-&gt;size(), 0.0};
+<span class="lineNum">     505 </span>            :   recurrence_cache[1] = ComplexDataVector{interpolation-&gt;size(), 0.0};
+<span class="lineNum">     506 </span>            :   recurrence_cache[0] = ComplexDataVector{interpolation-&gt;size(), 0.0};
+<span class="lineNum">     507 </span>            :   const auto&amp; clenshaw_factors = cached_clenshaw_factors&lt;Spin&gt;(l_max_);
+<span class="lineNum">     508 </span>            : 
+<span class="lineNum">     509 </span>            :   for (auto l = static_cast&lt;int&gt;(l_max_);
+<span class="lineNum">     510 </span>            :        l &gt; std::max(std::abs(Spin), std::abs(m)); l--) {
+<span class="lineNum">     511 </span>            :     // We want to define some cache_offset so that we can index the three
+<span class="lineNum">     512 </span>            :     // elements of recurrence_cache with indices cache_offset%3,
+<span class="lineNum">     513 </span>            :     // (cache_offset+1)%3, and (cache_offset+2)%3, and so that cache_offset
+<span class="lineNum">     514 </span>            :     // decreases by one on each iteration. The &quot;obvious&quot; way to do this is to
+<span class="lineNum">     515 </span>            :     // choose cache_offset = l - l_max, so that cache_offset starts at zero and
+<span class="lineNum">     516 </span>            :     // then decreases each iteration. However, this gives negative values of
+<span class="lineNum">     517 </span>            :     // cache_offset, and C++ modular arithmetic doesn't behave the way we'd want
+<span class="lineNum">     518 </span>            :     // for that process at negative values. But note that adding any multiple of
+<span class="lineNum">     519 </span>            :     // 3 to the &quot;obvious&quot; value of cache_offset will give identical indexing,
+<span class="lineNum">     520 </span>            :     // and choosing this multiple of 3 large enough (i.e. larger than l_max)
+<span class="lineNum">     521 </span>            :     // guarantees that the new cache_offset is positive for all l. So we choose
+<span class="lineNum">     522 </span>            :     // to add 3*l_max to the &quot;obvious&quot; value of cache_offset; in other words we
+<span class="lineNum">     523 </span>            :     // define cache_offset = l + 2 l_max.
+<span class="lineNum">     524 </span>            :     // In future, if this trick needs to be re-implemented in another use-case,
+<span class="lineNum">     525 </span>            :     // it should instead be factored out into a separate rotating cache utility.
+<span class="lineNum">     526 </span>            :     const int cache_offset = (l + 2 * static_cast&lt;int&gt;(l_max_));
+<span class="lineNum">     527 </span>            :     // gcc warns about the casts in ways that are impossible to satisfy
+<span class="lineNum">     528 </span>            : #pragma GCC diagnostic push
+<span class="lineNum">     529 </span>            : #pragma GCC diagnostic ignored &quot;-Wsign-conversion&quot;
+<span class="lineNum">     530 </span>            :     gsl::at(recurrence_cache, (cache_offset) % 3) =
+<span class="lineNum">     531 </span>            :         goldberg_modes.data()[square(static_cast&lt;size_t&gt;(l)) +
+<span class="lineNum">     532 </span>            :                               static_cast&lt;size_t&gt;(l + m)];
+<span class="lineNum">     533 </span>            :     if (l &lt; static_cast&lt;int&gt;(l_max_)) {
+<span class="lineNum">     534 </span>            :       gsl::at(recurrence_cache, (cache_offset) % 3) +=
+<span class="lineNum">     535 </span>            :           (clenshaw_factors
+<span class="lineNum">     536 </span>            :                .alpha_constant[clenshaw_cache_index(l_max_, Spin, l + 1, m)] +
+<span class="lineNum">     537 </span>            :            cos_theta_ * clenshaw_factors.alpha_prefactor[clenshaw_cache_index(
+<span class="lineNum">     538 </span>            :                             l_max_, Spin, l + 1, m)]) *
+<span class="lineNum">     539 </span>            :           gsl::at(recurrence_cache, (cache_offset + 1) % 3);
+<span class="lineNum">     540 </span>            :     }
+<span class="lineNum">     541 </span>            :     if (l &lt; static_cast&lt;int&gt;(l_max_) - 1) {
+<span class="lineNum">     542 </span>            :       gsl::at(recurrence_cache, (cache_offset) % 3) +=
+<span class="lineNum">     543 </span>            :           clenshaw_factors
+<span class="lineNum">     544 </span>            :               .beta_constant[clenshaw_cache_index(l_max_, Spin, l + 2, m)] *
+<span class="lineNum">     545 </span>            :           gsl::at(recurrence_cache, (cache_offset + 2) % 3);
+<span class="lineNum">     546 </span>            :     }
+<span class="lineNum">     547 </span>            :   }
+<span class="lineNum">     548 </span>            :   const int l_min = std::max(std::abs(Spin), std::abs(m));
+<span class="lineNum">     549 </span>            :   const int cache_offset = (l_min + 2 * static_cast&lt;int&gt;(l_max_));
+<span class="lineNum">     550 </span>            : 
+<span class="lineNum">     551 </span>            :   if (l_max_ &gt;=
+<span class="lineNum">     552 </span>            :       static_cast&lt;size_t&gt;(std::max(std::abs(Spin), std::abs(m))) + 2) {
+<span class="lineNum">     553 </span>            :     *interpolation +=
+<span class="lineNum">     554 </span>            :         l_min_harmonic *
+<span class="lineNum">     555 </span>            :             goldberg_modes.data()[square(static_cast&lt;size_t&gt;(l_min)) +
+<span class="lineNum">     556 </span>            :                                   static_cast&lt;size_t&gt;(l_min + m)] +
+<span class="lineNum">     557 </span>            :         l_min_plus_one_harmonic *
+<span class="lineNum">     558 </span>            :             gsl::at(recurrence_cache, (cache_offset + 1) % 3) +
+<span class="lineNum">     559 </span>            :         l_min_harmonic * gsl::at(recurrence_cache, (cache_offset + 2) % 3) *
+<span class="lineNum">     560 </span>            :             clenshaw_factors.beta_constant[clenshaw_cache_index(
+<span class="lineNum">     561 </span>            :                 l_max_, Spin, std::max(std::abs(Spin), std::abs(m)) + 2, m)];
+<span class="lineNum">     562 </span>            :   } else {
+<span class="lineNum">     563 </span>            :     *interpolation +=
+<span class="lineNum">     564 </span>            :         l_min_harmonic *
+<span class="lineNum">     565 </span>            :             goldberg_modes.data()[square(static_cast&lt;size_t&gt;(l_min)) +
+<span class="lineNum">     566 </span>            :                                   static_cast&lt;size_t&gt;(l_min + m)] +
+<span class="lineNum">     567 </span>            :         l_min_plus_one_harmonic *
+<span class="lineNum">     568 </span>            :             gsl::at(recurrence_cache, (cache_offset + 1) % 3);
+<span class="lineNum">     569 </span>            :   }
+<span class="lineNum">     570 </span>            : #pragma GCC diagnostic pop
+<span class="lineNum">     571 </span>            : }
+<span class="lineNum">     572 </span>            : 
+<span class="lineNum">     573 </span>            : void SwshInterpolator::pup(PUP::er&amp; p) noexcept {
+<span class="lineNum">     574 </span>            :   p | l_max_;
+<span class="lineNum">     575 </span>            :   p | cos_theta_;
+<span class="lineNum">     576 </span>            :   p | sin_theta_;
+<span class="lineNum">     577 </span>            :   p | cos_theta_over_two_;
+<span class="lineNum">     578 </span>            :   p | sin_theta_over_two_;
+<span class="lineNum">     579 </span>            :   p | sin_m_phi_;
+<span class="lineNum">     580 </span>            :   p | cos_m_phi_;
+<span class="lineNum">     581 </span>            :   p | raw_libsharp_coefficient_buffer_;
+<span class="lineNum">     582 </span>            :   p | raw_goldberg_coefficient_buffer_;
+<span class="lineNum">     583 </span>            : }
+<span class="lineNum">     584 </span>            : 
+<span class="lineNum">     585 </span>            : #define GET_SPIN(data) BOOST_PP_TUPLE_ELEM(0, data)
+<span class="lineNum">     586 </span>            : 
+<span class="lineNum">     587 </span>            : #define INTERPOLATION_INSTANTIATION(r, data)                                  \
+<span class="lineNum">     588 </span>            :   template struct ClenshawRecurrenceConstants&lt;GET_SPIN(data)&gt;;                \
+<span class="lineNum">     589 </span>            :   template const ClenshawRecurrenceConstants&lt;GET_SPIN(data)&gt;&amp;                 \
+<span class="lineNum">     590 </span>            :   cached_clenshaw_factors&lt;GET_SPIN(data)&gt;(const size_t l_max) noexcept;       \
+<span class="lineNum">     591 </span>            :   template void SwshInterpolator::interpolate&lt;GET_SPIN(data)&gt;(                \
+<span class="lineNum">     592 </span>            :       const gsl::not_null&lt;SpinWeighted&lt;ComplexDataVector, GET_SPIN(data)&gt;*&gt;   \
+<span class="lineNum">     593 </span>            :           interpolated,                                                       \
+<span class="lineNum">     594 </span>            :       const SpinWeighted&lt;ComplexModalVector, GET_SPIN(data)&gt;&amp; goldberg_modes) \
+<span class="lineNum">     595 </span>            :       const noexcept;                                                         \
+<span class="lineNum">     596 </span>            :   template void SwshInterpolator::interpolate&lt;GET_SPIN(data)&gt;(                \
+<span class="lineNum">     597 </span>            :       const gsl::not_null&lt;SpinWeighted&lt;ComplexDataVector, GET_SPIN(data)&gt;*&gt;   \
+<span class="lineNum">     598 </span>            :           interpolated,                                                       \
+<span class="lineNum">     599 </span>            :       const SpinWeighted&lt;ComplexDataVector, GET_SPIN(data)&gt;&amp;                  \
+<span class="lineNum">     600 </span>            :           libsharp_collocation) const noexcept;                               \
+<span class="lineNum">     601 </span>            :   template void                                                               \
+<span class="lineNum">     602 </span>            :   SwshInterpolator::direct_evaluation_swsh_at_l_min&lt;GET_SPIN(data)&gt;(          \
+<span class="lineNum">     603 </span>            :       const gsl::not_null&lt;SpinWeighted&lt;ComplexDataVector, GET_SPIN(data)&gt;*&gt;   \
+<span class="lineNum">     604 </span>            :           harmonic,                                                           \
+<span class="lineNum">     605 </span>            :       const int m) const noexcept;                                            \
+<span class="lineNum">     606 </span>            :   template void                                                               \
+<span class="lineNum">     607 </span>            :   SwshInterpolator::evaluate_swsh_at_l_min_plus_one&lt;GET_SPIN(data)&gt;(          \
+<span class="lineNum">     608 </span>            :       const gsl::not_null&lt;SpinWeighted&lt;ComplexDataVector, GET_SPIN(data)&gt;*&gt;   \
+<span class="lineNum">     609 </span>            :           harmonic,                                                           \
+<span class="lineNum">     610 </span>            :       const SpinWeighted&lt;ComplexDataVector, GET_SPIN(data)&gt;&amp;                  \
+<span class="lineNum">     611 </span>            :           harmonic_at_l_min,                                                  \
+<span class="lineNum">     612 </span>            :       const int m) const noexcept;                                            \
+<span class="lineNum">     613 </span>            :   template void                                                               \
+<span class="lineNum">     614 </span>            :   SwshInterpolator::evaluate_swsh_m_recurrence_at_l_min&lt;GET_SPIN(data)&gt;(      \
+<span class="lineNum">     615 </span>            :       const gsl::not_null&lt;SpinWeighted&lt;ComplexDataVector, GET_SPIN(data)&gt;*&gt;   \
+<span class="lineNum">     616 </span>            :           harmonic,                                                           \
+<span class="lineNum">     617 </span>            :       const int m) const noexcept;                                            \
+<span class="lineNum">     618 </span>            :   template void SwshInterpolator::clenshaw_sum&lt;GET_SPIN(data)&gt;(               \
+<span class="lineNum">     619 </span>            :       const gsl::not_null&lt;SpinWeighted&lt;ComplexDataVector, GET_SPIN(data)&gt;*&gt;   \
+<span class="lineNum">     620 </span>            :           interpolation,                                                      \
+<span class="lineNum">     621 </span>            :       const SpinWeighted&lt;ComplexDataVector, GET_SPIN(data)&gt;&amp; l_min_harmonic,  \
+<span class="lineNum">     622 </span>            :       const SpinWeighted&lt;ComplexDataVector, GET_SPIN(data)&gt;&amp;                  \
+<span class="lineNum">     623 </span>            :           l_min_plus_one_harmonic,                                            \
+<span class="lineNum">     624 </span>            :       const SpinWeighted&lt;ComplexModalVector, GET_SPIN(data)&gt;&amp; goldberg_modes, \
+<span class="lineNum">     625 </span>            :       const int m) const noexcept;
+<span class="lineNum">     626 </span>            : 
+<span class="lineNum">     627 </span>            : GENERATE_INSTANTIATIONS(INTERPOLATION_INSTANTIATION, (-2, -1, 0, 1, 2))
+<span class="lineNum">     628 </span>            : 
+<span class="lineNum">     629 </span>            : #undef INTERPOLATION_INSTANTIATION
+<span class="lineNum">     630 </span>            : #undef GET_SPIN
+<span class="lineNum">     631 </span>            : 
+<span class="lineNum">     632 </span>            : }  // namespace Swsh
+<span class="lineNum">     633 </span>            : }  // namespace Spectral
+<span class="lineNum">     634 </span>            : /// \endcond
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

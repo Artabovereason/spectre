@@ -1,0 +1,117 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - IO/H5/Python/Dat.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../index.html">top level</a> - <a href="index.html">IO/H5/Python</a> - Dat.cpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #include &lt;pybind11/pybind11.h&gt;
+<span class="lineNum">       5 </span>            : #include &lt;pybind11/stl.h&gt;
+<span class="lineNum">       6 </span>            : #include &lt;string&gt;
+<span class="lineNum">       7 </span>            : #include &lt;vector&gt;
+<span class="lineNum">       8 </span>            : 
+<span class="lineNum">       9 </span>            : #include &quot;DataStructures/Matrix.hpp&quot;
+<span class="lineNum">      10 </span>            : #include &quot;IO/H5/Dat.hpp&quot;
+<span class="lineNum">      11 </span>            : 
+<span class="lineNum">      12 </span>            : namespace py = pybind11;
+<span class="lineNum">      13 </span>            : 
+<span class="lineNum">      14 </span>            : namespace py_bindings {
+<span class="lineNum">      15 </span>            : void bind_h5dat(py::module&amp; m) {  // NOLINT
+<span class="lineNum">      16 </span>            :   // Wrapper for basic H5Dat operations
+<span class="lineNum">      17 </span>            :   py::class_&lt;h5::Dat&gt;(m, &quot;H5Dat&quot;)
+<span class="lineNum">      18 </span>            :       .def(&quot;append&quot;,
+<span class="lineNum">      19 </span>            :            static_cast&lt;void (h5::Dat::*)(const std::vector&lt;double&gt;&amp;)&gt;(
+<span class="lineNum">      20 </span>            :                &amp;h5::Dat::append),
+<span class="lineNum">      21 </span>            :            py::arg(&quot;data&quot;))
+<span class="lineNum">      22 </span>            :       .def(&quot;append&quot;,
+<span class="lineNum">      23 </span>            :            static_cast&lt;void (h5::Dat::*)(const Matrix&amp;)&gt;(&amp;h5::Dat::append),
+<span class="lineNum">      24 </span>            :            py::arg(&quot;data&quot;))
+<span class="lineNum">      25 </span>            :       .def(&quot;append&quot;,
+<span class="lineNum">      26 </span>            :            static_cast&lt;void (h5::Dat::*)(
+<span class="lineNum">      27 </span>            :                const std::vector&lt;std::vector&lt;double&gt;&gt;&amp;)&gt;(&amp;h5::Dat::append),
+<span class="lineNum">      28 </span>            :            py::arg(&quot;data&quot;))
+<span class="lineNum">      29 </span>            :       .def(&quot;get_legend&quot;, &amp;h5::Dat::get_legend)
+<span class="lineNum">      30 </span>            :       .def(&quot;get_data&quot;, &amp;h5::Dat::get_data)
+<span class="lineNum">      31 </span>            :       .def(&quot;get_data_subset&quot;, &amp;h5::Dat::get_data_subset, py::arg(&quot;columns&quot;),
+<span class="lineNum">      32 </span>            :            py::arg(&quot;first_row&quot;) = 0, py::arg(&quot;num_rows&quot;) = 1)
+<span class="lineNum">      33 </span>            :       .def(&quot;get_dimensions&quot;, &amp;h5::Dat::get_dimensions)
+<span class="lineNum">      34 </span>            :       .def(&quot;get_header&quot;, &amp;h5::Dat::get_header)
+<span class="lineNum">      35 </span>            :       .def(&quot;get_version&quot;, &amp;h5::Dat::get_version);
+<span class="lineNum">      36 </span>            : }
+<span class="lineNum">      37 </span>            : }  // namespace py_bindings
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

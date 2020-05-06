@@ -1,0 +1,419 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - ParallelAlgorithms/LinearSolver/Gmres/ElementActions.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../index.html">top level</a> - <a href="index.html">ParallelAlgorithms/LinearSolver/Gmres</a> - ElementActions.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #pragma once
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;tuple&gt;
+<span class="lineNum">       7 </span>            : 
+<span class="lineNum">       8 </span>            : #include &quot;DataStructures/DataBox/DataBox.hpp&quot;
+<span class="lineNum">       9 </span>            : #include &quot;DataStructures/DataBox/PrefixHelpers.hpp&quot;
+<span class="lineNum">      10 </span>            : #include &quot;DataStructures/DataBox/Prefixes.hpp&quot;
+<span class="lineNum">      11 </span>            : #include &quot;DataStructures/DenseVector.hpp&quot;
+<span class="lineNum">      12 </span>            : #include &quot;NumericalAlgorithms/LinearSolver/InnerProduct.hpp&quot;
+<span class="lineNum">      13 </span>            : #include &quot;Parallel/ConstGlobalCache.hpp&quot;
+<span class="lineNum">      14 </span>            : #include &quot;Parallel/Info.hpp&quot;
+<span class="lineNum">      15 </span>            : #include &quot;Parallel/Invoke.hpp&quot;
+<span class="lineNum">      16 </span>            : #include &quot;Parallel/Reduction.hpp&quot;
+<span class="lineNum">      17 </span>            : #include &quot;ParallelAlgorithms/LinearSolver/Gmres/ResidualMonitorActions.hpp&quot;
+<span class="lineNum">      18 </span>            : #include &quot;ParallelAlgorithms/LinearSolver/Tags.hpp&quot;
+<span class="lineNum">      19 </span>            : #include &quot;Utilities/Functional.hpp&quot;
+<span class="lineNum">      20 </span>            : #include &quot;Utilities/Gsl.hpp&quot;
+<span class="lineNum">      21 </span>            : #include &quot;Utilities/Requires.hpp&quot;
+<span class="lineNum">      22 </span>            : 
+<span class="lineNum">      23 </span>            : /// \cond
+<span class="lineNum">      24 </span>            : namespace tuples {
+<span class="lineNum">      25 </span>            : template &lt;typename...&gt;
+<span class="lineNum">      26 </span>            : class TaggedTuple;
+<span class="lineNum">      27 </span>            : }  // namespace tuples
+<span class="lineNum">      28 </span>            : namespace LinearSolver {
+<span class="lineNum">      29 </span>            : namespace gmres_detail {
+<span class="lineNum">      30 </span>            : template &lt;typename Metavariables, typename FieldsTag, typename OptionsGroup&gt;
+<span class="lineNum">      31 </span>            : struct ResidualMonitor;
+<span class="lineNum">      32 </span>            : }  // namespace gmres_detail
+<span class="lineNum">      33 </span>            : }  // namespace LinearSolver
+<span class="lineNum">      34 </span>            : /// \endcond
+<span class="lineNum">      35 </span>            : 
+<span class="lineNum">      36 </span>            : namespace LinearSolver {
+<span class="lineNum">      37 </span>            : namespace gmres_detail {
+<span class="lineNum">      38 </span>            : 
+<span class="lineNum">      39 </span>            : template &lt;typename FieldsTag, typename OptionsGroup&gt;
+<span class="lineNum">      40 </span>            : struct PrepareSolve {
+<span class="lineNum">      41 </span>            :  private:
+<span class="lineNum">      42 </span>            :   using fields_tag = FieldsTag;
+<span class="lineNum">      43 </span>            :   using initial_fields_tag =
+<span class="lineNum">      44 </span>            :       db::add_tag_prefix&lt;LinearSolver::Tags::Initial, fields_tag&gt;;
+<span class="lineNum">      45 </span>            :   using source_tag = db::add_tag_prefix&lt;::Tags::FixedSource, fields_tag&gt;;
+<span class="lineNum">      46 </span>            :   using operator_applied_to_fields_tag =
+<span class="lineNum">      47 </span>            :       db::add_tag_prefix&lt;LinearSolver::Tags::OperatorAppliedTo, fields_tag&gt;;
+<span class="lineNum">      48 </span>            :   using operand_tag =
+<span class="lineNum">      49 </span>            :       db::add_tag_prefix&lt;LinearSolver::Tags::Operand, fields_tag&gt;;
+<span class="lineNum">      50 </span>            :   using basis_history_tag = LinearSolver::Tags::KrylovSubspaceBasis&lt;fields_tag&gt;;
+<span class="lineNum">      51 </span>            : 
+<span class="lineNum">      52 </span>            :  public:
+<span class="lineNum">      53 </span>            :   template &lt;typename DbTagsList, typename... InboxTags, typename Metavariables,
+<span class="lineNum">      54 </span>            :             typename ArrayIndex, typename ActionList,
+<span class="lineNum">      55 </span>            :             typename ParallelComponent&gt;
+<span class="lineNum">      56 </span>            :   static std::tuple&lt;db::DataBox&lt;DbTagsList&gt;&amp;&amp;, bool&gt; apply(
+<span class="lineNum">      57 </span>            :       db::DataBox&lt;DbTagsList&gt;&amp; box,
+<span class="lineNum">      58 </span>            :       const tuples::TaggedTuple&lt;InboxTags...&gt;&amp; /*inboxes*/,
+<span class="lineNum">      59 </span>            :       Parallel::ConstGlobalCache&lt;Metavariables&gt;&amp; cache,
+<span class="lineNum">      60 </span>            :       const ArrayIndex&amp; array_index, const ActionList /*meta*/,
+<span class="lineNum">      61 </span>            :       const ParallelComponent* const /*meta*/) noexcept {
+<span class="lineNum">      62 </span>            :     db::mutate&lt;LinearSolver::Tags::IterationId&lt;OptionsGroup&gt;, operand_tag,
+<span class="lineNum">      63 </span>            :                initial_fields_tag, basis_history_tag&gt;(
+<span class="lineNum">      64 </span>            :         make_not_null(&amp;box),
+<span class="lineNum">      65 </span>            :         [](const gsl::not_null&lt;size_t*&gt; iteration_id,
+<span class="lineNum">      66 </span>            :            const gsl::not_null&lt;db::item_type&lt;operand_tag&gt;*&gt; operand,
+<span class="lineNum">      67 </span>            :            const gsl::not_null&lt;db::item_type&lt;initial_fields_tag&gt;*&gt;
+<span class="lineNum">      68 </span>            :                initial_fields,
+<span class="lineNum">      69 </span>            :            const gsl::not_null&lt;db::item_type&lt;basis_history_tag&gt;*&gt; basis_history,
+<span class="lineNum">      70 </span>            :            const db::item_type&lt;source_tag&gt;&amp; source,
+<span class="lineNum">      71 </span>            :            const db::item_type&lt;operator_applied_to_fields_tag&gt;&amp;
+<span class="lineNum">      72 </span>            :                operator_applied_to_fields,
+<span class="lineNum">      73 </span>            :            const db::item_type&lt;fields_tag&gt;&amp; fields) noexcept {
+<span class="lineNum">      74 </span>            :           *iteration_id = 0;
+<span class="lineNum">      75 </span>            :           *operand = source - operator_applied_to_fields;
+<span class="lineNum">      76 </span>            :           *initial_fields = fields;
+<span class="lineNum">      77 </span>            :           *basis_history = db::item_type&lt;basis_history_tag&gt;{};
+<span class="lineNum">      78 </span>            :         },
+<span class="lineNum">      79 </span>            :         get&lt;source_tag&gt;(box), get&lt;operator_applied_to_fields_tag&gt;(box),
+<span class="lineNum">      80 </span>            :         get&lt;fields_tag&gt;(box));
+<span class="lineNum">      81 </span>            : 
+<span class="lineNum">      82 </span>            :     Parallel::contribute_to_reduction&lt;gmres_detail::InitializeResidualMagnitude&lt;
+<span class="lineNum">      83 </span>            :         FieldsTag, OptionsGroup, ParallelComponent&gt;&gt;(
+<span class="lineNum">      84 </span>            :         Parallel::ReductionData&lt;
+<span class="lineNum">      85 </span>            :             Parallel::ReductionDatum&lt;double, funcl::Plus&lt;&gt;, funcl::Sqrt&lt;&gt;&gt;&gt;{
+<span class="lineNum">      86 </span>            :             inner_product(get&lt;operand_tag&gt;(box), get&lt;operand_tag&gt;(box))},
+<span class="lineNum">      87 </span>            :         Parallel::get_parallel_component&lt;ParallelComponent&gt;(cache)[array_index],
+<span class="lineNum">      88 </span>            :         Parallel::get_parallel_component&lt;
+<span class="lineNum">      89 </span>            :             ResidualMonitor&lt;Metavariables, FieldsTag, OptionsGroup&gt;&gt;(cache));
+<span class="lineNum">      90 </span>            : 
+<span class="lineNum">      91 </span>            :     return {
+<span class="lineNum">      92 </span>            :         std::move(box),
+<span class="lineNum">      93 </span>            :         // Terminate algorithm for now. The `ResidualMonitor` will receive the
+<span class="lineNum">      94 </span>            :         // reduction that is performed above and then broadcast to the following
+<span class="lineNum">      95 </span>            :         // action, which is responsible for restarting the algorithm.
+<span class="lineNum">      96 </span>            :         true};
+<span class="lineNum">      97 </span>            :   }
+<span class="lineNum">      98 </span>            : };
+<span class="lineNum">      99 </span>            : 
+<span class="lineNum">     100 </span>            : template &lt;typename FieldsTag, typename OptionsGroup&gt;
+<span class="lineNum">     101 </span>            : struct NormalizeInitialOperand {
+<span class="lineNum">     102 </span>            :  private:
+<span class="lineNum">     103 </span>            :   using fields_tag = FieldsTag;
+<span class="lineNum">     104 </span>            :   using operand_tag =
+<span class="lineNum">     105 </span>            :       db::add_tag_prefix&lt;LinearSolver::Tags::Operand, fields_tag&gt;;
+<span class="lineNum">     106 </span>            :   using basis_history_tag = LinearSolver::Tags::KrylovSubspaceBasis&lt;fields_tag&gt;;
+<span class="lineNum">     107 </span>            : 
+<span class="lineNum">     108 </span>            :  public:
+<span class="lineNum">     109 </span>            :   template &lt;
+<span class="lineNum">     110 </span>            :       typename ParallelComponent, typename DbTagsList, typename Metavariables,
+<span class="lineNum">     111 </span>            :       typename ArrayIndex, typename DataBox = db::DataBox&lt;DbTagsList&gt;,
+<span class="lineNum">     112 </span>            :       Requires&lt;db::tag_is_retrievable_v&lt;operand_tag, DataBox&gt; and
+<span class="lineNum">     113 </span>            :                db::tag_is_retrievable_v&lt;basis_history_tag, DataBox&gt; and
+<span class="lineNum">     114 </span>            :                db::tag_is_retrievable_v&lt;
+<span class="lineNum">     115 </span>            :                    LinearSolver::Tags::HasConverged&lt;OptionsGroup&gt;, DataBox&gt;&gt; =
+<span class="lineNum">     116 </span>            :           nullptr&gt;
+<span class="lineNum">     117 </span>            :   static void apply(db::DataBox&lt;DbTagsList&gt;&amp; box,
+<span class="lineNum">     118 </span>            :                     Parallel::ConstGlobalCache&lt;Metavariables&gt;&amp; cache,
+<span class="lineNum">     119 </span>            :                     const ArrayIndex&amp; array_index,
+<span class="lineNum">     120 </span>            :                     const double residual_magnitude,
+<span class="lineNum">     121 </span>            :                     const Convergence::HasConverged&amp; has_converged) noexcept {
+<span class="lineNum">     122 </span>            :     db::mutate&lt;operand_tag, basis_history_tag,
+<span class="lineNum">     123 </span>            :                LinearSolver::Tags::HasConverged&lt;OptionsGroup&gt;&gt;(
+<span class="lineNum">     124 </span>            :         make_not_null(&amp;box),
+<span class="lineNum">     125 </span>            :         [residual_magnitude, &amp;has_converged](
+<span class="lineNum">     126 </span>            :             const gsl::not_null&lt;db::item_type&lt;operand_tag&gt;*&gt; operand,
+<span class="lineNum">     127 </span>            :             const gsl::not_null&lt;db::item_type&lt;basis_history_tag&gt;*&gt;
+<span class="lineNum">     128 </span>            :                 basis_history,
+<span class="lineNum">     129 </span>            :             const gsl::not_null&lt;Convergence::HasConverged*&gt;
+<span class="lineNum">     130 </span>            :                 local_has_converged) noexcept {
+<span class="lineNum">     131 </span>            :           *operand /= residual_magnitude;
+<span class="lineNum">     132 </span>            :           basis_history-&gt;push_back(*operand);
+<span class="lineNum">     133 </span>            :           *local_has_converged = has_converged;
+<span class="lineNum">     134 </span>            :         });
+<span class="lineNum">     135 </span>            : 
+<span class="lineNum">     136 </span>            :     // Proceed with algorithm
+<span class="lineNum">     137 </span>            :     Parallel::get_parallel_component&lt;ParallelComponent&gt;(cache)[array_index]
+<span class="lineNum">     138 </span>            :         .perform_algorithm(true);
+<span class="lineNum">     139 </span>            :   }
+<span class="lineNum">     140 </span>            : };
+<span class="lineNum">     141 </span>            : 
+<span class="lineNum">     142 </span>            : template &lt;typename FieldsTag, typename OptionsGroup&gt;
+<span class="lineNum">     143 </span>            : struct PrepareStep {
+<span class="lineNum">     144 </span>            :   template &lt;typename DbTagsList, typename... InboxTags, typename Metavariables,
+<span class="lineNum">     145 </span>            :             typename ArrayIndex, typename ActionList,
+<span class="lineNum">     146 </span>            :             typename ParallelComponent&gt;
+<span class="lineNum">     147 </span>            :   static std::tuple&lt;db::DataBox&lt;DbTagsList&gt;&amp;&amp;&gt; apply(
+<span class="lineNum">     148 </span>            :       db::DataBox&lt;DbTagsList&gt;&amp; box,
+<span class="lineNum">     149 </span>            :       const tuples::TaggedTuple&lt;InboxTags...&gt;&amp; /*inboxes*/,
+<span class="lineNum">     150 </span>            :       const Parallel::ConstGlobalCache&lt;Metavariables&gt;&amp; /*cache*/,
+<span class="lineNum">     151 </span>            :       const ArrayIndex&amp; /*array_index*/, const ActionList /*meta*/,
+<span class="lineNum">     152 </span>            :       const ParallelComponent* const /*meta*/) noexcept {
+<span class="lineNum">     153 </span>            :     // Nothing to do before applying the linear operator to the operand
+<span class="lineNum">     154 </span>            :     return {std::move(box)};
+<span class="lineNum">     155 </span>            :   }
+<span class="lineNum">     156 </span>            : };
+<span class="lineNum">     157 </span>            : 
+<span class="lineNum">     158 </span>            : template &lt;typename FieldsTag, typename OptionsGroup&gt;
+<span class="lineNum">     159 </span>            : struct PerformStep {
+<span class="lineNum">     160 </span>            :   template &lt;typename DbTagsList, typename... InboxTags, typename Metavariables,
+<span class="lineNum">     161 </span>            :             typename ArrayIndex, typename ActionList,
+<span class="lineNum">     162 </span>            :             typename ParallelComponent&gt;
+<span class="lineNum">     163 </span>            :   static std::tuple&lt;db::DataBox&lt;DbTagsList&gt;&amp;&amp;, bool&gt; apply(
+<span class="lineNum">     164 </span>            :       db::DataBox&lt;DbTagsList&gt;&amp; box,
+<span class="lineNum">     165 </span>            :       const tuples::TaggedTuple&lt;InboxTags...&gt;&amp; /*inboxes*/,
+<span class="lineNum">     166 </span>            :       Parallel::ConstGlobalCache&lt;Metavariables&gt;&amp; cache,
+<span class="lineNum">     167 </span>            :       const ArrayIndex&amp; array_index,
+<span class="lineNum">     168 </span>            :       // NOLINTNEXTLINE(readability-avoid-const-params-in-decls)
+<span class="lineNum">     169 </span>            :       const ActionList /*meta*/,
+<span class="lineNum">     170 </span>            :       // NOLINTNEXTLINE(readability-avoid-const-params-in-decls)
+<span class="lineNum">     171 </span>            :       const ParallelComponent* const /*meta*/) noexcept {
+<span class="lineNum">     172 </span>            :     using fields_tag = FieldsTag;
+<span class="lineNum">     173 </span>            :     using operand_tag =
+<span class="lineNum">     174 </span>            :         db::add_tag_prefix&lt;LinearSolver::Tags::Operand, fields_tag&gt;;
+<span class="lineNum">     175 </span>            :     using operator_tag =
+<span class="lineNum">     176 </span>            :         db::add_tag_prefix&lt;LinearSolver::Tags::OperatorAppliedTo, operand_tag&gt;;
+<span class="lineNum">     177 </span>            :     using orthogonalization_iteration_id_tag =
+<span class="lineNum">     178 </span>            :         db::add_tag_prefix&lt;LinearSolver::Tags::Orthogonalization,
+<span class="lineNum">     179 </span>            :                            LinearSolver::Tags::IterationId&lt;OptionsGroup&gt;&gt;;
+<span class="lineNum">     180 </span>            :     using basis_history_tag =
+<span class="lineNum">     181 </span>            :         LinearSolver::Tags::KrylovSubspaceBasis&lt;fields_tag&gt;;
+<span class="lineNum">     182 </span>            : 
+<span class="lineNum">     183 </span>            :     db::mutate&lt;operand_tag, orthogonalization_iteration_id_tag&gt;(
+<span class="lineNum">     184 </span>            :         make_not_null(&amp;box),
+<span class="lineNum">     185 </span>            :         [](const gsl::not_null&lt;db::item_type&lt;operand_tag&gt;*&gt; operand,
+<span class="lineNum">     186 </span>            :            const gsl::not_null&lt;size_t*&gt; orthogonalization_iteration_id,
+<span class="lineNum">     187 </span>            :            const db::const_item_type&lt;operator_tag&gt;&amp; operator_action) noexcept {
+<span class="lineNum">     188 </span>            :           *operand = db::item_type&lt;operand_tag&gt;(operator_action);
+<span class="lineNum">     189 </span>            :           *orthogonalization_iteration_id = 0;
+<span class="lineNum">     190 </span>            :         },
+<span class="lineNum">     191 </span>            :         get&lt;operator_tag&gt;(box));
+<span class="lineNum">     192 </span>            : 
+<span class="lineNum">     193 </span>            :     Parallel::contribute_to_reduction&lt;
+<span class="lineNum">     194 </span>            :         StoreOrthogonalization&lt;FieldsTag, OptionsGroup, ParallelComponent&gt;&gt;(
+<span class="lineNum">     195 </span>            :         Parallel::ReductionData&lt;
+<span class="lineNum">     196 </span>            :             Parallel::ReductionDatum&lt;double, funcl::Plus&lt;&gt;&gt;&gt;{inner_product(
+<span class="lineNum">     197 </span>            :             get&lt;basis_history_tag&gt;(box)[0], get&lt;operand_tag&gt;(box))},
+<span class="lineNum">     198 </span>            :         Parallel::get_parallel_component&lt;ParallelComponent&gt;(cache)[array_index],
+<span class="lineNum">     199 </span>            :         Parallel::get_parallel_component&lt;
+<span class="lineNum">     200 </span>            :             ResidualMonitor&lt;Metavariables, FieldsTag, OptionsGroup&gt;&gt;(cache));
+<span class="lineNum">     201 </span>            : 
+<span class="lineNum">     202 </span>            :     // Terminate algorithm for now. The `ResidualMonitor` will receive the
+<span class="lineNum">     203 </span>            :     // reduction that is performed above and then broadcast to the following
+<span class="lineNum">     204 </span>            :     // action, which is responsible for restarting the algorithm.
+<span class="lineNum">     205 </span>            :     return {std::move(box), true};
+<span class="lineNum">     206 </span>            :   }
+<span class="lineNum">     207 </span>            : };
+<span class="lineNum">     208 </span>            : 
+<span class="lineNum">     209 </span>            : template &lt;typename FieldsTag, typename OptionsGroup&gt;
+<span class="lineNum">     210 </span>            : struct OrthogonalizeOperand {
+<span class="lineNum">     211 </span>            :  private:
+<span class="lineNum">     212 </span>            :   using fields_tag = FieldsTag;
+<span class="lineNum">     213 </span>            :   using operand_tag =
+<span class="lineNum">     214 </span>            :       db::add_tag_prefix&lt;LinearSolver::Tags::Operand, fields_tag&gt;;
+<span class="lineNum">     215 </span>            :   using orthogonalization_iteration_id_tag =
+<span class="lineNum">     216 </span>            :       db::add_tag_prefix&lt;LinearSolver::Tags::Orthogonalization,
+<span class="lineNum">     217 </span>            :                          LinearSolver::Tags::IterationId&lt;OptionsGroup&gt;&gt;;
+<span class="lineNum">     218 </span>            :   using basis_history_tag = LinearSolver::Tags::KrylovSubspaceBasis&lt;fields_tag&gt;;
+<span class="lineNum">     219 </span>            : 
+<span class="lineNum">     220 </span>            :  public:
+<span class="lineNum">     221 </span>            :   template &lt;
+<span class="lineNum">     222 </span>            :       typename ParallelComponent, typename DbTagsList, typename Metavariables,
+<span class="lineNum">     223 </span>            :       typename ArrayIndex, typename DataBox = db::DataBox&lt;DbTagsList&gt;,
+<span class="lineNum">     224 </span>            :       Requires&lt;db::tag_is_retrievable_v&lt;fields_tag, DataBox&gt; and
+<span class="lineNum">     225 </span>            :                db::tag_is_retrievable_v&lt;operand_tag, DataBox&gt; and
+<span class="lineNum">     226 </span>            :                db::tag_is_retrievable_v&lt;orthogonalization_iteration_id_tag,
+<span class="lineNum">     227 </span>            :                                         DataBox&gt; and
+<span class="lineNum">     228 </span>            :                db::tag_is_retrievable_v&lt;basis_history_tag, DataBox&gt; and
+<span class="lineNum">     229 </span>            :                db::tag_is_retrievable_v&lt;
+<span class="lineNum">     230 </span>            :                    LinearSolver::Tags::IterationId&lt;OptionsGroup&gt;, DataBox&gt;&gt; =
+<span class="lineNum">     231 </span>            :           nullptr&gt;
+<span class="lineNum">     232 </span>            :   static void apply(db::DataBox&lt;DbTagsList&gt;&amp; box,
+<span class="lineNum">     233 </span>            :                     Parallel::ConstGlobalCache&lt;Metavariables&gt;&amp; cache,
+<span class="lineNum">     234 </span>            :                     const ArrayIndex&amp; array_index,
+<span class="lineNum">     235 </span>            :                     const double orthogonalization) noexcept {
+<span class="lineNum">     236 </span>            :     db::mutate&lt;operand_tag, orthogonalization_iteration_id_tag&gt;(
+<span class="lineNum">     237 </span>            :         make_not_null(&amp;box),
+<span class="lineNum">     238 </span>            :         [orthogonalization](
+<span class="lineNum">     239 </span>            :             const gsl::not_null&lt;db::item_type&lt;operand_tag&gt;*&gt; operand,
+<span class="lineNum">     240 </span>            :             const gsl::not_null&lt;size_t*&gt; orthogonalization_iteration_id,
+<span class="lineNum">     241 </span>            :             const db::const_item_type&lt;basis_history_tag&gt;&amp;
+<span class="lineNum">     242 </span>            :                 basis_history) noexcept {
+<span class="lineNum">     243 </span>            :           *operand -= orthogonalization *
+<span class="lineNum">     244 </span>            :                       gsl::at(basis_history, *orthogonalization_iteration_id);
+<span class="lineNum">     245 </span>            :           ++(*orthogonalization_iteration_id);
+<span class="lineNum">     246 </span>            :         },
+<span class="lineNum">     247 </span>            :         get&lt;basis_history_tag&gt;(box));
+<span class="lineNum">     248 </span>            : 
+<span class="lineNum">     249 </span>            :     const auto&amp; next_orthogonalization_iteration_id =
+<span class="lineNum">     250 </span>            :         get&lt;orthogonalization_iteration_id_tag&gt;(box);
+<span class="lineNum">     251 </span>            :     const auto&amp; iteration_id =
+<span class="lineNum">     252 </span>            :         get&lt;LinearSolver::Tags::IterationId&lt;OptionsGroup&gt;&gt;(box);
+<span class="lineNum">     253 </span>            : 
+<span class="lineNum">     254 </span>            :     if (next_orthogonalization_iteration_id &lt;= iteration_id) {
+<span class="lineNum">     255 </span>            :       Parallel::contribute_to_reduction&lt;
+<span class="lineNum">     256 </span>            :           StoreOrthogonalization&lt;FieldsTag, OptionsGroup, ParallelComponent&gt;&gt;(
+<span class="lineNum">     257 </span>            :           Parallel::ReductionData&lt;
+<span class="lineNum">     258 </span>            :               Parallel::ReductionDatum&lt;double, funcl::Plus&lt;&gt;&gt;&gt;{
+<span class="lineNum">     259 </span>            :               inner_product(gsl::at(get&lt;basis_history_tag&gt;(box),
+<span class="lineNum">     260 </span>            :                                     next_orthogonalization_iteration_id),
+<span class="lineNum">     261 </span>            :                             get&lt;operand_tag&gt;(box))},
+<span class="lineNum">     262 </span>            :           Parallel::get_parallel_component&lt;ParallelComponent&gt;(
+<span class="lineNum">     263 </span>            :               cache)[array_index],
+<span class="lineNum">     264 </span>            :           Parallel::get_parallel_component&lt;
+<span class="lineNum">     265 </span>            :               ResidualMonitor&lt;Metavariables, FieldsTag, OptionsGroup&gt;&gt;(cache));
+<span class="lineNum">     266 </span>            :     } else {
+<span class="lineNum">     267 </span>            :       Parallel::contribute_to_reduction&lt;StoreFinalOrthogonalization&lt;
+<span class="lineNum">     268 </span>            :           FieldsTag, OptionsGroup, ParallelComponent&gt;&gt;(
+<span class="lineNum">     269 </span>            :           Parallel::ReductionData&lt;
+<span class="lineNum">     270 </span>            :               Parallel::ReductionDatum&lt;double, funcl::Plus&lt;&gt;&gt;&gt;{
+<span class="lineNum">     271 </span>            :               inner_product(get&lt;operand_tag&gt;(box), get&lt;operand_tag&gt;(box))},
+<span class="lineNum">     272 </span>            :           Parallel::get_parallel_component&lt;ParallelComponent&gt;(
+<span class="lineNum">     273 </span>            :               cache)[array_index],
+<span class="lineNum">     274 </span>            :           Parallel::get_parallel_component&lt;
+<span class="lineNum">     275 </span>            :               ResidualMonitor&lt;Metavariables, FieldsTag, OptionsGroup&gt;&gt;(cache));
+<span class="lineNum">     276 </span>            :     }
+<span class="lineNum">     277 </span>            :   }
+<span class="lineNum">     278 </span>            : };
+<span class="lineNum">     279 </span>            : 
+<span class="lineNum">     280 </span>            : template &lt;typename FieldsTag, typename OptionsGroup&gt;
+<span class="lineNum">     281 </span>            : struct NormalizeOperandAndUpdateField {
+<span class="lineNum">     282 </span>            :  private:
+<span class="lineNum">     283 </span>            :   using fields_tag = FieldsTag;
+<span class="lineNum">     284 </span>            :   using initial_fields_tag =
+<span class="lineNum">     285 </span>            :       db::add_tag_prefix&lt;LinearSolver::Tags::Initial, fields_tag&gt;;
+<span class="lineNum">     286 </span>            :   using operand_tag =
+<span class="lineNum">     287 </span>            :       db::add_tag_prefix&lt;LinearSolver::Tags::Operand, fields_tag&gt;;
+<span class="lineNum">     288 </span>            :   using basis_history_tag = LinearSolver::Tags::KrylovSubspaceBasis&lt;fields_tag&gt;;
+<span class="lineNum">     289 </span>            : 
+<span class="lineNum">     290 </span>            :  public:
+<span class="lineNum">     291 </span>            :   template &lt;
+<span class="lineNum">     292 </span>            :       typename ParallelComponent, typename DbTagsList, typename Metavariables,
+<span class="lineNum">     293 </span>            :       typename ArrayIndex, typename DataBox = db::DataBox&lt;DbTagsList&gt;,
+<span class="lineNum">     294 </span>            :       Requires&lt;db::tag_is_retrievable_v&lt;fields_tag, DataBox&gt; and
+<span class="lineNum">     295 </span>            :                db::tag_is_retrievable_v&lt;initial_fields_tag, DataBox&gt; and
+<span class="lineNum">     296 </span>            :                db::tag_is_retrievable_v&lt;operand_tag, DataBox&gt; and
+<span class="lineNum">     297 </span>            :                db::tag_is_retrievable_v&lt;basis_history_tag, DataBox&gt; and
+<span class="lineNum">     298 </span>            :                db::tag_is_retrievable_v&lt;
+<span class="lineNum">     299 </span>            :                    LinearSolver::Tags::IterationId&lt;OptionsGroup&gt;, DataBox&gt; and
+<span class="lineNum">     300 </span>            :                db::tag_is_retrievable_v&lt;
+<span class="lineNum">     301 </span>            :                    LinearSolver::Tags::HasConverged&lt;OptionsGroup&gt;, DataBox&gt;&gt; =
+<span class="lineNum">     302 </span>            :           nullptr&gt;
+<span class="lineNum">     303 </span>            :   static void apply(db::DataBox&lt;DbTagsList&gt;&amp; box,
+<span class="lineNum">     304 </span>            :                     Parallel::ConstGlobalCache&lt;Metavariables&gt;&amp; cache,
+<span class="lineNum">     305 </span>            :                     const ArrayIndex&amp; array_index, const double normalization,
+<span class="lineNum">     306 </span>            :                     const DenseVector&lt;double&gt;&amp; minres,
+<span class="lineNum">     307 </span>            :                     const Convergence::HasConverged&amp; has_converged) noexcept {
+<span class="lineNum">     308 </span>            :     db::mutate&lt;operand_tag, basis_history_tag, fields_tag,
+<span class="lineNum">     309 </span>            :                LinearSolver::Tags::IterationId&lt;OptionsGroup&gt;,
+<span class="lineNum">     310 </span>            :                LinearSolver::Tags::HasConverged&lt;OptionsGroup&gt;&gt;(
+<span class="lineNum">     311 </span>            :         make_not_null(&amp;box),
+<span class="lineNum">     312 </span>            :         [normalization, &amp;minres, &amp;has_converged](
+<span class="lineNum">     313 </span>            :             const gsl::not_null&lt;db::item_type&lt;operand_tag&gt;*&gt; operand,
+<span class="lineNum">     314 </span>            :             const gsl::not_null&lt;db::item_type&lt;basis_history_tag&gt;*&gt;
+<span class="lineNum">     315 </span>            :                 basis_history,
+<span class="lineNum">     316 </span>            :             const gsl::not_null&lt;db::item_type&lt;fields_tag&gt;*&gt; field,
+<span class="lineNum">     317 </span>            :             const gsl::not_null&lt;size_t*&gt; iteration_id,
+<span class="lineNum">     318 </span>            :             const gsl::not_null&lt;Convergence::HasConverged*&gt; local_has_converged,
+<span class="lineNum">     319 </span>            :             const db::const_item_type&lt;initial_fields_tag&gt;&amp;
+<span class="lineNum">     320 </span>            :                 initial_field) noexcept {
+<span class="lineNum">     321 </span>            :           *operand /= normalization;
+<span class="lineNum">     322 </span>            :           basis_history-&gt;push_back(*operand);
+<span class="lineNum">     323 </span>            :           *field = initial_field;
+<span class="lineNum">     324 </span>            :           for (size_t i = 0; i &lt; minres.size(); i++) {
+<span class="lineNum">     325 </span>            :             *field += minres[i] * gsl::at(*basis_history, i);
+<span class="lineNum">     326 </span>            :           }
+<span class="lineNum">     327 </span>            :           ++(*iteration_id);
+<span class="lineNum">     328 </span>            :           *local_has_converged = has_converged;
+<span class="lineNum">     329 </span>            :         },
+<span class="lineNum">     330 </span>            :         get&lt;initial_fields_tag&gt;(box));
+<span class="lineNum">     331 </span>            : 
+<span class="lineNum">     332 </span>            :     // Proceed with algorithm
+<span class="lineNum">     333 </span>            :     Parallel::get_parallel_component&lt;ParallelComponent&gt;(cache)[array_index]
+<span class="lineNum">     334 </span>            :         .perform_algorithm(true);
+<span class="lineNum">     335 </span>            :   }
+<span class="lineNum">     336 </span>            : };
+<span class="lineNum">     337 </span>            : 
+<span class="lineNum">     338 </span>            : }  // namespace gmres_detail
+<span class="lineNum">     339 </span>            : }  // namespace LinearSolver
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

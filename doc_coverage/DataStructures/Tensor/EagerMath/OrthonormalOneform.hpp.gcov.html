@@ -1,0 +1,156 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - DataStructures/Tensor/EagerMath/OrthonormalOneform.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../index.html">top level</a> - <a href="index.html">DataStructures/Tensor/EagerMath</a> - OrthonormalOneform.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">4</td>
+            <td class="headerCovTableEntry">5</td>
+            <td class="headerCovTableEntryMed">80.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #pragma once
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;cstddef&gt;
+<span class="lineNum">       7 </span>            : 
+<span class="lineNum">       8 </span>            : #include &quot;DataStructures/Tensor/TypeAliases.hpp&quot;
+<span class="lineNum">       9 </span>            : 
+<span class="lineNum">      10 </span>            : /// \cond
+<span class="lineNum">      11 </span>            : namespace gsl {
+<span class="lineNum">      12 </span>            : template &lt;typename&gt;
+<span class="lineNum">      13 </span>            : struct not_null;
+<span class="lineNum">      14 </span>            : }  // namespace gsl
+<span class="lineNum">      15 </span>            : /// \endcond
+<span class="lineNum">      16 </span>            : 
+<span class="lineNum">      17 </span>            : // @{
+<span class="lineNum">      18 </span>            : /*!
+<span class="lineNum">      19 </span>            :  * \ingroup TensorGroup
+<span class="lineNum">      20 </span>            :  *
+<span class="lineNum">      21 </span>            :  * \brief Compute a spatial one-form orthonormal to the given unit form
+<span class="lineNum">      22 </span>            :  *
+<span class="lineNum">      23 </span>            :  * Given a unit spatial one-form \f$s_i\f$, compute a new form \f$t_i\f$
+<span class="lineNum">      24 </span>            :  * which is orthonormal to \f$s_i\f$, in the sense that
+<span class="lineNum">      25 </span>            :  * \f$\gamma^{ij}s_i t_j = 0\f$, for the given inverse spatial metric
+<span class="lineNum">      26 </span>            :  * \f$\gamma^{ij}\f$. The normalization of \f$t_i\f$ is such that
+<span class="lineNum">      27 </span>            :  * \f$\gamma^{ij}t_it_j = 1\f$.
+<span class="lineNum">      28 </span>            :  *
+<span class="lineNum">      29 </span>            :  * \details The new form is obtained via Gram-Schmidt process, starting
+<span class="lineNum">      30 </span>            :  * from a form whose components are \f$t_i = \delta_i^I\f$, where \f$I\f$ is
+<span class="lineNum">      31 </span>            :  * the index of the component of \f$s_i\f$ with the smallest absolute value.
+<span class="lineNum">      32 </span>            :  */
+<span class="lineNum">      33 </span>            : template &lt;typename DataType, size_t VolumeDim, typename Frame&gt;
+<span class="lineNum">      34 </span><span class="lineCov">          1 : void orthonormal_oneform(</span>
+<span class="lineNum">      35 </span>            :     gsl::not_null&lt;tnsr::i&lt;DataType, VolumeDim, Frame&gt;*&gt; orthonormal_form,
+<span class="lineNum">      36 </span>            :     const tnsr::i&lt;DataType, VolumeDim, Frame&gt;&amp; unit_form,
+<span class="lineNum">      37 </span>            :     const tnsr::II&lt;DataType, VolumeDim, Frame&gt;&amp; inv_spatial_metric) noexcept;
+<span class="lineNum">      38 </span>            : 
+<span class="lineNum">      39 </span>            : template &lt;typename DataType, size_t VolumeDim, typename Frame&gt;
+<span class="lineNum">      40 </span><span class="lineCov">          1 : tnsr::i&lt;DataType, VolumeDim, Frame&gt; orthonormal_oneform(</span>
+<span class="lineNum">      41 </span>            :     const tnsr::i&lt;DataType, VolumeDim, Frame&gt;&amp; unit_form,
+<span class="lineNum">      42 </span>            :     const tnsr::II&lt;DataType, VolumeDim, Frame&gt;&amp; inv_spatial_metric) noexcept;
+<span class="lineNum">      43 </span>            : // @}
+<span class="lineNum">      44 </span>            : 
+<span class="lineNum">      45 </span>            : // @{
+<span class="lineNum">      46 </span>            : /*!
+<span class="lineNum">      47 </span>            :  * \ingroup TensorGroup
+<span class="lineNum">      48 </span>            :  *
+<span class="lineNum">      49 </span>            :  * \brief Compute a spatial one-form orthonormal to two given unit forms.
+<span class="lineNum">      50 </span>            :  *
+<span class="lineNum">      51 </span>            :  * Given a unit spatial one-form \f$s_i\f$ and another form \f$t_i\f$ that is
+<span class="lineNum">      52 </span>            :  * orthonormal to \f$s_i\f$, compute a new form \f$u_i\f$ which is orthonormal
+<span class="lineNum">      53 </span>            :  * to both \f$s_i\f$ and \f$t_i\f$, in the sense that
+<span class="lineNum">      54 </span>            :  * \f$\gamma^{ij}s_i u_j = \gamma^{ij}t_i u_j = 0\f$, for the given
+<span class="lineNum">      55 </span>            :  * inverse spatial metric \f$\gamma^{ij}\f$. The normalization of \f$u_i\f$
+<span class="lineNum">      56 </span>            :  * is such that \f$\gamma^{ij}u_iu_j = 1\f$.
+<span class="lineNum">      57 </span>            :  *
+<span class="lineNum">      58 </span>            :  * \details The new form is obtained by taking the covariant cross product
+<span class="lineNum">      59 </span>            :  * of \f$s_i\f$ and \f$ t_i\f$, for which the spatial metric as well as
+<span class="lineNum">      60 </span>            :  * its determinant must be provided.
+<span class="lineNum">      61 </span>            :  */
+<span class="lineNum">      62 </span>            : template &lt;typename DataType, typename Frame&gt;
+<span class="lineNum">      63 </span><span class="lineCov">          1 : void orthonormal_oneform(</span>
+<span class="lineNum">      64 </span>            :     gsl::not_null&lt;tnsr::i&lt;DataType, 3, Frame&gt;*&gt; orthonormal_form,
+<span class="lineNum">      65 </span>            :     const tnsr::i&lt;DataType, 3, Frame&gt;&amp; first_unit_form,
+<span class="lineNum">      66 </span>            :     const tnsr::i&lt;DataType, 3, Frame&gt;&amp; second_unit_form,
+<span class="lineNum">      67 </span>            :     const tnsr::ii&lt;DataType, 3, Frame&gt;&amp; spatial_metric,
+<span class="lineNum">      68 </span>            :     const Scalar&lt;DataType&gt;&amp; det_spatial_metric) noexcept;
+<span class="lineNum">      69 </span>            : 
+<span class="lineNum">      70 </span>            : template &lt;typename DataType, typename Frame&gt;
+<span class="lineNum">      71 </span><span class="lineCov">          1 : tnsr::i&lt;DataType, 3, Frame&gt; orthonormal_oneform(</span>
+<span class="lineNum">      72 </span>            :     const tnsr::i&lt;DataType, 3, Frame&gt;&amp; first_unit_form,
+<span class="lineNum">      73 </span>            :     const tnsr::i&lt;DataType, 3, Frame&gt;&amp; second_unit_form,
+<span class="lineNum">      74 </span>            :     const tnsr::ii&lt;DataType, 3, Frame&gt;&amp; spatial_metric,
+<span class="lineNum">      75 </span>            :     const Scalar&lt;DataType&gt;&amp; det_spatial_metric) noexcept;
+<span class="lineNum">      76 </span>            : // @}
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

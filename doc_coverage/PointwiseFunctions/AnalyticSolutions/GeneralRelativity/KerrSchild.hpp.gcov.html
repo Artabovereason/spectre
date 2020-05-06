@@ -1,0 +1,646 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - PointwiseFunctions/AnalyticSolutions/GeneralRelativity/KerrSchild.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../index.html">top level</a> - <a href="index.html">PointwiseFunctions/AnalyticSolutions/GeneralRelativity</a> - KerrSchild.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntry">106</td>
+            <td class="headerCovTableEntryLo">0.9 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #pragma once
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;array&gt;
+<span class="lineNum">       7 </span>            : #include &lt;cstddef&gt;
+<span class="lineNum">       8 </span>            : #include &lt;pup.h&gt;
+<span class="lineNum">       9 </span>            : 
+<span class="lineNum">      10 </span>            : #include &quot;DataStructures/CachedTempBuffer.hpp&quot;
+<span class="lineNum">      11 </span>            : #include &quot;DataStructures/Tensor/TypeAliases.hpp&quot;
+<span class="lineNum">      12 </span>            : #include &quot;DataStructures/Variables.hpp&quot;
+<span class="lineNum">      13 </span>            : #include &quot;NumericalAlgorithms/LinearOperators/PartialDerivatives.hpp&quot;
+<span class="lineNum">      14 </span>            : #include &quot;Options/Options.hpp&quot;
+<span class="lineNum">      15 </span>            : #include &quot;PointwiseFunctions/AnalyticSolutions/AnalyticSolution.hpp&quot;
+<span class="lineNum">      16 </span>            : #include &quot;PointwiseFunctions/GeneralRelativity/TagsDeclarations.hpp&quot;
+<span class="lineNum">      17 </span>            : #include &quot;Utilities/ForceInline.hpp&quot;
+<span class="lineNum">      18 </span>            : #include &quot;Utilities/TMPL.hpp&quot;
+<span class="lineNum">      19 </span>            : #include &quot;Utilities/TaggedTuple.hpp&quot;
+<span class="lineNum">      20 </span>            : 
+<span class="lineNum">      21 </span>            : /// \cond
+<span class="lineNum">      22 </span>            : namespace Tags {
+<span class="lineNum">      23 </span>            : template &lt;typename Tag&gt;
+<span class="lineNum">      24 </span>            : struct dt;
+<span class="lineNum">      25 </span>            : }  // namespace Tags
+<span class="lineNum">      26 </span>            : namespace gsl {
+<span class="lineNum">      27 </span>            : template &lt;class T&gt;
+<span class="lineNum">      28 </span>            : class not_null;
+<span class="lineNum">      29 </span>            : }  // namespace gsl
+<span class="lineNum">      30 </span>            : /// \endcond
+<span class="lineNum">      31 </span>            : 
+<span class="lineNum">      32 </span>            : namespace gr {
+<span class="lineNum">      33 </span>            : namespace Solutions {
+<span class="lineNum">      34 </span>            : 
+<span class="lineNum">      35 </span>            : /*!
+<span class="lineNum">      36 </span>            :  * \brief Kerr black hole in Kerr-Schild coordinates
+<span class="lineNum">      37 </span>            :  *
+<span class="lineNum">      38 </span>            :  * \details
+<span class="lineNum">      39 </span>            :  * The metric is \f$g_{\mu\nu} = \eta_{\mu\nu} + 2 H l_\mu l_\nu\f$,
+<span class="lineNum">      40 </span>            :  * where \f$\eta_{\mu\nu}\f$ is the Minkowski metric, \f$H\f$ is a scalar
+<span class="lineNum">      41 </span>            :  * function, and \f$l_\mu\f$ is the outgoing null vector.
+<span class="lineNum">      42 </span>            :  * \f$H\f$ and \f$l_\mu\f$ are known functions of the coordinates
+<span class="lineNum">      43 </span>            :  * and of the mass and spin vector.
+<span class="lineNum">      44 </span>            :  *
+<span class="lineNum">      45 </span>            :  * The following are input file options that can be specified:
+<span class="lineNum">      46 </span>            :  *  - Mass (default: 1.)
+<span class="lineNum">      47 </span>            :  *  - Center (default: {0,0,0})
+<span class="lineNum">      48 </span>            :  *  - Spin (default: {0,0,0})
+<span class="lineNum">      49 </span>            :  *
+<span class="lineNum">      50 </span>            :  * ## Kerr-Schild Coordinates
+<span class="lineNum">      51 </span>            :  *
+<span class="lineNum">      52 </span>            :  *
+<span class="lineNum">      53 </span>            :  * A Kerr-Schild coordinate system is defined by
+<span class="lineNum">      54 </span>            :  * \f{equation}{
+<span class="lineNum">      55 </span>            :  * g_{\mu\nu}  \equiv \eta_{\mu\nu} + 2 H l_\mu l_\nu,
+<span class="lineNum">      56 </span>            :  * \f}
+<span class="lineNum">      57 </span>            :  * where \f$H\f$ is a scalar function of the coordinates, \f$\eta_{\mu\nu}\f$
+<span class="lineNum">      58 </span>            :  * is the Minkowski metric, and \f$l^\mu\f$ is a null vector. Note that the
+<span class="lineNum">      59 </span>            :  * form of the metric along with the nullness of \f$l^\mu\f$ allows one to
+<span class="lineNum">      60 </span>            :  * raise and lower indices of \f$l^\mu\f$ using \f$\eta_{\mu\nu}\f$, and
+<span class="lineNum">      61 </span>            :  * that \f$l^t l^t = l_t l_t = l^i l_i\f$.
+<span class="lineNum">      62 </span>            :  * Note also that
+<span class="lineNum">      63 </span>            :  * \f{equation}{
+<span class="lineNum">      64 </span>            :  * g^{\mu\nu}  \equiv \eta^{\mu\nu} - 2 H l^\mu l^\nu,
+<span class="lineNum">      65 </span>            :  * \f}
+<span class="lineNum">      66 </span>            :  * and that \f$\sqrt{-g}=1\f$.
+<span class="lineNum">      67 </span>            :  * Also, \f$l_\mu\f$ is a geodesic with respect to both the physical metric
+<span class="lineNum">      68 </span>            :  * and the Minkowski metric:
+<span class="lineNum">      69 </span>            :  * \f{equation}{
+<span class="lineNum">      70 </span>            :  * l^\mu \partial_\mu l_\nu = l^\mu\nabla_\mu l_\nu = 0.
+<span class="lineNum">      71 </span>            :  * \f}
+<span class="lineNum">      72 </span>            :  *
+<span class="lineNum">      73 </span>            :  *
+<span class="lineNum">      74 </span>            :  * The corresponding 3+1 quantities are
+<span class="lineNum">      75 </span>            :  * \f{eqnarray}{
+<span class="lineNum">      76 </span>            :  * g_{i j}     &amp;=&amp; \delta_{i j} + 2 H l_i l_j,\\
+<span class="lineNum">      77 </span>            :  * g^{i j}  &amp;=&amp; \delta^{i j} - {2 H l^i l^j \over 1+2H l^t l^t},\\
+<span class="lineNum">      78 </span>            :  * {\rm det} g_{i j}&amp;=&amp; 1+2H l^t l^t,\\
+<span class="lineNum">      79 </span>            :  * \beta^i       &amp;=&amp; - {2 H l^t l^i \over 1+2H l^t l^t},\\
+<span class="lineNum">      80 </span>            :  * N        &amp;=&amp; \left(1+2 H l^t l^t\right)^{-1/2},\quad\hbox{(lapse)}\\
+<span class="lineNum">      81 </span>            :  * \alpha     &amp;=&amp; \left(1+2 H l^t l^t\right)^{-1},
+<span class="lineNum">      82 </span>            :  *                \quad\hbox{(densitized lapse)}\\
+<span class="lineNum">      83 </span>            :  * K_{i j}  &amp;=&amp; - \left(1+2 H l^t l^t\right)^{1/2}
+<span class="lineNum">      84 </span>            :  *       \left[l_i l_j \partial_{t} H + 2 H l_{(i} \partial_{t} l_{j)}\right]
+<span class="lineNum">      85 </span>            :  *                 \nonumber \\
+<span class="lineNum">      86 </span>            :  *                 &amp;&amp;-2\left(1+2 H l^t l^t\right)^{-1/2}
+<span class="lineNum">      87 </span>            :  *                \left[H l^t \partial_{(i}l_{j)} + H l_{(i}\partial_{j)}l^t
+<span class="lineNum">      88 </span>            :  *          + l^t l_{(i}\partial_{j)} H + 2H^2 l^t l_{(i} l^k\partial_{k}l_{j)}
+<span class="lineNum">      89 </span>            :  *          + H l^t l_i l_j l^k \partial_{k} H\right],\\
+<span class="lineNum">      90 </span>            :  * \partial_{k}g_{i j}&amp;=&amp; 2 l_i l_j\partial_{k} H +
+<span class="lineNum">      91 </span>            :  *    4 H l_{(i} \partial_{k}l_{j)},\\
+<span class="lineNum">      92 </span>            :  * \partial_{k}N   &amp;=&amp; -\left(1+2 H l^t l^t\right)^{-3/2}
+<span class="lineNum">      93 </span>            :  *                    \left(l^tl^t\partial_{k}H+2Hl^t\partial_{k}l^t\right),\\
+<span class="lineNum">      94 </span>            :  * \partial_{k}\beta^i  &amp;=&amp; - 2\left(1+2H l^t l^t\right)^{-1}
+<span class="lineNum">      95 </span>            :  *    \left(l^tl^i\partial_{k}H+Hl^t\partial_{k}l^i+Hl^i\partial_{k}l^t\right)
+<span class="lineNum">      96 </span>            :  *                   + 4 H l^t l^i \left(1+2H l^t l^t\right)^{-2}
+<span class="lineNum">      97 </span>            :  *                     \left(l^tl^t\partial_{k}H+2Hl^t\partial_{k}l^t\right),\\
+<span class="lineNum">      98 </span>            :  * \Gamma^k{}_{i j}&amp;=&amp; -\delta^{k m}\left(l_i l_j \partial_{m}H
+<span class="lineNum">      99 </span>            :  *                                    + 2l_{(i} \partial_{m}l_{j)} \right)
+<span class="lineNum">     100 </span>            :  *                   + 2 H l_{(i}\partial_{j)} l^k
+<span class="lineNum">     101 </span>            :  *          \nonumber \\
+<span class="lineNum">     102 </span>            :  *                  &amp;&amp;+\left(1+2 H l^t l^t\right)^{-1}
+<span class="lineNum">     103 </span>            :  *                     \left[2 l^k l_{(i}\partial_{j)} H
+<span class="lineNum">     104 </span>            :  *                          +2 H l_i l_j l^k l^m \partial_{m}H
+<span class="lineNum">     105 </span>            :  *                          +2 H l^k \partial_{(i}l_{j)}
+<span class="lineNum">     106 </span>            :  *                          +4 H^2 l^k l_{(i} (l^m \partial_{m}l_{j)}
+<span class="lineNum">     107 </span>            :  *                                      -\partial_{j)} l^t)
+<span class="lineNum">     108 </span>            :  *                     \right].
+<span class="lineNum">     109 </span>            :  * \f}
+<span class="lineNum">     110 </span>            :  * Note that \f$l^i\f$ is **not** equal to \f$g^{i j} l_j\f$; it is equal
+<span class="lineNum">     111 </span>            :  * to \f${}^{(4)}g^{i \mu} l_\mu\f$.
+<span class="lineNum">     112 </span>            :  *
+<span class="lineNum">     113 </span>            :  * ## Kerr Spacetime
+<span class="lineNum">     114 </span>            :  *
+<span class="lineNum">     115 </span>            :  * ### Spin in the z direction
+<span class="lineNum">     116 </span>            :  *
+<span class="lineNum">     117 </span>            :  * Assume Cartesian coordinates \f$(t,x,y,z)\f$. Then for stationary Kerr
+<span class="lineNum">     118 </span>            :  * spacetime with mass \f$M\f$ and angular momentum \f$a M\f$
+<span class="lineNum">     119 </span>            :  * in the \f$z\f$ direction,
+<span class="lineNum">     120 </span>            :  * \f{eqnarray}{
+<span class="lineNum">     121 </span>            :  * H     &amp;=&amp; {M r^3 \over r^4 + a^2 z^2},\\
+<span class="lineNum">     122 </span>            :  * l_\mu &amp;=&amp;
+<span class="lineNum">     123 </span>            :  * \left(1,{rx+ay\over r^2+a^2},{ry-ax\over r^2+a^2},{z\over r}\right),
+<span class="lineNum">     124 </span>            :  * \f}
+<span class="lineNum">     125 </span>            :  * where \f$r\f$ is defined by
+<span class="lineNum">     126 </span>            :  * \f{equation}{
+<span class="lineNum">     127 </span>            :  * \label{eq:rdefinition1}
+<span class="lineNum">     128 </span>            :  * {x^2+y^2\over a^2+r^2} + {z^2\over r^2} = 1,
+<span class="lineNum">     129 </span>            :  * \f}
+<span class="lineNum">     130 </span>            :  * or equivalently,
+<span class="lineNum">     131 </span>            :  * \f{equation}{
+<span class="lineNum">     132 </span>            :  * r^2 = {1\over 2}(x^2 + y^2 + z^2 - a^2)
+<span class="lineNum">     133 </span>            :  *      + \left({1\over 4}(x^2 + y^2 + z^2 - a^2)^2 + a^2 z^2\right)^{1/2}.
+<span class="lineNum">     134 </span>            :  * \f}
+<span class="lineNum">     135 </span>            :  *
+<span class="lineNum">     136 </span>            :  * Possibly useful formula:
+<span class="lineNum">     137 </span>            :  * \f{equation}{
+<span class="lineNum">     138 </span>            :  * \partial_{i} r = {x_i + z \delta_{i z} \displaystyle {a^2\over r^2} \over
+<span class="lineNum">     139 </span>            :  *   2 r\left(1 - \displaystyle {x^2 + y^2 + z^2 - a^2\over 2 r^2}\right)}.
+<span class="lineNum">     140 </span>            :  * \f}
+<span class="lineNum">     141 </span>            :  *
+<span class="lineNum">     142 </span>            :  * ### Spin in an arbitrary direction
+<span class="lineNum">     143 </span>            :  *
+<span class="lineNum">     144 </span>            :  * For arbitrary spin direction, let \f$\vec{x}\equiv (x,y,z)\f$ and
+<span class="lineNum">     145 </span>            :  * \f$\vec{a}\f$ be a flat-space three-vector with magnitude-squared
+<span class="lineNum">     146 </span>            :  * (\f$\delta_{ij}\f$ norm) equal to \f$a^2\f$.
+<span class="lineNum">     147 </span>            :  * Then the Kerr-Schild quantities for Kerr spacetime are:
+<span class="lineNum">     148 </span>            :  * \f{eqnarray}{
+<span class="lineNum">     149 </span>            :  * H       &amp;=&amp; {M r^3 \over r^4 + (\vec{a}\cdot\vec{x})^2},\\
+<span class="lineNum">     150 </span>            :  * \vec{l} &amp;=&amp; {r\vec{x}-\vec{a}\times\vec{x}+(\vec{a}\cdot\vec{x})\vec{a}/r
+<span class="lineNum">     151 </span>            :  *              \over r^2+a^2 },\\
+<span class="lineNum">     152 </span>            :  * l_t     &amp;=&amp; 1,\\
+<span class="lineNum">     153 </span>            :  * \label{eq:rdefinition2}
+<span class="lineNum">     154 </span>            :  * r^2     &amp;=&amp; {1\over 2}(\vec{x}\cdot\vec{x}-a^2)
+<span class="lineNum">     155 </span>            :  *      + \left({1\over 4}(\vec{x}\cdot\vec{x}-a^2)^2
+<span class="lineNum">     156 </span>            :  *              + (\vec{a}\cdot\vec{x})^2\right)^{1/2},
+<span class="lineNum">     157 </span>            :  * \f}
+<span class="lineNum">     158 </span>            :  * where \f$\vec{l}\equiv (l_x,l_y,l_z)\f$, and
+<span class="lineNum">     159 </span>            :  * all dot and cross products are evaluated as flat-space 3-vector operations.
+<span class="lineNum">     160 </span>            :  *
+<span class="lineNum">     161 </span>            :  * Possibly useful formulae:
+<span class="lineNum">     162 </span>            :  * \f{equation}{
+<span class="lineNum">     163 </span>            :  * \partial_{i} r = {x_i + (\vec{a}\cdot\vec{x})a_i/r^2 \over
+<span class="lineNum">     164 </span>            :  *   2 r\left(1 - \displaystyle {\vec{x}\cdot\vec{x}-a^2\over 2 r^2}\right)},
+<span class="lineNum">     165 </span>            :  * \f}
+<span class="lineNum">     166 </span>            :  * \f{equation}{
+<span class="lineNum">     167 </span>            :  * {\partial_{i} H \over H} =
+<span class="lineNum">     168 </span>            :  *  {3\partial_{i}r\over r} - {4 r^3 \partial_{i}r +
+<span class="lineNum">     169 </span>            :  *                     2(\vec{a}\cdot\vec{x})\vec{a}
+<span class="lineNum">     170 </span>            :  *                     \over r^4 + (\vec{a}\cdot\vec{x})^2},
+<span class="lineNum">     171 </span>            :  * \f}
+<span class="lineNum">     172 </span>            :  * \f{equation}{
+<span class="lineNum">     173 </span>            :  * (r^2+a^2)\partial_{j} l_i =
+<span class="lineNum">     174 </span>            :  *                 (x_i-2 r l_i-(\vec{a}\cdot\vec{x})a_i/r^2)\partial_{j}r
+<span class="lineNum">     175 </span>            :  *                 + r\delta_{ij} + a_i a_j/r + \epsilon^{ijk} a_k.
+<span class="lineNum">     176 </span>            :  * \f}
+<span class="lineNum">     177 </span>            :  *
+<span class="lineNum">     178 </span>            :  * ## Cartesian and Spherical Coordinates for Kerr
+<span class="lineNum">     179 </span>            :  *
+<span class="lineNum">     180 </span>            :  * The Kerr-Schild coordinates are defined in terms of the Cartesian
+<span class="lineNum">     181 </span>            :  * coordinates \f$(x,y,z)\f$.  If one wishes to express Kerr-Schild
+<span class="lineNum">     182 </span>            :  * coordinates in terms of the spherical polar coordinates
+<span class="lineNum">     183 </span>            :  * \f$(\tilde{r},\theta,\phi)\f$ then one can make the obvious and
+<span class="lineNum">     184 </span>            :  * usual transformation
+<span class="lineNum">     185 </span>            :  * \f{equation}{
+<span class="lineNum">     186 </span>            :  * \label{eq:sphertocartsimple}
+<span class="lineNum">     187 </span>            :  * x=\tilde{r}\sin\theta\cos\phi,\quad
+<span class="lineNum">     188 </span>            :  * y=\tilde{r}\sin\theta\sin\phi,\quad
+<span class="lineNum">     189 </span>            :  * z=\tilde{r}\cos\theta.
+<span class="lineNum">     190 </span>            :  * \f}
+<span class="lineNum">     191 </span>            :  *
+<span class="lineNum">     192 </span>            :  * This is simple, and has the advantage that in this coordinate system
+<span class="lineNum">     193 </span>            :  * for \f$M\to0\f$, Kerr spacetime becomes Minkowski space in spherical
+<span class="lineNum">     194 </span>            :  * coordinates \f$(\tilde{r},\theta,\phi)\f$. However, the disadvantage is
+<span class="lineNum">     195 </span>            :  * that the horizon of a Kerr hole is **not** located at constant
+<span class="lineNum">     196 </span>            :  * \f$\tilde{r}\f$, but is located instead at constant \f$r\f$,
+<span class="lineNum">     197 </span>            :  * where \f$r\f$ is the radial
+<span class="lineNum">     198 </span>            :  * Boyer-Lindquist coordinate defined in (\f$\ref{eq:rdefinition2}\f$).
+<span class="lineNum">     199 </span>            :  *
+<span class="lineNum">     200 </span>            :  * For spin in the \f$z\f$ direction, one could use the transformation
+<span class="lineNum">     201 </span>            :  * \f{equation}{
+<span class="lineNum">     202 </span>            :  * x=\sqrt{r^2+a^2}\sin\theta\cos\phi,\quad
+<span class="lineNum">     203 </span>            :  * y=\sqrt{r^2+a^2}\sin\theta\sin\phi,\quad
+<span class="lineNum">     204 </span>            :  * z=r\cos\theta.
+<span class="lineNum">     205 </span>            :  * \f}
+<span class="lineNum">     206 </span>            :  * In this case, for \f$M\to0\f$, Kerr spacetime becomes Minkowski space in
+<span class="lineNum">     207 </span>            :  * spheroidal coordinates, but now the horizon is on a constant-coordinate
+<span class="lineNum">     208 </span>            :  * surface.
+<span class="lineNum">     209 </span>            :  *
+<span class="lineNum">     210 </span>            :  * Right now we use (\f$\ref{eq:sphertocartsimple}\f$), but we may
+<span class="lineNum">     211 </span>            :  * wish to use the other transformation in the future.
+<span class="lineNum">     212 </span>            :  */
+<span class="lineNum">     213 </span><span class="lineCov">          1 : class KerrSchild : public MarkAsAnalyticSolution {</span>
+<span class="lineNum">     214 </span>            :  public:
+<span class="lineNum">     215 </span><span class="lineNoCov">          0 :   static constexpr size_t volume_dim = 3;</span>
+<span class="lineNum">     216 </span><span class="lineNoCov">          0 :   struct Mass {</span>
+<span class="lineNum">     217 </span><span class="lineNoCov">          0 :     using type = double;</span>
+<span class="lineNum">     218 </span><span class="lineNoCov">          0 :     static constexpr OptionString help = {&quot;Mass of the black hole&quot;};</span>
+<span class="lineNum">     219 </span><span class="lineNoCov">          0 :     static type default_value() noexcept { return 1.; }</span>
+<span class="lineNum">     220 </span><span class="lineNoCov">          0 :     static type lower_bound() noexcept { return 0.; }</span>
+<span class="lineNum">     221 </span>            :   };
+<span class="lineNum">     222 </span><span class="lineNoCov">          0 :   struct Spin {</span>
+<span class="lineNum">     223 </span><span class="lineNoCov">          0 :     using type = std::array&lt;double, volume_dim&gt;;</span>
+<span class="lineNum">     224 </span><span class="lineNoCov">          0 :     static constexpr OptionString help = {</span>
+<span class="lineNum">     225 </span>            :         &quot;The [x,y,z] dimensionless spin of the black hole&quot;};
+<span class="lineNum">     226 </span><span class="lineNoCov">          0 :     static type default_value() noexcept { return {{0., 0., 0.}}; }</span>
+<span class="lineNum">     227 </span>            :   };
+<span class="lineNum">     228 </span><span class="lineNoCov">          0 :   struct Center {</span>
+<span class="lineNum">     229 </span><span class="lineNoCov">          0 :     using type = std::array&lt;double, volume_dim&gt;;</span>
+<span class="lineNum">     230 </span><span class="lineNoCov">          0 :     static constexpr OptionString help = {</span>
+<span class="lineNum">     231 </span>            :         &quot;The [x,y,z] center of the black hole&quot;};
+<span class="lineNum">     232 </span><span class="lineNoCov">          0 :     static type default_value() noexcept { return {{0., 0., 0.}}; }</span>
+<span class="lineNum">     233 </span>            :   };
+<span class="lineNum">     234 </span><span class="lineNoCov">          0 :   using options = tmpl::list&lt;Mass, Spin, Center&gt;;</span>
+<span class="lineNum">     235 </span><span class="lineNoCov">          0 :   static constexpr OptionString help{&quot;Black hole in Kerr-Schild coordinates&quot;};</span>
+<span class="lineNum">     236 </span>            : 
+<span class="lineNum">     237 </span><span class="lineNoCov">          0 :   KerrSchild(double mass, Spin::type dimensionless_spin, Center::type center,</span>
+<span class="lineNum">     238 </span>            :              const OptionContext&amp; context = {});
+<span class="lineNum">     239 </span>            : 
+<span class="lineNum">     240 </span><span class="lineNoCov">          0 :   explicit KerrSchild(CkMigrateMessage* /*unused*/) noexcept {}</span>
+<span class="lineNum">     241 </span>            : 
+<span class="lineNum">     242 </span><span class="lineNoCov">          0 :   KerrSchild() = default;</span>
+<span class="lineNum">     243 </span><span class="lineNoCov">          0 :   KerrSchild(const KerrSchild&amp; /*rhs*/) = default;</span>
+<span class="lineNum">     244 </span><span class="lineNoCov">          0 :   KerrSchild&amp; operator=(const KerrSchild&amp; /*rhs*/) = default;</span>
+<span class="lineNum">     245 </span><span class="lineNoCov">          0 :   KerrSchild(KerrSchild&amp;&amp; /*rhs*/) noexcept = default;</span>
+<span class="lineNum">     246 </span><span class="lineNoCov">          0 :   KerrSchild&amp; operator=(KerrSchild&amp;&amp; /*rhs*/) noexcept = default;</span>
+<span class="lineNum">     247 </span><span class="lineNoCov">          0 :   ~KerrSchild() = default;</span>
+<span class="lineNum">     248 </span>            : 
+<span class="lineNum">     249 </span>            :   template &lt;typename DataType&gt;
+<span class="lineNum">     250 </span><span class="lineNoCov">          0 :   using DerivLapse = ::Tags::deriv&lt;gr::Tags::Lapse&lt;DataType&gt;,</span>
+<span class="lineNum">     251 </span>            :                                    tmpl::size_t&lt;volume_dim&gt;, Frame::Inertial&gt;;
+<span class="lineNum">     252 </span>            :   template &lt;typename DataType&gt;
+<span class="lineNum">     253 </span><span class="lineNoCov">          0 :   using DerivShift =</span>
+<span class="lineNum">     254 </span>            :       ::Tags::deriv&lt;gr::Tags::Shift&lt;volume_dim, Frame::Inertial, DataType&gt;,
+<span class="lineNum">     255 </span>            :                     tmpl::size_t&lt;volume_dim&gt;, Frame::Inertial&gt;;
+<span class="lineNum">     256 </span>            :   template &lt;typename DataType&gt;
+<span class="lineNum">     257 </span><span class="lineNoCov">          0 :   using DerivSpatialMetric = ::Tags::deriv&lt;</span>
+<span class="lineNum">     258 </span>            :       gr::Tags::SpatialMetric&lt;volume_dim, Frame::Inertial, DataType&gt;,
+<span class="lineNum">     259 </span>            :       tmpl::size_t&lt;volume_dim&gt;, Frame::Inertial&gt;;
+<span class="lineNum">     260 </span>            :   template &lt;typename DataType&gt;
+<span class="lineNum">     261 </span><span class="lineNoCov">          0 :   using tags = tmpl::list&lt;</span>
+<span class="lineNum">     262 </span>            :       gr::Tags::Lapse&lt;DataType&gt;, ::Tags::dt&lt;gr::Tags::Lapse&lt;DataType&gt;&gt;,
+<span class="lineNum">     263 </span>            :       DerivLapse&lt;DataType&gt;,
+<span class="lineNum">     264 </span>            :       gr::Tags::Shift&lt;volume_dim, Frame::Inertial, DataType&gt;,
+<span class="lineNum">     265 </span>            :       ::Tags::dt&lt;gr::Tags::Shift&lt;volume_dim, Frame::Inertial, DataType&gt;&gt;,
+<span class="lineNum">     266 </span>            :       DerivShift&lt;DataType&gt;,
+<span class="lineNum">     267 </span>            :       gr::Tags::SpatialMetric&lt;volume_dim, Frame::Inertial, DataType&gt;,
+<span class="lineNum">     268 </span>            :       ::Tags::dt&lt;
+<span class="lineNum">     269 </span>            :           gr::Tags::SpatialMetric&lt;volume_dim, Frame::Inertial, DataType&gt;&gt;,
+<span class="lineNum">     270 </span>            :       DerivSpatialMetric&lt;DataType&gt;, gr::Tags::SqrtDetSpatialMetric&lt;DataType&gt;,
+<span class="lineNum">     271 </span>            :       gr::Tags::ExtrinsicCurvature&lt;volume_dim, Frame::Inertial, DataType&gt;,
+<span class="lineNum">     272 </span>            :       gr::Tags::InverseSpatialMetric&lt;volume_dim, Frame::Inertial, DataType&gt;&gt;;
+<span class="lineNum">     273 </span>            : 
+<span class="lineNum">     274 </span>            :   template &lt;typename DataType, typename... Tags&gt;
+<span class="lineNum">     275 </span><span class="lineNoCov">          0 :   tuples::TaggedTuple&lt;Tags...&gt; variables(const tnsr::I&lt;DataType, volume_dim&gt;&amp; x,</span>
+<span class="lineNum">     276 </span>            :                                          double /*t*/,
+<span class="lineNum">     277 </span>            :                                          tmpl::list&lt;Tags...&gt; /*meta*/) const
+<span class="lineNum">     278 </span>            :       noexcept {
+<span class="lineNum">     279 </span>            :     static_assert(
+<span class="lineNum">     280 </span>            :         tmpl2::flat_all_v&lt;tmpl::list_contains_v&lt;tags&lt;DataType&gt;, Tags&gt;...&gt;,
+<span class="lineNum">     281 </span>            :         &quot;At least one of the requested tags is not supported. The requested &quot;
+<span class="lineNum">     282 </span>            :         &quot;tags are listed as template parameters of the `variables` function.&quot;);
+<span class="lineNum">     283 </span>            :     IntermediateVars&lt;DataType&gt; intermediate(*this, x);
+<span class="lineNum">     284 </span>            :     return {intermediate.get_var(Tags{})...};
+<span class="lineNum">     285 </span>            :   }
+<span class="lineNum">     286 </span>            : 
+<span class="lineNum">     287 </span>            :   // clang-tidy: no runtime references
+<span class="lineNum">     288 </span><span class="lineNoCov">          0 :   void pup(PUP::er&amp; p) noexcept;  // NOLINT</span>
+<span class="lineNum">     289 </span>            : 
+<span class="lineNum">     290 </span><span class="lineNoCov">          0 :   SPECTRE_ALWAYS_INLINE double mass() const noexcept { return mass_; }</span>
+<span class="lineNum">     291 </span><span class="lineNoCov">          0 :   SPECTRE_ALWAYS_INLINE const std::array&lt;double, volume_dim&gt;&amp; center() const</span>
+<span class="lineNum">     292 </span>            :       noexcept {
+<span class="lineNum">     293 </span>            :     return center_;
+<span class="lineNum">     294 </span>            :   }
+<span class="lineNum">     295 </span>            :   SPECTRE_ALWAYS_INLINE const std::array&lt;double, volume_dim&gt;&amp;
+<span class="lineNum">     296 </span><span class="lineNoCov">          0 :   dimensionless_spin() const noexcept {</span>
+<span class="lineNum">     297 </span>            :     return dimensionless_spin_;
+<span class="lineNum">     298 </span>            :   }
+<span class="lineNum">     299 </span>            : 
+<span class="lineNum">     300 </span>            :  private:
+<span class="lineNum">     301 </span><span class="lineNoCov">          0 :   struct internal_tags {</span>
+<span class="lineNum">     302 </span>            :     template &lt;typename DataType&gt;
+<span class="lineNum">     303 </span><span class="lineNoCov">          0 :     using x_minus_center = ::Tags::TempI&lt;0, 3, Frame::Inertial, DataType&gt;;</span>
+<span class="lineNum">     304 </span>            :     template &lt;typename DataType&gt;
+<span class="lineNum">     305 </span><span class="lineNoCov">          0 :     using a_dot_x = ::Tags::TempScalar&lt;1, DataType&gt;;</span>
+<span class="lineNum">     306 </span>            :     template &lt;typename DataType&gt;
+<span class="lineNum">     307 </span><span class="lineNoCov">          0 :     using a_dot_x_squared = ::Tags::TempScalar&lt;2, DataType&gt;;</span>
+<span class="lineNum">     308 </span>            :     template &lt;typename DataType&gt;
+<span class="lineNum">     309 </span><span class="lineNoCov">          0 :     using half_xsq_minus_asq = ::Tags::TempScalar&lt;3, DataType&gt;;</span>
+<span class="lineNum">     310 </span>            :     template &lt;typename DataType&gt;
+<span class="lineNum">     311 </span><span class="lineNoCov">          0 :     using r_squared = ::Tags::TempScalar&lt;4, DataType&gt;;</span>
+<span class="lineNum">     312 </span>            :     template &lt;typename DataType&gt;
+<span class="lineNum">     313 </span><span class="lineNoCov">          0 :     using r = ::Tags::TempScalar&lt;5, DataType&gt;;</span>
+<span class="lineNum">     314 </span>            :     template &lt;typename DataType&gt;
+<span class="lineNum">     315 </span><span class="lineNoCov">          0 :     using a_dot_x_over_rsquared = ::Tags::TempScalar&lt;6, DataType&gt;;</span>
+<span class="lineNum">     316 </span>            :     template &lt;typename DataType&gt;
+<span class="lineNum">     317 </span><span class="lineNoCov">          0 :     using deriv_log_r_denom = ::Tags::TempScalar&lt;7, DataType&gt;;</span>
+<span class="lineNum">     318 </span>            :     template &lt;typename DataType&gt;
+<span class="lineNum">     319 </span><span class="lineNoCov">          0 :     using deriv_log_r = ::Tags::Tempi&lt;8, 3, Frame::Inertial, DataType&gt;;</span>
+<span class="lineNum">     320 </span>            :     template &lt;typename DataType&gt;
+<span class="lineNum">     321 </span><span class="lineNoCov">          0 :     using H_denom = ::Tags::TempScalar&lt;9, DataType&gt;;</span>
+<span class="lineNum">     322 </span>            :     template &lt;typename DataType&gt;
+<span class="lineNum">     323 </span><span class="lineNoCov">          0 :     using H = ::Tags::TempScalar&lt;10, DataType&gt;;</span>
+<span class="lineNum">     324 </span>            :     template &lt;typename DataType&gt;
+<span class="lineNum">     325 </span><span class="lineNoCov">          0 :     using deriv_H_temp1 = ::Tags::TempScalar&lt;11, DataType&gt;;</span>
+<span class="lineNum">     326 </span>            :     template &lt;typename DataType&gt;
+<span class="lineNum">     327 </span><span class="lineNoCov">          0 :     using deriv_H_temp2 = ::Tags::TempScalar&lt;12, DataType&gt;;</span>
+<span class="lineNum">     328 </span>            :     template &lt;typename DataType&gt;
+<span class="lineNum">     329 </span><span class="lineNoCov">          0 :     using deriv_H = ::Tags::Tempi&lt;13, 3, Frame::Inertial, DataType&gt;;</span>
+<span class="lineNum">     330 </span>            :     template &lt;typename DataType&gt;
+<span class="lineNum">     331 </span><span class="lineNoCov">          0 :     using denom = ::Tags::TempScalar&lt;14, DataType&gt;;</span>
+<span class="lineNum">     332 </span>            :     template &lt;typename DataType&gt;
+<span class="lineNum">     333 </span><span class="lineNoCov">          0 :     using a_dot_x_over_r = ::Tags::TempScalar&lt;15, DataType&gt;;</span>
+<span class="lineNum">     334 </span>            :     template &lt;typename DataType&gt;
+<span class="lineNum">     335 </span><span class="lineNoCov">          0 :     using null_form = ::Tags::Tempi&lt;16, 3, Frame::Inertial, DataType&gt;;</span>
+<span class="lineNum">     336 </span>            :     template &lt;typename DataType&gt;
+<span class="lineNum">     337 </span><span class="lineNoCov">          0 :     using deriv_null_form = ::Tags::Tempij&lt;17, 3, Frame::Inertial, DataType&gt;;</span>
+<span class="lineNum">     338 </span>            :     template &lt;typename DataType&gt;
+<span class="lineNum">     339 </span><span class="lineNoCov">          0 :     using lapse_squared = ::Tags::TempScalar&lt;18, DataType&gt;;</span>
+<span class="lineNum">     340 </span>            :     template &lt;typename DataType&gt;
+<span class="lineNum">     341 </span><span class="lineNoCov">          0 :     using deriv_lapse_multiplier = ::Tags::TempScalar&lt;19, DataType&gt;;</span>
+<span class="lineNum">     342 </span>            :     template &lt;typename DataType&gt;
+<span class="lineNum">     343 </span><span class="lineNoCov">          0 :     using shift_multiplier = ::Tags::TempScalar&lt;20, DataType&gt;;</span>
+<span class="lineNum">     344 </span>            :   };
+<span class="lineNum">     345 </span>            : 
+<span class="lineNum">     346 </span>            :   template &lt;typename DataType&gt;
+<span class="lineNum">     347 </span><span class="lineNoCov">          0 :   class IntermediateComputer;</span>
+<span class="lineNum">     348 </span>            : 
+<span class="lineNum">     349 </span>            :   template &lt;typename DataType&gt;
+<span class="lineNum">     350 </span><span class="lineNoCov">          0 :   using CachedBuffer = CachedTempBuffer&lt;</span>
+<span class="lineNum">     351 </span>            :       IntermediateComputer&lt;DataType&gt;, internal_tags::x_minus_center&lt;DataType&gt;,
+<span class="lineNum">     352 </span>            :       internal_tags::a_dot_x&lt;DataType&gt;,
+<span class="lineNum">     353 </span>            :       internal_tags::a_dot_x_squared&lt;DataType&gt;,
+<span class="lineNum">     354 </span>            :       internal_tags::half_xsq_minus_asq&lt;DataType&gt;,
+<span class="lineNum">     355 </span>            :       internal_tags::r_squared&lt;DataType&gt;, internal_tags::r&lt;DataType&gt;,
+<span class="lineNum">     356 </span>            :       internal_tags::a_dot_x_over_rsquared&lt;DataType&gt;,
+<span class="lineNum">     357 </span>            :       internal_tags::deriv_log_r_denom&lt;DataType&gt;,
+<span class="lineNum">     358 </span>            :       internal_tags::deriv_log_r&lt;DataType&gt;, internal_tags::H_denom&lt;DataType&gt;,
+<span class="lineNum">     359 </span>            :       internal_tags::H&lt;DataType&gt;, internal_tags::deriv_H_temp1&lt;DataType&gt;,
+<span class="lineNum">     360 </span>            :       internal_tags::deriv_H_temp2&lt;DataType&gt;, internal_tags::deriv_H&lt;DataType&gt;,
+<span class="lineNum">     361 </span>            :       internal_tags::denom&lt;DataType&gt;, internal_tags::a_dot_x_over_r&lt;DataType&gt;,
+<span class="lineNum">     362 </span>            :       internal_tags::null_form&lt;DataType&gt;,
+<span class="lineNum">     363 </span>            :       internal_tags::deriv_null_form&lt;DataType&gt;,
+<span class="lineNum">     364 </span>            :       internal_tags::lapse_squared&lt;DataType&gt;, gr::Tags::Lapse&lt;DataType&gt;,
+<span class="lineNum">     365 </span>            :       internal_tags::deriv_lapse_multiplier&lt;DataType&gt;,
+<span class="lineNum">     366 </span>            :       internal_tags::shift_multiplier&lt;DataType&gt;,
+<span class="lineNum">     367 </span>            :       gr::Tags::Shift&lt;3, Frame::Inertial, DataType&gt;, DerivShift&lt;DataType&gt;,
+<span class="lineNum">     368 </span>            :       gr::Tags::SpatialMetric&lt;3, Frame::Inertial, DataType&gt;,
+<span class="lineNum">     369 </span>            :       DerivSpatialMetric&lt;DataType&gt;,
+<span class="lineNum">     370 </span>            :       ::Tags::dt&lt;gr::Tags::SpatialMetric&lt;3, Frame::Inertial, DataType&gt;&gt;&gt;;
+<span class="lineNum">     371 </span>            : 
+<span class="lineNum">     372 </span>            :   template &lt;typename DataType&gt;
+<span class="lineNum">     373 </span>            :   class IntermediateComputer {
+<span class="lineNum">     374 </span>            :    public:
+<span class="lineNum">     375 </span><span class="lineNoCov">          0 :     using CachedBuffer = KerrSchild::CachedBuffer&lt;DataType&gt;;</span>
+<span class="lineNum">     376 </span>            : 
+<span class="lineNum">     377 </span><span class="lineNoCov">          0 :     IntermediateComputer(const KerrSchild&amp; solution,</span>
+<span class="lineNum">     378 </span>            :                          const tnsr::I&lt;DataType, 3&gt;&amp; x,
+<span class="lineNum">     379 </span>            :                          double null_vector_0) noexcept;
+<span class="lineNum">     380 </span>            : 
+<span class="lineNum">     381 </span><span class="lineNoCov">          0 :     void operator()(gsl::not_null&lt;tnsr::I&lt;DataType, 3&gt;*&gt; x_minus_center,</span>
+<span class="lineNum">     382 </span>            :                     gsl::not_null&lt;CachedBuffer*&gt; /*cache*/,
+<span class="lineNum">     383 </span>            :                     internal_tags::x_minus_center&lt;DataType&gt; /*meta*/) const
+<span class="lineNum">     384 </span>            :         noexcept;
+<span class="lineNum">     385 </span>            : 
+<span class="lineNum">     386 </span><span class="lineNoCov">          0 :     void operator()(gsl::not_null&lt;Scalar&lt;DataType&gt;*&gt; a_dot_x,</span>
+<span class="lineNum">     387 </span>            :                     gsl::not_null&lt;CachedBuffer*&gt; cache,
+<span class="lineNum">     388 </span>            :                     internal_tags::a_dot_x&lt;DataType&gt; /*meta*/) const noexcept;
+<span class="lineNum">     389 </span>            : 
+<span class="lineNum">     390 </span><span class="lineNoCov">          0 :     void operator()(gsl::not_null&lt;Scalar&lt;DataType&gt;*&gt; a_dot_x_squared,</span>
+<span class="lineNum">     391 </span>            :                     gsl::not_null&lt;CachedBuffer*&gt; cache,
+<span class="lineNum">     392 </span>            :                     internal_tags::a_dot_x_squared&lt;DataType&gt; /*meta*/) const
+<span class="lineNum">     393 </span>            :         noexcept;
+<span class="lineNum">     394 </span>            : 
+<span class="lineNum">     395 </span><span class="lineNoCov">          0 :     void operator()(gsl::not_null&lt;Scalar&lt;DataType&gt;*&gt; half_xsq_minus_asq,</span>
+<span class="lineNum">     396 </span>            :                     gsl::not_null&lt;CachedBuffer*&gt; cache,
+<span class="lineNum">     397 </span>            :                     internal_tags::half_xsq_minus_asq&lt;DataType&gt; /*meta*/) const
+<span class="lineNum">     398 </span>            :         noexcept;
+<span class="lineNum">     399 </span>            : 
+<span class="lineNum">     400 </span><span class="lineNoCov">          0 :     void operator()(gsl::not_null&lt;Scalar&lt;DataType&gt;*&gt; r_squared,</span>
+<span class="lineNum">     401 </span>            :                     gsl::not_null&lt;CachedBuffer*&gt; cache,
+<span class="lineNum">     402 </span>            :                     internal_tags::r_squared&lt;DataType&gt; /*meta*/) const noexcept;
+<span class="lineNum">     403 </span>            : 
+<span class="lineNum">     404 </span><span class="lineNoCov">          0 :     void operator()(gsl::not_null&lt;Scalar&lt;DataType&gt;*&gt; r,</span>
+<span class="lineNum">     405 </span>            :                     gsl::not_null&lt;CachedBuffer*&gt; cache,
+<span class="lineNum">     406 </span>            :                     internal_tags::r&lt;DataType&gt; /*meta*/) const noexcept;
+<span class="lineNum">     407 </span>            : 
+<span class="lineNum">     408 </span><span class="lineNoCov">          0 :     void operator()(</span>
+<span class="lineNum">     409 </span>            :         gsl::not_null&lt;Scalar&lt;DataType&gt;*&gt; a_dot_x_over_rsquared,
+<span class="lineNum">     410 </span>            :         gsl::not_null&lt;CachedBuffer*&gt; cache,
+<span class="lineNum">     411 </span>            :         internal_tags::a_dot_x_over_rsquared&lt;DataType&gt; /*meta*/) const noexcept;
+<span class="lineNum">     412 </span>            : 
+<span class="lineNum">     413 </span><span class="lineNoCov">          0 :     void operator()(gsl::not_null&lt;Scalar&lt;DataType&gt;*&gt; deriv_log_r_denom,</span>
+<span class="lineNum">     414 </span>            :                     gsl::not_null&lt;CachedBuffer*&gt; cache,
+<span class="lineNum">     415 </span>            :                     internal_tags::deriv_log_r_denom&lt;DataType&gt; /*meta*/) const
+<span class="lineNum">     416 </span>            :         noexcept;
+<span class="lineNum">     417 </span>            : 
+<span class="lineNum">     418 </span><span class="lineNoCov">          0 :     void operator()(gsl::not_null&lt;tnsr::i&lt;DataType, 3&gt;*&gt; deriv_log_r,</span>
+<span class="lineNum">     419 </span>            :                     gsl::not_null&lt;CachedBuffer*&gt; cache,
+<span class="lineNum">     420 </span>            :                     internal_tags::deriv_log_r&lt;DataType&gt; /*meta*/) const
+<span class="lineNum">     421 </span>            :         noexcept;
+<span class="lineNum">     422 </span>            : 
+<span class="lineNum">     423 </span><span class="lineNoCov">          0 :     void operator()(gsl::not_null&lt;Scalar&lt;DataType&gt;*&gt; H_denom,</span>
+<span class="lineNum">     424 </span>            :                     gsl::not_null&lt;CachedBuffer*&gt; cache,
+<span class="lineNum">     425 </span>            :                     internal_tags::H_denom&lt;DataType&gt; /*meta*/) const noexcept;
+<span class="lineNum">     426 </span>            : 
+<span class="lineNum">     427 </span><span class="lineNoCov">          0 :     void operator()(gsl::not_null&lt;Scalar&lt;DataType&gt;*&gt; H,</span>
+<span class="lineNum">     428 </span>            :                     gsl::not_null&lt;CachedBuffer*&gt; cache,
+<span class="lineNum">     429 </span>            :                     internal_tags::H&lt;DataType&gt; /*meta*/) const noexcept;
+<span class="lineNum">     430 </span>            : 
+<span class="lineNum">     431 </span><span class="lineNoCov">          0 :     void operator()(gsl::not_null&lt;Scalar&lt;DataType&gt;*&gt; deriv_H_temp1,</span>
+<span class="lineNum">     432 </span>            :                     gsl::not_null&lt;CachedBuffer*&gt; cache,
+<span class="lineNum">     433 </span>            :                     internal_tags::deriv_H_temp1&lt;DataType&gt; /*meta*/) const
+<span class="lineNum">     434 </span>            :         noexcept;
+<span class="lineNum">     435 </span>            : 
+<span class="lineNum">     436 </span><span class="lineNoCov">          0 :     void operator()(gsl::not_null&lt;Scalar&lt;DataType&gt;*&gt; deriv_H_temp2,</span>
+<span class="lineNum">     437 </span>            :                     gsl::not_null&lt;CachedBuffer*&gt; cache,
+<span class="lineNum">     438 </span>            :                     internal_tags::deriv_H_temp2&lt;DataType&gt; /*meta*/) const
+<span class="lineNum">     439 </span>            :         noexcept;
+<span class="lineNum">     440 </span>            : 
+<span class="lineNum">     441 </span><span class="lineNoCov">          0 :     void operator()(gsl::not_null&lt;tnsr::i&lt;DataType, 3&gt;*&gt; deriv_H,</span>
+<span class="lineNum">     442 </span>            :                     gsl::not_null&lt;CachedBuffer*&gt; cache,
+<span class="lineNum">     443 </span>            :                     internal_tags::deriv_H&lt;DataType&gt; /*meta*/) const noexcept;
+<span class="lineNum">     444 </span>            : 
+<span class="lineNum">     445 </span><span class="lineNoCov">          0 :     void operator()(gsl::not_null&lt;Scalar&lt;DataType&gt;*&gt; denom,</span>
+<span class="lineNum">     446 </span>            :                     gsl::not_null&lt;CachedBuffer*&gt; cache,
+<span class="lineNum">     447 </span>            :                     internal_tags::denom&lt;DataType&gt; /*meta*/) const noexcept;
+<span class="lineNum">     448 </span>            : 
+<span class="lineNum">     449 </span><span class="lineNoCov">          0 :     void operator()(gsl::not_null&lt;Scalar&lt;DataType&gt;*&gt; a_dot_x_over_r,</span>
+<span class="lineNum">     450 </span>            :                     gsl::not_null&lt;CachedBuffer*&gt; cache,
+<span class="lineNum">     451 </span>            :                     internal_tags::a_dot_x_over_r&lt;DataType&gt; /*meta*/) const
+<span class="lineNum">     452 </span>            :         noexcept;
+<span class="lineNum">     453 </span>            : 
+<span class="lineNum">     454 </span><span class="lineNoCov">          0 :     void operator()(gsl::not_null&lt;tnsr::i&lt;DataType, 3&gt;*&gt; null_form,</span>
+<span class="lineNum">     455 </span>            :                     gsl::not_null&lt;CachedBuffer*&gt; cache,
+<span class="lineNum">     456 </span>            :                     internal_tags::null_form&lt;DataType&gt; /*meta*/) const noexcept;
+<span class="lineNum">     457 </span>            : 
+<span class="lineNum">     458 </span><span class="lineNoCov">          0 :     void operator()(gsl::not_null&lt;tnsr::ij&lt;DataType, 3&gt;*&gt; deriv_null_form,</span>
+<span class="lineNum">     459 </span>            :                     gsl::not_null&lt;CachedBuffer*&gt; cache,
+<span class="lineNum">     460 </span>            :                     internal_tags::deriv_null_form&lt;DataType&gt; /*meta*/) const
+<span class="lineNum">     461 </span>            :         noexcept;
+<span class="lineNum">     462 </span>            : 
+<span class="lineNum">     463 </span><span class="lineNoCov">          0 :     void operator()(gsl::not_null&lt;Scalar&lt;DataType&gt;*&gt; lapse_squared,</span>
+<span class="lineNum">     464 </span>            :                     gsl::not_null&lt;CachedBuffer*&gt; cache,
+<span class="lineNum">     465 </span>            :                     internal_tags::lapse_squared&lt;DataType&gt; /*meta*/) const
+<span class="lineNum">     466 </span>            :         noexcept;
+<span class="lineNum">     467 </span>            : 
+<span class="lineNum">     468 </span><span class="lineNoCov">          0 :     void operator()(gsl::not_null&lt;Scalar&lt;DataType&gt;*&gt; lapse,</span>
+<span class="lineNum">     469 </span>            :                     gsl::not_null&lt;CachedBuffer*&gt; cache,
+<span class="lineNum">     470 </span>            :                     gr::Tags::Lapse&lt;DataType&gt; /*meta*/) const noexcept;
+<span class="lineNum">     471 </span>            : 
+<span class="lineNum">     472 </span><span class="lineNoCov">          0 :     void operator()(gsl::not_null&lt;Scalar&lt;DataType&gt;*&gt; deriv_lapse_multiplier,</span>
+<span class="lineNum">     473 </span>            :                     gsl::not_null&lt;CachedBuffer*&gt; cache,
+<span class="lineNum">     474 </span>            :                     internal_tags::deriv_lapse_multiplier&lt;DataType&gt; /*meta*/)
+<span class="lineNum">     475 </span>            :         const noexcept;
+<span class="lineNum">     476 </span>            : 
+<span class="lineNum">     477 </span><span class="lineNoCov">          0 :     void operator()(gsl::not_null&lt;Scalar&lt;DataType&gt;*&gt; shift_multiplier,</span>
+<span class="lineNum">     478 </span>            :                     gsl::not_null&lt;CachedBuffer*&gt; cache,
+<span class="lineNum">     479 </span>            :                     internal_tags::shift_multiplier&lt;DataType&gt; /*meta*/) const
+<span class="lineNum">     480 </span>            :         noexcept;
+<span class="lineNum">     481 </span>            : 
+<span class="lineNum">     482 </span><span class="lineNoCov">          0 :     void operator()(</span>
+<span class="lineNum">     483 </span>            :         gsl::not_null&lt;tnsr::I&lt;DataType, 3&gt;*&gt; shift,
+<span class="lineNum">     484 </span>            :         gsl::not_null&lt;CachedBuffer*&gt; cache,
+<span class="lineNum">     485 </span>            :         gr::Tags::Shift&lt;3, Frame::Inertial, DataType&gt; /*meta*/) const noexcept;
+<span class="lineNum">     486 </span>            : 
+<span class="lineNum">     487 </span><span class="lineNoCov">          0 :     void operator()(gsl::not_null&lt;tnsr::iJ&lt;DataType, 3&gt;*&gt; deriv_shift,</span>
+<span class="lineNum">     488 </span>            :                     gsl::not_null&lt;CachedBuffer*&gt; cache,
+<span class="lineNum">     489 </span>            :                     DerivShift&lt;DataType&gt; /*meta*/) const noexcept;
+<span class="lineNum">     490 </span>            : 
+<span class="lineNum">     491 </span><span class="lineNoCov">          0 :     void operator()(</span>
+<span class="lineNum">     492 </span>            :         gsl::not_null&lt;tnsr::ii&lt;DataType, 3&gt;*&gt; spatial_metric,
+<span class="lineNum">     493 </span>            :         gsl::not_null&lt;CachedBuffer*&gt; cache,
+<span class="lineNum">     494 </span>            :         gr::Tags::SpatialMetric&lt;3, Frame::Inertial, DataType&gt; /*meta*/) const
+<span class="lineNum">     495 </span>            :         noexcept;
+<span class="lineNum">     496 </span>            : 
+<span class="lineNum">     497 </span><span class="lineNoCov">          0 :     void operator()(gsl::not_null&lt;tnsr::ijj&lt;DataType, 3&gt;*&gt; deriv_spatial_metric,</span>
+<span class="lineNum">     498 </span>            :                     gsl::not_null&lt;CachedBuffer*&gt; cache,
+<span class="lineNum">     499 </span>            :                     DerivSpatialMetric&lt;DataType&gt; /*meta*/) const noexcept;
+<span class="lineNum">     500 </span>            : 
+<span class="lineNum">     501 </span><span class="lineNoCov">          0 :     void operator()(gsl::not_null&lt;tnsr::ii&lt;DataType, 3&gt;*&gt; dt_spatial_metric,</span>
+<span class="lineNum">     502 </span>            :                     gsl::not_null&lt;CachedBuffer*&gt; cache,
+<span class="lineNum">     503 </span>            :                     ::Tags::dt&lt;gr::Tags::SpatialMetric&lt;
+<span class="lineNum">     504 </span>            :                         3, Frame::Inertial, DataType&gt;&gt; /*meta*/) const noexcept;
+<span class="lineNum">     505 </span>            : 
+<span class="lineNum">     506 </span>            :    private:
+<span class="lineNum">     507 </span><span class="lineNoCov">          0 :     const KerrSchild&amp; solution_;</span>
+<span class="lineNum">     508 </span><span class="lineNoCov">          0 :     const tnsr::I&lt;DataType, 3&gt;&amp; x_;</span>
+<span class="lineNum">     509 </span><span class="lineNoCov">          0 :     double null_vector_0_;</span>
+<span class="lineNum">     510 </span>            :   };
+<span class="lineNum">     511 </span>            : 
+<span class="lineNum">     512 </span>            :   template &lt;typename DataType&gt;
+<span class="lineNum">     513 </span><span class="lineNoCov">          0 :   class IntermediateVars : public CachedBuffer&lt;DataType&gt; {</span>
+<span class="lineNum">     514 </span>            :    public:
+<span class="lineNum">     515 </span><span class="lineNoCov">          0 :     using CachedBuffer = KerrSchild::CachedBuffer&lt;DataType&gt;;</span>
+<span class="lineNum">     516 </span>            : 
+<span class="lineNum">     517 </span><span class="lineNoCov">          0 :     IntermediateVars(const KerrSchild&amp; solution,</span>
+<span class="lineNum">     518 </span>            :                      const tnsr::I&lt;DataType, 3&gt;&amp; x) noexcept;
+<span class="lineNum">     519 </span>            : 
+<span class="lineNum">     520 </span>            :     using CachedBuffer::get_var;
+<span class="lineNum">     521 </span>            : 
+<span class="lineNum">     522 </span><span class="lineNoCov">          0 :     tnsr::i&lt;DataType, 3&gt; get_var(DerivLapse&lt;DataType&gt; /*meta*/) noexcept;</span>
+<span class="lineNum">     523 </span>            : 
+<span class="lineNum">     524 </span><span class="lineNoCov">          0 :     Scalar&lt;DataType&gt; get_var(</span>
+<span class="lineNum">     525 </span>            :         ::Tags::dt&lt;gr::Tags::Lapse&lt;DataType&gt;&gt; /*meta*/) noexcept;
+<span class="lineNum">     526 </span>            : 
+<span class="lineNum">     527 </span><span class="lineNoCov">          0 :     tnsr::I&lt;DataType, 3&gt; get_var(</span>
+<span class="lineNum">     528 </span>            :         ::Tags::dt&lt;
+<span class="lineNum">     529 </span>            :             gr::Tags::Shift&lt;3, Frame::Inertial, DataType&gt;&gt; /*meta*/) noexcept;
+<span class="lineNum">     530 </span>            : 
+<span class="lineNum">     531 </span><span class="lineNoCov">          0 :     Scalar&lt;DataType&gt; get_var(</span>
+<span class="lineNum">     532 </span>            :         gr::Tags::SqrtDetSpatialMetric&lt;DataType&gt; /*meta*/) noexcept;
+<span class="lineNum">     533 </span>            : 
+<span class="lineNum">     534 </span><span class="lineNoCov">          0 :     tnsr::II&lt;DataType, 3&gt; get_var(</span>
+<span class="lineNum">     535 </span>            :         gr::Tags::InverseSpatialMetric&lt;3, Frame::Inertial,
+<span class="lineNum">     536 </span>            :                                        DataType&gt; /*meta*/) noexcept;
+<span class="lineNum">     537 </span>            : 
+<span class="lineNum">     538 </span><span class="lineNoCov">          0 :     tnsr::ii&lt;DataType, 3&gt; get_var(</span>
+<span class="lineNum">     539 </span>            :         gr::Tags::ExtrinsicCurvature&lt;3, Frame::Inertial,
+<span class="lineNum">     540 </span>            :                                      DataType&gt; /*meta*/) noexcept;
+<span class="lineNum">     541 </span>            : 
+<span class="lineNum">     542 </span>            :    private:
+<span class="lineNum">     543 </span>            :     // Here null_vector_0 is simply -1, but if you have a boosted solution,
+<span class="lineNum">     544 </span>            :     // then null_vector_0 can be something different, so we leave it coded
+<span class="lineNum">     545 </span>            :     // in instead of eliminating it.
+<span class="lineNum">     546 </span><span class="lineNoCov">          0 :     static constexpr double null_vector_0_ = -1.0;</span>
+<span class="lineNum">     547 </span>            :   };
+<span class="lineNum">     548 </span>            : 
+<span class="lineNum">     549 </span><span class="lineNoCov">          0 :   double mass_{1.0};</span>
+<span class="lineNum">     550 </span><span class="lineNoCov">          0 :   std::array&lt;double, volume_dim&gt; dimensionless_spin_{{0.0, 0.0, 0.0}};</span>
+<span class="lineNum">     551 </span><span class="lineNoCov">          0 :   std::array&lt;double, volume_dim&gt; center_{{0.0, 0.0, 0.0}};</span>
+<span class="lineNum">     552 </span>            : };
+<span class="lineNum">     553 </span>            : 
+<span class="lineNum">     554 </span><span class="lineNoCov">          0 : SPECTRE_ALWAYS_INLINE bool operator==(const KerrSchild&amp; lhs,</span>
+<span class="lineNum">     555 </span>            :                                       const KerrSchild&amp; rhs) noexcept {
+<span class="lineNum">     556 </span>            :   return lhs.mass() == rhs.mass() and
+<span class="lineNum">     557 </span>            :          lhs.dimensionless_spin() == rhs.dimensionless_spin() and
+<span class="lineNum">     558 </span>            :          lhs.center() == rhs.center();
+<span class="lineNum">     559 </span>            : }
+<span class="lineNum">     560 </span>            : 
+<span class="lineNum">     561 </span><span class="lineNoCov">          0 : SPECTRE_ALWAYS_INLINE bool operator!=(const KerrSchild&amp; lhs,</span>
+<span class="lineNum">     562 </span>            :                                       const KerrSchild&amp; rhs) noexcept {
+<span class="lineNum">     563 </span>            :   return not(lhs == rhs);
+<span class="lineNum">     564 </span>            : }
+<span class="lineNum">     565 </span>            : }  // namespace Solutions
+<span class="lineNum">     566 </span>            : }  // namespace gr
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

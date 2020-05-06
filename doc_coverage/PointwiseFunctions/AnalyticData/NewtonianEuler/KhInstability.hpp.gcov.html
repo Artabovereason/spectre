@@ -1,0 +1,346 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - PointwiseFunctions/AnalyticData/NewtonianEuler/KhInstability.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../index.html">top level</a> - <a href="index.html">PointwiseFunctions/AnalyticData/NewtonianEuler</a> - KhInstability.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">15</td>
+            <td class="headerCovTableEntry">67</td>
+            <td class="headerCovTableEntryLo">22.4 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #pragma once
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;cstddef&gt;
+<span class="lineNum">       7 </span>            : #include &lt;limits&gt;
+<span class="lineNum">       8 </span>            : 
+<span class="lineNum">       9 </span>            : #include &quot;DataStructures/Tensor/TypeAliases.hpp&quot;
+<span class="lineNum">      10 </span>            : #include &quot;Evolution/Systems/NewtonianEuler/Sources/NoSource.hpp&quot;
+<span class="lineNum">      11 </span>            : #include &quot;Evolution/Systems/NewtonianEuler/Tags.hpp&quot;
+<span class="lineNum">      12 </span>            : #include &quot;Options/Options.hpp&quot;
+<span class="lineNum">      13 </span>            : #include &quot;PointwiseFunctions/AnalyticData/AnalyticData.hpp&quot;
+<span class="lineNum">      14 </span>            : #include &quot;PointwiseFunctions/Hydro/EquationsOfState/EquationOfState.hpp&quot;
+<span class="lineNum">      15 </span>            : #include &quot;PointwiseFunctions/Hydro/EquationsOfState/IdealFluid.hpp&quot;
+<span class="lineNum">      16 </span>            : #include &quot;Utilities/MakeArray.hpp&quot;
+<span class="lineNum">      17 </span>            : #include &quot;Utilities/TMPL.hpp&quot;
+<span class="lineNum">      18 </span>            : #include &quot;Utilities/TaggedTuple.hpp&quot;
+<span class="lineNum">      19 </span>            : 
+<span class="lineNum">      20 </span>            : /// \cond
+<span class="lineNum">      21 </span>            : namespace PUP {
+<span class="lineNum">      22 </span>            : class er;  // IWYU pragma: keep
+<span class="lineNum">      23 </span>            : }  // namespace PUP
+<span class="lineNum">      24 </span>            : /// \endcond
+<span class="lineNum">      25 </span>            : 
+<span class="lineNum">      26 </span>            : namespace NewtonianEuler {
+<span class="lineNum">      27 </span>            : namespace AnalyticData {
+<span class="lineNum">      28 </span>            : 
+<span class="lineNum">      29 </span>            : /*!
+<span class="lineNum">      30 </span>            :  * \brief Initial data to simulate the Kelvin-Helmholtz instability.
+<span class="lineNum">      31 </span>            :  *
+<span class="lineNum">      32 </span>            :  * For comparison purposes, this class implements the planar shear of
+<span class="lineNum">      33 </span>            :  * \cite Schaal2015, which is evolved using periodic boundary conditions.
+<span class="lineNum">      34 </span>            :  * The initial state consists of a horizontal strip of mass
+<span class="lineNum">      35 </span>            :  * density \f$\rho_\text{in}\f$ moving with horizontal speed
+<span class="lineNum">      36 </span>            :  * \f$v_{\text{in}}\f$. The rest of the fluid possesses mass density
+<span class="lineNum">      37 </span>            :  * \f$\rho_\text{out}\f$, and its horizontal velocity is \f$v_{\text{out}}\f$,
+<span class="lineNum">      38 </span>            :  * both constant. Mathematically,
+<span class="lineNum">      39 </span>            :  *
+<span class="lineNum">      40 </span>            :  * \f{align*}
+<span class="lineNum">      41 </span>            :  * \rho(x, y) =
+<span class="lineNum">      42 </span>            :  * \begin{cases}
+<span class="lineNum">      43 </span>            :  * \rho_\text{in}, &amp; \left|y - y_\text{mid}\right| &lt; b/2\\
+<span class="lineNum">      44 </span>            :  * \rho_\text{out}, &amp; \text{otherwise},
+<span class="lineNum">      45 </span>            :  * \end{cases}
+<span class="lineNum">      46 </span>            :  * \f}
+<span class="lineNum">      47 </span>            :  *
+<span class="lineNum">      48 </span>            :  * and
+<span class="lineNum">      49 </span>            :  *
+<span class="lineNum">      50 </span>            :  * \f{align*}
+<span class="lineNum">      51 </span>            :  * v_x(x, y) =
+<span class="lineNum">      52 </span>            :  * \begin{cases}
+<span class="lineNum">      53 </span>            :  * v_{\text{in}}, &amp; \left|y - y_\text{mid}\right| &lt; b/2\\
+<span class="lineNum">      54 </span>            :  * v_{\text{out}}, &amp; \text{otherwise},
+<span class="lineNum">      55 </span>            :  * \end{cases}
+<span class="lineNum">      56 </span>            :  * \f}
+<span class="lineNum">      57 </span>            :  *
+<span class="lineNum">      58 </span>            :  * where \f$b &gt; 0\f$ is the thickness of the strip, and \f$y = y_\text{mid}\f$
+<span class="lineNum">      59 </span>            :  * is its horizontal bimedian. The initial pressure is set equal to a constant,
+<span class="lineNum">      60 </span>            :  * and the system is evolved assuming an ideal fluid of known adiabatic index.
+<span class="lineNum">      61 </span>            :  * Finally, in order to excite the instability, the vertical velocity is
+<span class="lineNum">      62 </span>            :  * initialized to
+<span class="lineNum">      63 </span>            :  *
+<span class="lineNum">      64 </span>            :  * \f{align*}
+<span class="lineNum">      65 </span>            :  * v_y(x, y) = A\sin(4\pi x)
+<span class="lineNum">      66 </span>            :  * \left[\exp\left(-\dfrac{(y - y_\text{top})^2}{2\sigma^2}\right) +
+<span class="lineNum">      67 </span>            :  * \exp\left(-\dfrac{(y - y_\text{bot})^2}{2\sigma^2}\right)\right],
+<span class="lineNum">      68 </span>            :  * \f}
+<span class="lineNum">      69 </span>            :  *
+<span class="lineNum">      70 </span>            :  * whose net effect is to perturb the horizontal boundaries of the strip
+<span class="lineNum">      71 </span>            :  * periodically along the \f$x-\f$axis. Here \f$A\f$ is the amplitude,
+<span class="lineNum">      72 </span>            :  * \f$\sigma\f$ is a characteristic length for the perturbation width,
+<span class="lineNum">      73 </span>            :  * and \f$y_\text{top} = y_\text{mid} + b/2\f$ and
+<span class="lineNum">      74 </span>            :  * \f$y_\text{bot} = y_\text{mid} - b/2\f$ are the vertical coordinates
+<span class="lineNum">      75 </span>            :  * of the top and bottom boundaries of the strip, respectively.
+<span class="lineNum">      76 </span>            :  *
+<span class="lineNum">      77 </span>            :  * \note The periodic form of the perturbation enforces the horizontal
+<span class="lineNum">      78 </span>            :  * extent of the domain to be a multiple of 0.5. The domain chosen in
+<span class="lineNum">      79 </span>            :  * \cite Schaal2015 is the square \f$[0, 1]^2\f$, which covers two wavelengths
+<span class="lineNum">      80 </span>            :  * of the perturbation. In addition, the authors ran their simulations using
+<span class="lineNum">      81 </span>            :  *
+<span class="lineNum">      82 </span>            :  * ```
+<span class="lineNum">      83 </span>            :  * AdiabaticIndex: 1.4
+<span class="lineNum">      84 </span>            :  * StripBimedianHeight: 0.5
+<span class="lineNum">      85 </span>            :  * StripThickness: 0.5
+<span class="lineNum">      86 </span>            :  * StripDensity: 2.0
+<span class="lineNum">      87 </span>            :  * StripVelocity: 0.5
+<span class="lineNum">      88 </span>            :  * BackgroundDensity: 1.0
+<span class="lineNum">      89 </span>            :  * BackgroundVelocity: -0.5
+<span class="lineNum">      90 </span>            :  * Pressure: 2.5
+<span class="lineNum">      91 </span>            :  * PerturbAmplitude: 0.1
+<span class="lineNum">      92 </span>            :  * PerturbWidth: 0.035355339059327376 # 0.05/sqrt(2)
+<span class="lineNum">      93 </span>            :  * ```
+<span class="lineNum">      94 </span>            :  *
+<span class="lineNum">      95 </span>            :  * \note This class can be used to initialize 2D and 3D data. In 3D, the strip
+<span class="lineNum">      96 </span>            :  * is aligned to the \f$xy-\f$plane, and the vertical direction is taken to be
+<span class="lineNum">      97 </span>            :  * the \f$z-\f$axis.
+<span class="lineNum">      98 </span>            :  */
+<span class="lineNum">      99 </span>            : template &lt;size_t Dim&gt;
+<span class="lineNum">     100 </span>            : class KhInstability : public MarkAsAnalyticData {
+<span class="lineNum">     101 </span>            :  public:
+<span class="lineNum">     102 </span><span class="lineNoCov">          0 :   using equation_of_state_type = EquationsOfState::IdealFluid&lt;false&gt;;</span>
+<span class="lineNum">     103 </span><span class="lineNoCov">          0 :   using source_term_type = Sources::NoSource;</span>
+<span class="lineNum">     104 </span>            : 
+<span class="lineNum">     105 </span>            :   /// The adiabatic index of the fluid.
+<span class="lineNum">     106 </span><span class="lineCov">          1 :   struct AdiabaticIndex {</span>
+<span class="lineNum">     107 </span><span class="lineNoCov">          0 :     using type = double;</span>
+<span class="lineNum">     108 </span><span class="lineNoCov">          0 :     static constexpr OptionString help = {&quot;The adiabatic index of the fluid.&quot;};</span>
+<span class="lineNum">     109 </span>            :   };
+<span class="lineNum">     110 </span>            : 
+<span class="lineNum">     111 </span>            :   /// The vertical coordinate of the horizontal bimedian of the strip.
+<span class="lineNum">     112 </span><span class="lineCov">          1 :   struct StripBimedianHeight {</span>
+<span class="lineNum">     113 </span><span class="lineNoCov">          0 :     using type = double;</span>
+<span class="lineNum">     114 </span><span class="lineNoCov">          0 :     static constexpr OptionString help = {&quot;The height of the strip center.&quot;};</span>
+<span class="lineNum">     115 </span>            :   };
+<span class="lineNum">     116 </span>            : 
+<span class="lineNum">     117 </span>            :   /// The thickness of the strip.
+<span class="lineNum">     118 </span><span class="lineCov">          1 :   struct StripThickness {</span>
+<span class="lineNum">     119 </span><span class="lineNoCov">          0 :     using type = double;</span>
+<span class="lineNum">     120 </span><span class="lineNoCov">          0 :     static type lower_bound() noexcept { return 0.0; }</span>
+<span class="lineNum">     121 </span><span class="lineNoCov">          0 :     static constexpr OptionString help = {</span>
+<span class="lineNum">     122 </span>            :         &quot;The thickness of the horizontal strip.&quot;};
+<span class="lineNum">     123 </span>            :   };
+<span class="lineNum">     124 </span>            : 
+<span class="lineNum">     125 </span>            :   /// The mass density in the strip
+<span class="lineNum">     126 </span><span class="lineCov">          1 :   struct StripDensity {</span>
+<span class="lineNum">     127 </span><span class="lineNoCov">          0 :     using type = double;</span>
+<span class="lineNum">     128 </span><span class="lineNoCov">          0 :     static type lower_bound() noexcept { return 0.0; }</span>
+<span class="lineNum">     129 </span><span class="lineNoCov">          0 :     static constexpr OptionString help = {</span>
+<span class="lineNum">     130 </span>            :         &quot;The mass density in the horizontal strip.&quot;};
+<span class="lineNum">     131 </span>            :   };
+<span class="lineNum">     132 </span>            : 
+<span class="lineNum">     133 </span>            :   /// The velocity along \f$x\f$ in the strip
+<span class="lineNum">     134 </span><span class="lineCov">          1 :   struct StripVelocity {</span>
+<span class="lineNum">     135 </span><span class="lineNoCov">          0 :     using type = double;</span>
+<span class="lineNum">     136 </span><span class="lineNoCov">          0 :     static constexpr OptionString help = {</span>
+<span class="lineNum">     137 </span>            :         &quot;The velocity along x in the horizontal strip.&quot;};
+<span class="lineNum">     138 </span>            :   };
+<span class="lineNum">     139 </span>            : 
+<span class="lineNum">     140 </span>            :   /// The mass density outside of the strip
+<span class="lineNum">     141 </span><span class="lineCov">          1 :   struct BackgroundDensity {</span>
+<span class="lineNum">     142 </span><span class="lineNoCov">          0 :     using type = double;</span>
+<span class="lineNum">     143 </span><span class="lineNoCov">          0 :     static type lower_bound() noexcept { return 0.0; }</span>
+<span class="lineNum">     144 </span><span class="lineNoCov">          0 :     static constexpr OptionString help = {</span>
+<span class="lineNum">     145 </span>            :         &quot;The mass density outside of the strip.&quot;};
+<span class="lineNum">     146 </span>            :   };
+<span class="lineNum">     147 </span>            : 
+<span class="lineNum">     148 </span>            :   /// The velocity along \f$x\f$ outside of the strip
+<span class="lineNum">     149 </span><span class="lineCov">          1 :   struct BackgroundVelocity {</span>
+<span class="lineNum">     150 </span><span class="lineNoCov">          0 :     using type = double;</span>
+<span class="lineNum">     151 </span><span class="lineNoCov">          0 :     static constexpr OptionString help = {</span>
+<span class="lineNum">     152 </span>            :         &quot;The velocity along x outside of the strip.&quot;};
+<span class="lineNum">     153 </span>            :   };
+<span class="lineNum">     154 </span>            : 
+<span class="lineNum">     155 </span>            :   /// The initial (constant) pressure of the fluid
+<span class="lineNum">     156 </span><span class="lineCov">          1 :   struct Pressure {</span>
+<span class="lineNum">     157 </span><span class="lineNoCov">          0 :     using type = double;</span>
+<span class="lineNum">     158 </span><span class="lineNoCov">          0 :     static type lower_bound() noexcept { return 0.0; }</span>
+<span class="lineNum">     159 </span><span class="lineNoCov">          0 :     static constexpr OptionString help = {&quot;The initial (constant) pressure.&quot;};</span>
+<span class="lineNum">     160 </span>            :   };
+<span class="lineNum">     161 </span>            : 
+<span class="lineNum">     162 </span>            :   /// The amplitude of the perturbation
+<span class="lineNum">     163 </span><span class="lineCov">          1 :   struct PerturbAmplitude {</span>
+<span class="lineNum">     164 </span><span class="lineNoCov">          0 :     using type = double;</span>
+<span class="lineNum">     165 </span><span class="lineNoCov">          0 :     static constexpr OptionString help = {&quot;The amplitude of the perturbation.&quot;};</span>
+<span class="lineNum">     166 </span>            :   };
+<span class="lineNum">     167 </span>            : 
+<span class="lineNum">     168 </span>            :   /// The characteristic length for the width of the perturbation
+<span class="lineNum">     169 </span><span class="lineCov">          1 :   struct PerturbWidth {</span>
+<span class="lineNum">     170 </span><span class="lineNoCov">          0 :     using type = double;</span>
+<span class="lineNum">     171 </span><span class="lineNoCov">          0 :     static type lower_bound() noexcept { return 0.0; }</span>
+<span class="lineNum">     172 </span><span class="lineNoCov">          0 :     static constexpr OptionString help = {</span>
+<span class="lineNum">     173 </span>            :         &quot;The characteristic length for the width of the perturbation.&quot;};
+<span class="lineNum">     174 </span>            :   };
+<span class="lineNum">     175 </span>            : 
+<span class="lineNum">     176 </span><span class="lineNoCov">          0 :   using options =</span>
+<span class="lineNum">     177 </span>            :       tmpl::list&lt;AdiabaticIndex, StripBimedianHeight, StripThickness,
+<span class="lineNum">     178 </span>            :                  StripDensity, StripVelocity, BackgroundDensity,
+<span class="lineNum">     179 </span>            :                  BackgroundVelocity, Pressure, PerturbAmplitude, PerturbWidth&gt;;
+<span class="lineNum">     180 </span>            : 
+<span class="lineNum">     181 </span><span class="lineNoCov">          0 :   static constexpr OptionString help = {</span>
+<span class="lineNum">     182 </span>            :       &quot;Initial data to simulate the KH instability.&quot;};
+<span class="lineNum">     183 </span>            : 
+<span class="lineNum">     184 </span><span class="lineNoCov">          0 :   KhInstability() = default;</span>
+<span class="lineNum">     185 </span><span class="lineNoCov">          0 :   KhInstability(const KhInstability&amp; /*rhs*/) = delete;</span>
+<span class="lineNum">     186 </span><span class="lineNoCov">          0 :   KhInstability&amp; operator=(const KhInstability&amp; /*rhs*/) = delete;</span>
+<span class="lineNum">     187 </span><span class="lineNoCov">          0 :   KhInstability(KhInstability&amp;&amp; /*rhs*/) noexcept = default;</span>
+<span class="lineNum">     188 </span><span class="lineNoCov">          0 :   KhInstability&amp; operator=(KhInstability&amp;&amp; /*rhs*/) noexcept = default;</span>
+<span class="lineNum">     189 </span><span class="lineNoCov">          0 :   ~KhInstability() = default;</span>
+<span class="lineNum">     190 </span>            : 
+<span class="lineNum">     191 </span><span class="lineNoCov">          0 :   KhInstability(double adiabatic_index, double strip_bimedian_height,</span>
+<span class="lineNum">     192 </span>            :                 double strip_thickness, double strip_density,
+<span class="lineNum">     193 </span>            :                 double strip_velocity, double background_density,
+<span class="lineNum">     194 </span>            :                 double background_velocity, double pressure,
+<span class="lineNum">     195 </span>            :                 double perturbation_amplitude, double perturbation_width);
+<span class="lineNum">     196 </span>            : 
+<span class="lineNum">     197 </span>            :   /// Retrieve a collection of hydrodynamic variables at position x
+<span class="lineNum">     198 </span>            :   template &lt;typename DataType, typename... Tags&gt;
+<span class="lineNum">     199 </span><span class="lineCov">          1 :   tuples::TaggedTuple&lt;Tags...&gt; variables(</span>
+<span class="lineNum">     200 </span>            :       const tnsr::I&lt;DataType, Dim, Frame::Inertial&gt;&amp; x,
+<span class="lineNum">     201 </span>            :       tmpl::list&lt;Tags...&gt; /*meta*/) const noexcept {
+<span class="lineNum">     202 </span>            :     return {tuples::get&lt;Tags&gt;(variables(x, tmpl::list&lt;Tags&gt;{}))...};
+<span class="lineNum">     203 </span>            :   }
+<span class="lineNum">     204 </span>            : 
+<span class="lineNum">     205 </span><span class="lineNoCov">          0 :   const EquationsOfState::IdealFluid&lt;false&gt;&amp; equation_of_state() const</span>
+<span class="lineNum">     206 </span>            :       noexcept {
+<span class="lineNum">     207 </span>            :     return equation_of_state_;
+<span class="lineNum">     208 </span>            :   }
+<span class="lineNum">     209 </span>            : 
+<span class="lineNum">     210 </span>            :   // clang-tidy: no runtime references
+<span class="lineNum">     211 </span><span class="lineNoCov">          0 :   void pup(PUP::er&amp; /*p*/) noexcept;  //  NOLINT</span>
+<span class="lineNum">     212 </span>            : 
+<span class="lineNum">     213 </span>            :  private:
+<span class="lineNum">     214 </span>            :   // @{
+<span class="lineNum">     215 </span>            :   /// Retrieve hydro variable at `x`
+<span class="lineNum">     216 </span>            :   template &lt;typename DataType&gt;
+<span class="lineNum">     217 </span><span class="lineCov">          1 :   auto variables(const tnsr::I&lt;DataType, Dim, Frame::Inertial&gt;&amp; x,</span>
+<span class="lineNum">     218 </span>            :                  tmpl::list&lt;Tags::MassDensity&lt;DataType&gt;&gt; /*meta*/
+<span class="lineNum">     219 </span>            :                  ) const noexcept
+<span class="lineNum">     220 </span>            :       -&gt; tuples::TaggedTuple&lt;Tags::MassDensity&lt;DataType&gt;&gt;;
+<span class="lineNum">     221 </span>            : 
+<span class="lineNum">     222 </span>            :   template &lt;typename DataType&gt;
+<span class="lineNum">     223 </span><span class="lineCov">          1 :   auto variables(</span>
+<span class="lineNum">     224 </span>            :       const tnsr::I&lt;DataType, Dim, Frame::Inertial&gt;&amp; x,
+<span class="lineNum">     225 </span>            :       tmpl::list&lt;Tags::Velocity&lt;DataType, Dim, Frame::Inertial&gt;&gt; /*meta*/) const
+<span class="lineNum">     226 </span>            :       noexcept
+<span class="lineNum">     227 </span>            :       -&gt; tuples::TaggedTuple&lt;Tags::Velocity&lt;DataType, Dim, Frame::Inertial&gt;&gt;;
+<span class="lineNum">     228 </span>            : 
+<span class="lineNum">     229 </span>            :   template &lt;typename DataType&gt;
+<span class="lineNum">     230 </span><span class="lineCov">          1 :   auto variables(const tnsr::I&lt;DataType, Dim, Frame::Inertial&gt;&amp; x,</span>
+<span class="lineNum">     231 </span>            :                  tmpl::list&lt;Tags::SpecificInternalEnergy&lt;DataType&gt;&gt; /*meta*/
+<span class="lineNum">     232 </span>            :                  ) const noexcept
+<span class="lineNum">     233 </span>            :       -&gt; tuples::TaggedTuple&lt;Tags::SpecificInternalEnergy&lt;DataType&gt;&gt;;
+<span class="lineNum">     234 </span>            : 
+<span class="lineNum">     235 </span>            :   template &lt;typename DataType&gt;
+<span class="lineNum">     236 </span><span class="lineCov">          1 :   auto variables(const tnsr::I&lt;DataType, Dim, Frame::Inertial&gt;&amp; x,</span>
+<span class="lineNum">     237 </span>            :                  tmpl::list&lt;Tags::Pressure&lt;DataType&gt;&gt; /*meta*/
+<span class="lineNum">     238 </span>            :                  ) const noexcept
+<span class="lineNum">     239 </span>            :       -&gt; tuples::TaggedTuple&lt;Tags::Pressure&lt;DataType&gt;&gt;;
+<span class="lineNum">     240 </span>            :   // @}
+<span class="lineNum">     241 </span>            : 
+<span class="lineNum">     242 </span>            :   template &lt;size_t SpatialDim&gt;
+<span class="lineNum">     243 </span>            :   friend bool
+<span class="lineNum">     244 </span><span class="lineNoCov">          0 :   operator==(  // NOLINT (clang-tidy: readability-redundant-declaration)</span>
+<span class="lineNum">     245 </span>            :       const KhInstability&lt;SpatialDim&gt;&amp; lhs,
+<span class="lineNum">     246 </span>            :       const KhInstability&lt;SpatialDim&gt;&amp; rhs) noexcept;
+<span class="lineNum">     247 </span>            : 
+<span class="lineNum">     248 </span><span class="lineNoCov">          0 :   double adiabatic_index_ = std::numeric_limits&lt;double&gt;::signaling_NaN();</span>
+<span class="lineNum">     249 </span><span class="lineNoCov">          0 :   double strip_bimedian_height_ = std::numeric_limits&lt;double&gt;::signaling_NaN();</span>
+<span class="lineNum">     250 </span><span class="lineNoCov">          0 :   double strip_half_thickness_ = std::numeric_limits&lt;double&gt;::signaling_NaN();</span>
+<span class="lineNum">     251 </span><span class="lineNoCov">          0 :   double strip_density_ = std::numeric_limits&lt;double&gt;::signaling_NaN();</span>
+<span class="lineNum">     252 </span><span class="lineNoCov">          0 :   double strip_velocity_ = std::numeric_limits&lt;double&gt;::signaling_NaN();</span>
+<span class="lineNum">     253 </span><span class="lineNoCov">          0 :   double background_density_ = std::numeric_limits&lt;double&gt;::signaling_NaN();</span>
+<span class="lineNum">     254 </span><span class="lineNoCov">          0 :   double background_velocity_ = std::numeric_limits&lt;double&gt;::signaling_NaN();</span>
+<span class="lineNum">     255 </span><span class="lineNoCov">          0 :   double pressure_ = std::numeric_limits&lt;double&gt;::signaling_NaN();</span>
+<span class="lineNum">     256 </span><span class="lineNoCov">          0 :   double perturbation_amplitude_ = std::numeric_limits&lt;double&gt;::signaling_NaN();</span>
+<span class="lineNum">     257 </span><span class="lineNoCov">          0 :   double perturbation_width_ = std::numeric_limits&lt;double&gt;::signaling_NaN();</span>
+<span class="lineNum">     258 </span><span class="lineNoCov">          0 :   EquationsOfState::IdealFluid&lt;false&gt; equation_of_state_{};</span>
+<span class="lineNum">     259 </span>            : };
+<span class="lineNum">     260 </span>            : 
+<span class="lineNum">     261 </span>            : template &lt;size_t Dim&gt;
+<span class="lineNum">     262 </span><span class="lineNoCov">          0 : bool operator!=(const KhInstability&lt;Dim&gt;&amp; lhs,</span>
+<span class="lineNum">     263 </span>            :                 const KhInstability&lt;Dim&gt;&amp; rhs) noexcept;
+<span class="lineNum">     264 </span>            : 
+<span class="lineNum">     265 </span>            : }  // namespace AnalyticData
+<span class="lineNum">     266 </span>            : }  // namespace NewtonianEuler
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

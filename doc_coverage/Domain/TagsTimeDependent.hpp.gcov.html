@@ -1,0 +1,250 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - Domain/TagsTimeDependent.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">Domain</a> - TagsTimeDependent.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">7</td>
+            <td class="headerCovTableEntry">29</td>
+            <td class="headerCovTableEntryLo">24.1 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #pragma once
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;boost/optional.hpp&gt;
+<span class="lineNum">       7 </span>            : #include &lt;cstddef&gt;
+<span class="lineNum">       8 </span>            : #include &lt;memory&gt;
+<span class="lineNum">       9 </span>            : #include &lt;string&gt;
+<span class="lineNum">      10 </span>            : #include &lt;tuple&gt;
+<span class="lineNum">      11 </span>            : #include &lt;unordered_map&gt;
+<span class="lineNum">      12 </span>            : 
+<span class="lineNum">      13 </span>            : #include &quot;DataStructures/DataBox/Tag.hpp&quot;
+<span class="lineNum">      14 </span>            : #include &quot;DataStructures/DataVector.hpp&quot;
+<span class="lineNum">      15 </span>            : #include &quot;DataStructures/Tensor/EagerMath/Magnitude.hpp&quot;  // For Tags::Normalized
+<span class="lineNum">      16 </span>            : #include &quot;DataStructures/Tensor/Tensor.hpp&quot;
+<span class="lineNum">      17 </span>            : #include &quot;Domain/CoordinateMaps/CoordinateMap.hpp&quot;
+<span class="lineNum">      18 </span>            : #include &quot;Domain/FaceNormal.hpp&quot;
+<span class="lineNum">      19 </span>            : #include &quot;Domain/FunctionsOfTime/FunctionOfTime.hpp&quot;
+<span class="lineNum">      20 </span>            : #include &quot;Domain/FunctionsOfTime/Tags.hpp&quot;
+<span class="lineNum">      21 </span>            : #include &quot;Domain/Tags.hpp&quot;
+<span class="lineNum">      22 </span>            : #include &quot;Time/Tags.hpp&quot;
+<span class="lineNum">      23 </span>            : #include &quot;Utilities/Gsl.hpp&quot;
+<span class="lineNum">      24 </span>            : #include &quot;Utilities/TMPL.hpp&quot;
+<span class="lineNum">      25 </span>            : 
+<span class="lineNum">      26 </span>            : namespace domain {
+<span class="lineNum">      27 </span>            : /// \ingroup ComputationalDomainGroup
+<span class="lineNum">      28 </span>            : /// \brief %Tags for the domain.
+<span class="lineNum">      29 </span>            : namespace Tags {
+<span class="lineNum">      30 </span>            : /// The Inertial coordinates, the inverse Jacobian from the Grid to the Inertial
+<span class="lineNum">      31 </span>            : /// frame, the Jacobian from the Grid to the Inertial frame, and the Inertial
+<span class="lineNum">      32 </span>            : /// mesh velocity.
+<span class="lineNum">      33 </span>            : ///
+<span class="lineNum">      34 </span>            : /// The type is a `boost::optional`, which, when is not valid, signals that the
+<span class="lineNum">      35 </span>            : /// mesh is not moving. Thus,
+<span class="lineNum">      36 </span>            : /// `static_cast&lt;bool&gt;(coordinates_velocity_and_jacobian)` can be used to check
+<span class="lineNum">      37 </span>            : /// if the mesh is moving.
+<span class="lineNum">      38 </span>            : template &lt;size_t Dim&gt;
+<span class="lineNum">      39 </span><span class="lineCov">          1 : struct CoordinatesMeshVelocityAndJacobians : db::SimpleTag {</span>
+<span class="lineNum">      40 </span><span class="lineNoCov">          0 :   using type = boost::optional&lt;std::tuple&lt;</span>
+<span class="lineNum">      41 </span>            :       tnsr::I&lt;DataVector, Dim, Frame::Inertial&gt;,
+<span class="lineNum">      42 </span>            :       ::InverseJacobian&lt;DataVector, Dim, Frame::Grid, Frame::Inertial&gt;,
+<span class="lineNum">      43 </span>            :       ::Jacobian&lt;DataVector, Dim, Frame::Grid, Frame::Inertial&gt;,
+<span class="lineNum">      44 </span>            :       tnsr::I&lt;DataVector, Dim, Frame::Inertial&gt;&gt;&gt;;
+<span class="lineNum">      45 </span>            : };
+<span class="lineNum">      46 </span>            : 
+<span class="lineNum">      47 </span>            : /// Computes the Inertial coordinates, the inverse Jacobian from the Grid to the
+<span class="lineNum">      48 </span>            : /// Inertial frame, the Jacobian from the Grid to the Inertial frame, and the
+<span class="lineNum">      49 </span>            : /// Inertial mesh velocity.
+<span class="lineNum">      50 </span>            : template &lt;typename MapTagGridToInertial&gt;
+<span class="lineNum">      51 </span>            : struct CoordinatesMeshVelocityAndJacobiansCompute
+<span class="lineNum">      52 </span>            :     : CoordinatesMeshVelocityAndJacobians&lt;MapTagGridToInertial::dim&gt;,
+<span class="lineNum">      53 </span><span class="lineCov">          1 :       db::ComputeTag {</span>
+<span class="lineNum">      54 </span><span class="lineNoCov">          0 :   static constexpr size_t dim = MapTagGridToInertial::dim;</span>
+<span class="lineNum">      55 </span><span class="lineNoCov">          0 :   using base = CoordinatesMeshVelocityAndJacobians&lt;dim&gt;;</span>
+<span class="lineNum">      56 </span>            : 
+<span class="lineNum">      57 </span><span class="lineNoCov">          0 :   using return_type = typename base::type;</span>
+<span class="lineNum">      58 </span>            : 
+<span class="lineNum">      59 </span><span class="lineNoCov">          0 :   static void function(</span>
+<span class="lineNum">      60 </span>            :       const gsl::not_null&lt;return_type*&gt; result,
+<span class="lineNum">      61 </span>            :       const domain::CoordinateMapBase&lt;Frame::Grid, Frame::Inertial, dim&gt;&amp;
+<span class="lineNum">      62 </span>            :           grid_to_inertial_map,
+<span class="lineNum">      63 </span>            :       const tnsr::I&lt;DataVector, dim, Frame::Grid&gt;&amp; source_coords,
+<span class="lineNum">      64 </span>            :       const double time,
+<span class="lineNum">      65 </span>            :       const std::unordered_map&lt;
+<span class="lineNum">      66 </span>            :           std::string,
+<span class="lineNum">      67 </span>            :           std::unique_ptr&lt;domain::FunctionsOfTime::FunctionOfTime&gt;&gt;&amp;
+<span class="lineNum">      68 </span>            :           functions_of_time) noexcept {
+<span class="lineNum">      69 </span>            :     // Use identity to signal time-independent
+<span class="lineNum">      70 </span>            :     if (not grid_to_inertial_map.is_identity()) {
+<span class="lineNum">      71 </span>            :       *result = grid_to_inertial_map.coords_frame_velocity_jacobians(
+<span class="lineNum">      72 </span>            :           source_coords, time, functions_of_time);
+<span class="lineNum">      73 </span>            :     } else {
+<span class="lineNum">      74 </span>            :       *result = boost::none;
+<span class="lineNum">      75 </span>            :     }
+<span class="lineNum">      76 </span>            :   }
+<span class="lineNum">      77 </span>            : 
+<span class="lineNum">      78 </span><span class="lineNoCov">          0 :   using argument_tags =</span>
+<span class="lineNum">      79 </span>            :       tmpl::list&lt;MapTagGridToInertial, Tags::Coordinates&lt;dim, Frame::Grid&gt;,
+<span class="lineNum">      80 </span>            :                  ::Tags::Time, Tags::FunctionsOfTime&gt;;
+<span class="lineNum">      81 </span>            : };
+<span class="lineNum">      82 </span>            : 
+<span class="lineNum">      83 </span>            : /// Computes the Inertial coordinates from
+<span class="lineNum">      84 </span>            : /// `CoordinatesVelocityAndJacobians`
+<span class="lineNum">      85 </span>            : template &lt;size_t Dim&gt;
+<span class="lineNum">      86 </span>            : struct InertialFromGridCoordinatesCompute
+<span class="lineNum">      87 </span>            :     : Tags::Coordinates&lt;Dim, Frame::Inertial&gt;,
+<span class="lineNum">      88 </span><span class="lineCov">          1 :       db::ComputeTag {</span>
+<span class="lineNum">      89 </span><span class="lineNoCov">          0 :   using base = Tags::Coordinates&lt;Dim, Frame::Inertial&gt;;</span>
+<span class="lineNum">      90 </span><span class="lineNoCov">          0 :   using return_type = typename base::type;</span>
+<span class="lineNum">      91 </span>            : 
+<span class="lineNum">      92 </span><span class="lineNoCov">          0 :   static void function(</span>
+<span class="lineNum">      93 </span>            :       gsl::not_null&lt;tnsr::I&lt;DataVector, Dim, Frame::Inertial&gt;*&gt; target_coords,
+<span class="lineNum">      94 </span>            :       const tnsr::I&lt;DataVector, Dim, Frame::Grid&gt;&amp; source_coords,
+<span class="lineNum">      95 </span>            :       const boost::optional&lt;std::tuple&lt;
+<span class="lineNum">      96 </span>            :           tnsr::I&lt;DataVector, Dim, Frame::Inertial&gt;,
+<span class="lineNum">      97 </span>            :           ::InverseJacobian&lt;DataVector, Dim, Frame::Grid, Frame::Inertial&gt;,
+<span class="lineNum">      98 </span>            :           ::Jacobian&lt;DataVector, Dim, Frame::Grid, Frame::Inertial&gt;,
+<span class="lineNum">      99 </span>            :           tnsr::I&lt;DataVector, Dim, Frame::Inertial&gt;&gt;&gt;&amp;
+<span class="lineNum">     100 </span>            :           grid_to_inertial_quantities) noexcept;
+<span class="lineNum">     101 </span>            : 
+<span class="lineNum">     102 </span><span class="lineNoCov">          0 :   using argument_tags = tmpl::list&lt;Tags::Coordinates&lt;Dim, Frame::Grid&gt;,</span>
+<span class="lineNum">     103 </span>            :                                    CoordinatesMeshVelocityAndJacobians&lt;Dim&gt;&gt;;
+<span class="lineNum">     104 </span>            : };
+<span class="lineNum">     105 </span>            : 
+<span class="lineNum">     106 </span>            : /// Computes the Logical to Inertial inverse Jacobian from
+<span class="lineNum">     107 </span>            : /// `CoordinatesVelocityAndJacobians`
+<span class="lineNum">     108 </span>            : template &lt;size_t Dim&gt;
+<span class="lineNum">     109 </span>            : struct ElementToInertialInverseJacobian
+<span class="lineNum">     110 </span>            :     : Tags::InverseJacobian&lt;Dim, Frame::Logical, Frame::Inertial&gt;,
+<span class="lineNum">     111 </span><span class="lineCov">          1 :       db::ComputeTag {</span>
+<span class="lineNum">     112 </span><span class="lineNoCov">          0 :   using base = Tags::InverseJacobian&lt;Dim, Frame::Logical, Frame::Inertial&gt;;</span>
+<span class="lineNum">     113 </span><span class="lineNoCov">          0 :   using return_type = typename base::type;</span>
+<span class="lineNum">     114 </span>            : 
+<span class="lineNum">     115 </span><span class="lineNoCov">          0 :   static void function(</span>
+<span class="lineNum">     116 </span>            :       gsl::not_null&lt;
+<span class="lineNum">     117 </span>            :           ::InverseJacobian&lt;DataVector, Dim, Frame::Logical, Frame::Inertial&gt;*&gt;
+<span class="lineNum">     118 </span>            :           inv_jac_logical_to_inertial,
+<span class="lineNum">     119 </span>            :       const ::InverseJacobian&lt;DataVector, Dim, Frame::Logical, Frame::Grid&gt;&amp;
+<span class="lineNum">     120 </span>            :           inv_jac_logical_to_grid,
+<span class="lineNum">     121 </span>            :       const boost::optional&lt;std::tuple&lt;
+<span class="lineNum">     122 </span>            :           tnsr::I&lt;DataVector, Dim, Frame::Inertial&gt;,
+<span class="lineNum">     123 </span>            :           ::InverseJacobian&lt;DataVector, Dim, Frame::Grid, Frame::Inertial&gt;,
+<span class="lineNum">     124 </span>            :           ::Jacobian&lt;DataVector, Dim, Frame::Grid, Frame::Inertial&gt;,
+<span class="lineNum">     125 </span>            :           tnsr::I&lt;DataVector, Dim, Frame::Inertial&gt;&gt;&gt;&amp;
+<span class="lineNum">     126 </span>            :           grid_to_inertial_quantities) noexcept;
+<span class="lineNum">     127 </span>            : 
+<span class="lineNum">     128 </span><span class="lineNoCov">          0 :   using argument_tags =</span>
+<span class="lineNum">     129 </span>            :       tmpl::list&lt;Tags::InverseJacobian&lt;Dim, Frame::Logical, Frame::Grid&gt;,
+<span class="lineNum">     130 </span>            :                  CoordinatesMeshVelocityAndJacobians&lt;Dim&gt;&gt;;
+<span class="lineNum">     131 </span>            : };
+<span class="lineNum">     132 </span>            : 
+<span class="lineNum">     133 </span>            : /// The mesh velocity
+<span class="lineNum">     134 </span>            : ///
+<span class="lineNum">     135 </span>            : /// The type is a `boost::optional`, which when it is not set indicates that the
+<span class="lineNum">     136 </span>            : /// mesh is not moving.
+<span class="lineNum">     137 </span>            : template &lt;size_t Dim, typename Frame = ::Frame::Inertial&gt;
+<span class="lineNum">     138 </span><span class="lineCov">          1 : struct MeshVelocity : db::SimpleTag {</span>
+<span class="lineNum">     139 </span><span class="lineNoCov">          0 :   using type = boost::optional&lt;tnsr::I&lt;DataVector, Dim, Frame&gt;&gt;;</span>
+<span class="lineNum">     140 </span>            : };
+<span class="lineNum">     141 </span>            : 
+<span class="lineNum">     142 </span>            : /// Computes the Inertial mesh velocity from `CoordinatesVelocityAndJacobians`
+<span class="lineNum">     143 </span>            : ///
+<span class="lineNum">     144 </span>            : /// The type is a `boost::optional`, which when it is not set indicates that the
+<span class="lineNum">     145 </span>            : /// mesh is not moving.
+<span class="lineNum">     146 </span>            : template &lt;size_t Dim&gt;
+<span class="lineNum">     147 </span>            : struct InertialMeshVelocityCompute : MeshVelocity&lt;Dim, Frame::Inertial&gt;,
+<span class="lineNum">     148 </span><span class="lineCov">          1 :                                      db::ComputeTag {</span>
+<span class="lineNum">     149 </span><span class="lineNoCov">          0 :   using base = MeshVelocity&lt;Dim, Frame::Inertial&gt;;</span>
+<span class="lineNum">     150 </span><span class="lineNoCov">          0 :   using return_type = typename base::type;</span>
+<span class="lineNum">     151 </span>            : 
+<span class="lineNum">     152 </span><span class="lineNoCov">          0 :   static void function(</span>
+<span class="lineNum">     153 </span>            :       gsl::not_null&lt;return_type*&gt; mesh_velocity,
+<span class="lineNum">     154 </span>            :       const boost::optional&lt;std::tuple&lt;
+<span class="lineNum">     155 </span>            :           tnsr::I&lt;DataVector, Dim, Frame::Inertial&gt;,
+<span class="lineNum">     156 </span>            :           ::InverseJacobian&lt;DataVector, Dim, Frame::Grid, Frame::Inertial&gt;,
+<span class="lineNum">     157 </span>            :           ::Jacobian&lt;DataVector, Dim, Frame::Grid, Frame::Inertial&gt;,
+<span class="lineNum">     158 </span>            :           tnsr::I&lt;DataVector, Dim, Frame::Inertial&gt;&gt;&gt;&amp;
+<span class="lineNum">     159 </span>            :           grid_to_inertial_quantities) noexcept;
+<span class="lineNum">     160 </span>            : 
+<span class="lineNum">     161 </span><span class="lineNoCov">          0 :   using argument_tags = tmpl::list&lt;CoordinatesMeshVelocityAndJacobians&lt;Dim&gt;&gt;;</span>
+<span class="lineNum">     162 </span>            : };
+<span class="lineNum">     163 </span>            : 
+<span class="lineNum">     164 </span>            : /// The divergence of the mesh velocity
+<span class="lineNum">     165 </span><span class="lineCov">          1 : struct DivMeshVelocity : db::SimpleTag {</span>
+<span class="lineNum">     166 </span><span class="lineNoCov">          0 :   using type = boost::optional&lt;Scalar&lt;DataVector&gt;&gt;;</span>
+<span class="lineNum">     167 </span><span class="lineNoCov">          0 :   static std::string name() noexcept { return &quot;div(MeshVelocity)&quot;; }</span>
+<span class="lineNum">     168 </span>            : };
+<span class="lineNum">     169 </span>            : }  // namespace Tags
+<span class="lineNum">     170 </span>            : }  // namespace domain
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

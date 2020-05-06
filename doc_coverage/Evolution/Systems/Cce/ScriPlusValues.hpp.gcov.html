@@ -1,0 +1,509 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - Evolution/Systems/Cce/ScriPlusValues.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../index.html">top level</a> - <a href="index.html">Evolution/Systems/Cce</a> - ScriPlusValues.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">11</td>
+            <td class="headerCovTableEntry">51</td>
+            <td class="headerCovTableEntryLo">21.6 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #pragma once
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;cstddef&gt;
+<span class="lineNum">       7 </span>            : 
+<span class="lineNum">       8 </span>            : #include &quot;DataStructures/DataBox/Prefixes.hpp&quot;
+<span class="lineNum">       9 </span>            : #include &quot;Evolution/Systems/Cce/OptionTags.hpp&quot;
+<span class="lineNum">      10 </span>            : #include &quot;Evolution/Systems/Cce/Tags.hpp&quot;
+<span class="lineNum">      11 </span>            : 
+<span class="lineNum">      12 </span>            : namespace Cce {
+<span class="lineNum">      13 </span>            : 
+<span class="lineNum">      14 </span>            : template &lt;typename Tag&gt;
+<span class="lineNum">      15 </span><span class="lineNoCov">          0 : struct CalculateScriPlusValue;</span>
+<span class="lineNum">      16 </span>            : 
+<span class="lineNum">      17 </span>            : /*!
+<span class="lineNum">      18 </span>            :  * \brief Compute the Bondi news from the evolution quantities.
+<span class="lineNum">      19 </span>            :  *
+<span class="lineNum">      20 </span>            :  * \details In the gauge used for regularity-preserving CCE,
+<span class="lineNum">      21 </span>            :  * the Bondi news takes the convenient form
+<span class="lineNum">      22 </span>            :  *
+<span class="lineNum">      23 </span>            :  * \f{align*}{
+<span class="lineNum">      24 </span>            :  * N = e^{-2 \beta^{(0)}} \left( (\partial_u \bar J)^{(1)}
+<span class="lineNum">      25 </span>            :  * + \bar \eth \bar \eth e^{2 \beta^{(0)}}\right),
+<span class="lineNum">      26 </span>            :  * \f}
+<span class="lineNum">      27 </span>            :  *
+<span class="lineNum">      28 </span>            :  * where \f$(0)\f$ and \f$(1)\f$ in the superscripts denote the zeroth and first
+<span class="lineNum">      29 </span>            :  * order in an expansion in \f$1/r\f$ near \f$\mathcal{I}^+\f$.
+<span class="lineNum">      30 </span>            :  */
+<span class="lineNum">      31 </span>            : template &lt;&gt;
+<span class="lineNum">      32 </span><span class="lineCov">          1 : struct CalculateScriPlusValue&lt;Tags::News&gt; {</span>
+<span class="lineNum">      33 </span><span class="lineNoCov">          0 :   using return_tags = tmpl::list&lt;Tags::News&gt;;</span>
+<span class="lineNum">      34 </span>            :   // extra typelist for more convenient testing
+<span class="lineNum">      35 </span><span class="lineNoCov">          0 :   using tensor_argument_tags =</span>
+<span class="lineNum">      36 </span>            :       tmpl::list&lt;Tags::Dy&lt;Tags::Du&lt;Tags::BondiJ&gt;&gt;, Tags::BondiBeta,
+<span class="lineNum">      37 </span>            :                  Spectral::Swsh::Tags::Derivative&lt;Tags::BondiBeta,
+<span class="lineNum">      38 </span>            :                                                   Spectral::Swsh::Tags::Eth&gt;,
+<span class="lineNum">      39 </span>            :                  Spectral::Swsh::Tags::Derivative&lt;Tags::BondiBeta,
+<span class="lineNum">      40 </span>            :                                                   Spectral::Swsh::Tags::EthEth&gt;,
+<span class="lineNum">      41 </span>            :                  Tags::EvolutionGaugeBoundaryValue&lt;Tags::BondiR&gt;&gt;;
+<span class="lineNum">      42 </span><span class="lineNoCov">          0 :   using argument_tags =</span>
+<span class="lineNum">      43 </span>            :       tmpl::append&lt;tensor_argument_tags,
+<span class="lineNum">      44 </span>            :                    tmpl::list&lt;Tags::LMax, Tags::NumberOfRadialPoints&gt;&gt;;
+<span class="lineNum">      45 </span>            : 
+<span class="lineNum">      46 </span><span class="lineNoCov">          0 :   static void apply(</span>
+<span class="lineNum">      47 </span>            :       gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, -2&gt;&gt;*&gt; news,
+<span class="lineNum">      48 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;&amp; dy_du_bondi_j,
+<span class="lineNum">      49 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; beta,
+<span class="lineNum">      50 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 1&gt;&gt;&amp; eth_beta,
+<span class="lineNum">      51 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;&amp; eth_eth_beta,
+<span class="lineNum">      52 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; boundary_r,
+<span class="lineNum">      53 </span>            :       size_t l_max, size_t number_of_radial_points) noexcept;
+<span class="lineNum">      54 </span>            : };
+<span class="lineNum">      55 </span>            : 
+<span class="lineNum">      56 </span>            : /*!
+<span class="lineNum">      57 </span>            :  * \brief Compute the contribution to the leading \f$\Psi_4\f$ that corresponds
+<span class="lineNum">      58 </span>            :  * to a total time derivative.
+<span class="lineNum">      59 </span>            :  *
+<span class="lineNum">      60 </span>            :  * \details The value \f$\Psi_4\f$ scales asymptotically as \f$r^{-1}\f$, and
+<span class="lineNum">      61 </span>            :  * has the form
+<span class="lineNum">      62 </span>            :  *
+<span class="lineNum">      63 </span>            :  * \f{align*}{
+<span class="lineNum">      64 </span>            :  * \Psi_4^{(1)} = A \partial_u B,
+<span class="lineNum">      65 </span>            :  * \f}
+<span class="lineNum">      66 </span>            :  *
+<span class="lineNum">      67 </span>            :  * where superscripts denote orders in the expansion in powers of \f$r^{-1}\f$.
+<span class="lineNum">      68 </span>            :  * This mutator computes \f$B\f$:
+<span class="lineNum">      69 </span>            :  *
+<span class="lineNum">      70 </span>            :  * \f{align*}{
+<span class="lineNum">      71 </span>            :  * B = e^{-2 \beta^{(0)}} (\bar \eth \bar U^{(1)} + \partial_u \bar J)
+<span class="lineNum">      72 </span>            :  * \f}
+<span class="lineNum">      73 </span>            :  */
+<span class="lineNum">      74 </span>            : template &lt;&gt;
+<span class="lineNum">      75 </span><span class="lineCov">          1 : struct CalculateScriPlusValue&lt;Tags::TimeIntegral&lt;Tags::ScriPlus&lt;Tags::Psi4&gt;&gt;&gt; {</span>
+<span class="lineNum">      76 </span><span class="lineNoCov">          0 :   using return_tags =</span>
+<span class="lineNum">      77 </span>            :       tmpl::list&lt;Tags::TimeIntegral&lt;Tags::ScriPlus&lt;Tags::Psi4&gt;&gt;&gt;;
+<span class="lineNum">      78 </span>            :   // extra typelist for more convenient testing
+<span class="lineNum">      79 </span><span class="lineNoCov">          0 :   using tensor_argument_tags =</span>
+<span class="lineNum">      80 </span>            :       tmpl::list&lt;Tags::Exp2Beta, Tags::Dy&lt;Tags::BondiU&gt;,
+<span class="lineNum">      81 </span>            :                  Spectral::Swsh::Tags::Derivative&lt;Tags::Dy&lt;Tags::BondiU&gt;,
+<span class="lineNum">      82 </span>            :                                                   Spectral::Swsh::Tags::Eth&gt;,
+<span class="lineNum">      83 </span>            :                  Tags::Dy&lt;Tags::Du&lt;Tags::BondiJ&gt;&gt;,
+<span class="lineNum">      84 </span>            :                  Tags::EvolutionGaugeBoundaryValue&lt;Tags::BondiR&gt;,
+<span class="lineNum">      85 </span>            :                  Tags::EthRDividedByR&gt;;
+<span class="lineNum">      86 </span><span class="lineNoCov">          0 :   using argument_tags =</span>
+<span class="lineNum">      87 </span>            :       tmpl::append&lt;tensor_argument_tags,
+<span class="lineNum">      88 </span>            :                    tmpl::list&lt;Tags::LMax, Tags::NumberOfRadialPoints&gt;&gt;;
+<span class="lineNum">      89 </span>            : 
+<span class="lineNum">      90 </span><span class="lineNoCov">          0 :   static void apply(</span>
+<span class="lineNum">      91 </span>            :       gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, -2&gt;&gt;*&gt;
+<span class="lineNum">      92 </span>            :           integral_of_psi_4,
+<span class="lineNum">      93 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; exp_2_beta,
+<span class="lineNum">      94 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 1&gt;&gt;&amp; dy_bondi_u,
+<span class="lineNum">      95 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;&amp; eth_dy_bondi_u,
+<span class="lineNum">      96 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;&amp; dy_du_bondi_j,
+<span class="lineNum">      97 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; boundary_r,
+<span class="lineNum">      98 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 1&gt;&gt;&amp; eth_r_divided_by_r,
+<span class="lineNum">      99 </span>            :       size_t l_max, size_t number_of_radial_points) noexcept;
+<span class="lineNum">     100 </span>            : };
+<span class="lineNum">     101 </span>            : 
+<span class="lineNum">     102 </span>            : /*!
+<span class="lineNum">     103 </span>            :  * \brief Compute the contribution to the leading \f$\Psi_4\f$ that multiplies
+<span class="lineNum">     104 </span>            :  * the total time derivative
+<span class="lineNum">     105 </span>            :  *
+<span class="lineNum">     106 </span>            :  * \details The value \f$\Psi_4\f$ scales asymptotically as \f$r^{-1}\f$, and
+<span class="lineNum">     107 </span>            :  * has the form
+<span class="lineNum">     108 </span>            :  *
+<span class="lineNum">     109 </span>            :  * \f{align*}{
+<span class="lineNum">     110 </span>            :  * \Psi_4^{(1)} = A \partial_u B,
+<span class="lineNum">     111 </span>            :  * \f}
+<span class="lineNum">     112 </span>            :  *
+<span class="lineNum">     113 </span>            :  * where superscripts denote orders in the expansion in powers of \f$r^{-1}\f$.
+<span class="lineNum">     114 </span>            :  * This mutator computes \f$A\f$:
+<span class="lineNum">     115 </span>            :  *
+<span class="lineNum">     116 </span>            :  * \f{align*}{
+<span class="lineNum">     117 </span>            :  * A = e^{-2 \beta^{(0)}}
+<span class="lineNum">     118 </span>            :  * \f}
+<span class="lineNum">     119 </span>            :  */
+<span class="lineNum">     120 </span>            : template &lt;&gt;
+<span class="lineNum">     121 </span><span class="lineCov">          1 : struct CalculateScriPlusValue&lt;Tags::ScriPlusFactor&lt;Tags::Psi4&gt;&gt; {</span>
+<span class="lineNum">     122 </span><span class="lineNoCov">          0 :   using return_tags = tmpl::list&lt;Tags::ScriPlusFactor&lt;Tags::Psi4&gt;&gt;;</span>
+<span class="lineNum">     123 </span>            :   // extra typelist for more convenient testing
+<span class="lineNum">     124 </span><span class="lineNoCov">          0 :   using tensor_argument_tags = tmpl::list&lt;Tags::Exp2Beta&gt;;</span>
+<span class="lineNum">     125 </span><span class="lineNoCov">          0 :   using argument_tags = tmpl::push_back&lt;tensor_argument_tags, Tags::LMax,</span>
+<span class="lineNum">     126 </span>            :                                         Tags::NumberOfRadialPoints&gt;;
+<span class="lineNum">     127 </span>            : 
+<span class="lineNum">     128 </span><span class="lineNoCov">          0 :   static void apply(</span>
+<span class="lineNum">     129 </span>            :       gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;*&gt;
+<span class="lineNum">     130 </span>            :           scri_plus_factor,
+<span class="lineNum">     131 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; exp_2_beta,
+<span class="lineNum">     132 </span>            :       size_t l_max, size_t number_of_radial_points) noexcept;
+<span class="lineNum">     133 </span>            : };
+<span class="lineNum">     134 </span>            : 
+<span class="lineNum">     135 </span>            : /*!
+<span class="lineNum">     136 </span>            :  * \brief Computes the leading part of \f$\Psi_3\f$ near \f$\mathcal I^+\f$.
+<span class="lineNum">     137 </span>            :  *
+<span class="lineNum">     138 </span>            :  * \details The value \f$\Psi_3\f$ scales asymptotically as \f$r^{-2}\f$, and
+<span class="lineNum">     139 </span>            :  * has the form (in the coordinates used for regularity preserving CCE)
+<span class="lineNum">     140 </span>            :  *
+<span class="lineNum">     141 </span>            :  * \f{align*}{
+<span class="lineNum">     142 </span>            :  * \Psi_3^{(2)} = 2 \bar \eth \beta^{(0)}
+<span class="lineNum">     143 </span>            :  * + 4 \bar \eth \beta^{(0)} \eth \bar \eth \beta^{(0)}
+<span class="lineNum">     144 </span>            :  * + \bar \eth  \eth \bar \eth \beta^{(0)}
+<span class="lineNum">     145 </span>            :  * + \frac{e^{-2  \beta^{(0)}}}{2}  \eth \partial_u \bar J^{(1)}
+<span class="lineNum">     146 </span>            :  * - e^{-2  \beta^{(0)}}  \eth  \beta^{(0)}  \partial_u \bar J^{(1)}
+<span class="lineNum">     147 </span>            :  * \f},
+<span class="lineNum">     148 </span>            :  *
+<span class="lineNum">     149 </span>            :  * where \f$J^{(n)}\f$ is the \f$1/r^n\f$ part of \f$J\f$ evaluated at
+<span class="lineNum">     150 </span>            :  * \f$\mathcal I^+\f$, so
+<span class="lineNum">     151 </span>            :  *
+<span class="lineNum">     152 </span>            :  * \f{align*}{
+<span class="lineNum">     153 </span>            :  * J^{(1)} = (-2 R \partial_y J)|_{y = 1},
+<span class="lineNum">     154 </span>            :  * \f}
+<span class="lineNum">     155 </span>            :  *
+<span class="lineNum">     156 </span>            :  * where the expansion is determined by the conversion between Bondi and
+<span class="lineNum">     157 </span>            :  * numerical radii \f$r = 2 R / (1 - y)\f$.
+<span class="lineNum">     158 </span>            :  */
+<span class="lineNum">     159 </span>            : template &lt;&gt;
+<span class="lineNum">     160 </span><span class="lineCov">          1 : struct CalculateScriPlusValue&lt;Tags::ScriPlus&lt;Tags::Psi3&gt;&gt; {</span>
+<span class="lineNum">     161 </span><span class="lineNoCov">          0 :   using return_tags = tmpl::list&lt;Tags::ScriPlus&lt;Tags::Psi3&gt;&gt;;</span>
+<span class="lineNum">     162 </span>            :   // extra typelist for more convenient testing
+<span class="lineNum">     163 </span><span class="lineNoCov">          0 :   using tensor_argument_tags = tmpl::list&lt;</span>
+<span class="lineNum">     164 </span>            :       Tags::Exp2Beta,
+<span class="lineNum">     165 </span>            :       Spectral::Swsh::Tags::Derivative&lt;Tags::BondiBeta,
+<span class="lineNum">     166 </span>            :                                        Spectral::Swsh::Tags::Eth&gt;,
+<span class="lineNum">     167 </span>            :       Spectral::Swsh::Tags::Derivative&lt;Tags::BondiBeta,
+<span class="lineNum">     168 </span>            :                                        Spectral::Swsh::Tags::EthEthbar&gt;,
+<span class="lineNum">     169 </span>            :       Spectral::Swsh::Tags::Derivative&lt;
+<span class="lineNum">     170 </span>            :           Spectral::Swsh::Tags::Derivative&lt;Tags::BondiBeta,
+<span class="lineNum">     171 </span>            :                                            Spectral::Swsh::Tags::EthEthbar&gt;,
+<span class="lineNum">     172 </span>            :           Spectral::Swsh::Tags::Ethbar&gt;,
+<span class="lineNum">     173 </span>            :       Tags::Dy&lt;Tags::Du&lt;Tags::BondiJ&gt;&gt;,
+<span class="lineNum">     174 </span>            :       Spectral::Swsh::Tags::Derivative&lt;Tags::Dy&lt;Tags::Du&lt;Tags::BondiJ&gt;&gt;,
+<span class="lineNum">     175 </span>            :                                        Spectral::Swsh::Tags::Ethbar&gt;,
+<span class="lineNum">     176 </span>            :       Tags::EvolutionGaugeBoundaryValue&lt;Tags::BondiR&gt;, Tags::EthRDividedByR&gt;;
+<span class="lineNum">     177 </span><span class="lineNoCov">          0 :   using argument_tags = tmpl::push_back&lt;tensor_argument_tags, Tags::LMax,</span>
+<span class="lineNum">     178 </span>            :                                         Tags::NumberOfRadialPoints&gt;;
+<span class="lineNum">     179 </span>            : 
+<span class="lineNum">     180 </span><span class="lineNoCov">          0 :   static void apply(</span>
+<span class="lineNum">     181 </span>            :       gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, -1&gt;&gt;*&gt; psi_3,
+<span class="lineNum">     182 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; exp_2_beta,
+<span class="lineNum">     183 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 1&gt;&gt;&amp; eth_beta,
+<span class="lineNum">     184 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; eth_ethbar_beta,
+<span class="lineNum">     185 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, -1&gt;&gt;&amp; ethbar_eth_ethbar_beta,
+<span class="lineNum">     186 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;&amp; dy_du_bondi_j,
+<span class="lineNum">     187 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 1&gt;&gt;&amp; ethbar_dy_du_bondi_j,
+<span class="lineNum">     188 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; boundary_r,
+<span class="lineNum">     189 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 1&gt;&gt;&amp; eth_r_divided_by_r,
+<span class="lineNum">     190 </span>            :       size_t l_max, size_t number_of_radial_points) noexcept;
+<span class="lineNum">     191 </span>            : };
+<span class="lineNum">     192 </span>            : 
+<span class="lineNum">     193 </span>            : /*!
+<span class="lineNum">     194 </span>            :  * \brief Computes the leading part of \f$\Psi_2\f$ near \f$\mathcal I^+\f$.
+<span class="lineNum">     195 </span>            :  *
+<span class="lineNum">     196 </span>            :  * \details The value \f$\Psi_2\f$ scales asymptotically as \f$r^{-3}\f$, and
+<span class="lineNum">     197 </span>            :  * has the form (in the coordinates used for regularity preserving CCE)
+<span class="lineNum">     198 </span>            :  *
+<span class="lineNum">     199 </span>            :  * \f{align*}{
+<span class="lineNum">     200 </span>            :  * \Psi_2^{(3)} = -\frac{e^{-2  \beta^{(0)}}}{4}
+<span class="lineNum">     201 </span>            :  * \left(e^{2 \beta^{(0)}} \eth \bar Q^{(1)} +  \eth \bar U^{(2)}
+<span class="lineNum">     202 </span>            :  * + \bar \eth  U^{(2)} + J^{(1)} \bar \eth \bar U^{(1)}
+<span class="lineNum">     203 </span>            :  * +  J^{(1)} \bar \partial_u J^{(1)} - 2 W^{(2)}\right)
+<span class="lineNum">     204 </span>            :  * \f},
+<span class="lineNum">     205 </span>            :  *
+<span class="lineNum">     206 </span>            :  * where \f$A^{(n)}\f$ is the \f$1/r^n\f$ part of \f$A\f$ evaluated at
+<span class="lineNum">     207 </span>            :  * \f$\mathcal I^+\f$, so for any quantity \f$A\f$,
+<span class="lineNum">     208 </span>            :  *
+<span class="lineNum">     209 </span>            :  * \f{align*}{
+<span class="lineNum">     210 </span>            :  * \eth  A^{(1)} &amp;= (-2 R \eth  \partial_y  A
+<span class="lineNum">     211 </span>            :  * - 2 \eth R \partial_y  A)|_{y = 1} \notag\\
+<span class="lineNum">     212 </span>            :  * \eth  A^{(2)} &amp;= (2 R^2 \eth \partial_y^2 A
+<span class="lineNum">     213 </span>            :  * + 2 R \eth R \partial^2_y  A)|_{y = 1}, \notag\\
+<span class="lineNum">     214 </span>            :  * A^{(1)} &amp;= (- 2 R \partial_y A)|_{y = 1}, \notag\\
+<span class="lineNum">     215 </span>            :  * A^{(2)} &amp;= (2 R^2 \partial_y^2 A)|_{y = 1},
+<span class="lineNum">     216 </span>            :  * \f}
+<span class="lineNum">     217 </span>            :  *
+<span class="lineNum">     218 </span>            :  * where the expansion is determined by the conversion between Bondi and
+<span class="lineNum">     219 </span>            :  * numerical radii \f$r = 2 R / (1 - y)\f$.
+<span class="lineNum">     220 </span>            :  */
+<span class="lineNum">     221 </span>            : template &lt;&gt;
+<span class="lineNum">     222 </span><span class="lineCov">          1 : struct CalculateScriPlusValue&lt;Tags::ScriPlus&lt;Tags::Psi2&gt;&gt; {</span>
+<span class="lineNum">     223 </span><span class="lineNoCov">          0 :   using return_tags = tmpl::list&lt;Tags::ScriPlus&lt;Tags::Psi2&gt;&gt;;</span>
+<span class="lineNum">     224 </span>            :   // extra typelist for more convenient testing
+<span class="lineNum">     225 </span><span class="lineNoCov">          0 :   using tensor_argument_tags = tmpl::list&lt;</span>
+<span class="lineNum">     226 </span>            :       Tags::Exp2Beta, Tags::Dy&lt;Tags::BondiQ&gt;,
+<span class="lineNum">     227 </span>            :       Spectral::Swsh::Tags::Derivative&lt;Tags::Dy&lt;Tags::BondiQ&gt;,
+<span class="lineNum">     228 </span>            :                                        Spectral::Swsh::Tags::Ethbar&gt;,
+<span class="lineNum">     229 </span>            :       Tags::Dy&lt;Tags::BondiU&gt;,
+<span class="lineNum">     230 </span>            :       Spectral::Swsh::Tags::Derivative&lt;Tags::Dy&lt;Tags::BondiU&gt;,
+<span class="lineNum">     231 </span>            :                                        Spectral::Swsh::Tags::Eth&gt;,
+<span class="lineNum">     232 </span>            :       Tags::Dy&lt;Tags::Dy&lt;Tags::BondiU&gt;&gt;,
+<span class="lineNum">     233 </span>            :       Spectral::Swsh::Tags::Derivative&lt;Tags::Dy&lt;Tags::Dy&lt;Tags::BondiU&gt;&gt;,
+<span class="lineNum">     234 </span>            :                                        Spectral::Swsh::Tags::Ethbar&gt;,
+<span class="lineNum">     235 </span>            :       Tags::Dy&lt;Tags::Dy&lt;Tags::BondiW&gt;&gt;, Tags::Dy&lt;Tags::BondiJ&gt;,
+<span class="lineNum">     236 </span>            :       Tags::Dy&lt;Tags::Du&lt;Tags::BondiJ&gt;&gt;,
+<span class="lineNum">     237 </span>            :       Tags::EvolutionGaugeBoundaryValue&lt;Tags::BondiR&gt;, Tags::EthRDividedByR&gt;;
+<span class="lineNum">     238 </span><span class="lineNoCov">          0 :   using argument_tags = tmpl::push_back&lt;tensor_argument_tags, Tags::LMax,</span>
+<span class="lineNum">     239 </span>            :                                         Tags::NumberOfRadialPoints&gt;;
+<span class="lineNum">     240 </span>            : 
+<span class="lineNum">     241 </span><span class="lineNoCov">          0 :   static void apply(</span>
+<span class="lineNum">     242 </span>            :       gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;*&gt; psi_2,
+<span class="lineNum">     243 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; exp_2_beta,
+<span class="lineNum">     244 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 1&gt;&gt;&amp; dy_bondi_q,
+<span class="lineNum">     245 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; ethbar_dy_bondi_q,
+<span class="lineNum">     246 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 1&gt;&gt;&amp; dy_bondi_u,
+<span class="lineNum">     247 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;&amp; eth_dy_bondi_u,
+<span class="lineNum">     248 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 1&gt;&gt;&amp; dy_dy_bondi_u,
+<span class="lineNum">     249 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; ethbar_dy_dy_bondi_u,
+<span class="lineNum">     250 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; dy_dy_bondi_w,
+<span class="lineNum">     251 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;&amp; dy_bondi_j,
+<span class="lineNum">     252 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;&amp; dy_du_bondi_j,
+<span class="lineNum">     253 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; boundary_r,
+<span class="lineNum">     254 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 1&gt;&gt;&amp; eth_r_divided_by_r,
+<span class="lineNum">     255 </span>            :       size_t l_max, size_t number_of_radial_points) noexcept;
+<span class="lineNum">     256 </span>            : };
+<span class="lineNum">     257 </span>            : 
+<span class="lineNum">     258 </span>            : /*!
+<span class="lineNum">     259 </span>            :  * \brief Computes the leading part of \f$\Psi_1\f$ near \f$\mathcal I^+\f$.
+<span class="lineNum">     260 </span>            :  *
+<span class="lineNum">     261 </span>            :  * \details The value \f$\Psi_1\f$ scales asymptotically as \f$r^{-4}\f$, and
+<span class="lineNum">     262 </span>            :  * has the form (in the coordinates used for regularity preserving CCE)
+<span class="lineNum">     263 </span>            :  *
+<span class="lineNum">     264 </span>            :  * \f{align*}{
+<span class="lineNum">     265 </span>            :  * \Psi_1^{(4)} = \frac{1}{8} \left(- 12 \eth \beta^{(2)} + J^{(1)} \bar Q^{(1)}
+<span class="lineNum">     266 </span>            :  * + 2 Q^{(2)}\right)
+<span class="lineNum">     267 </span>            :  * \f}
+<span class="lineNum">     268 </span>            :  *
+<span class="lineNum">     269 </span>            :  * where \f$A^{(n)}\f$ is the \f$1/r^n\f$ part of \f$A\f$ evaluated at
+<span class="lineNum">     270 </span>            :  * \f$\mathcal I^+\f$, so for any quantity \f$A\f$,
+<span class="lineNum">     271 </span>            :  *
+<span class="lineNum">     272 </span>            :  * \f{align*}{
+<span class="lineNum">     273 </span>            :  * \eth A^{(2)} &amp;= (2 R^2 \eth \partial_y^2 A
+<span class="lineNum">     274 </span>            :  * + 2 R \eth R \partial^2_y  A)|_{y = 1}, \notag\\
+<span class="lineNum">     275 </span>            :  * A^{(1)} &amp;= (- 2 R \partial_y A)|_{y = 1}, \notag\\
+<span class="lineNum">     276 </span>            :  * A^{(2)} &amp;= (2 R^2 \partial_y^2 A)|_{y = 1},
+<span class="lineNum">     277 </span>            :  * \f}
+<span class="lineNum">     278 </span>            :  *
+<span class="lineNum">     279 </span>            :  * where the expansion is determined by the conversion between Bondi and
+<span class="lineNum">     280 </span>            :  * numerical radii \f$r = 2 R / (1 - y)\f$.
+<span class="lineNum">     281 </span>            :  */
+<span class="lineNum">     282 </span>            : template &lt;&gt;
+<span class="lineNum">     283 </span><span class="lineCov">          1 : struct CalculateScriPlusValue&lt;Tags::ScriPlus&lt;Tags::Psi1&gt;&gt; {</span>
+<span class="lineNum">     284 </span><span class="lineNoCov">          0 :   using return_tags = tmpl::list&lt;Tags::ScriPlus&lt;Tags::Psi1&gt;&gt;;</span>
+<span class="lineNum">     285 </span>            :   // extra typelist for more convenient testing
+<span class="lineNum">     286 </span><span class="lineNoCov">          0 :   using tensor_argument_tags = tmpl::list&lt;</span>
+<span class="lineNum">     287 </span>            :       Tags::Dy&lt;Tags::Dy&lt;Tags::BondiBeta&gt;&gt;,
+<span class="lineNum">     288 </span>            :       Spectral::Swsh::Tags::Derivative&lt;Tags::Dy&lt;Tags::Dy&lt;Tags::BondiBeta&gt;&gt;,
+<span class="lineNum">     289 </span>            :                                        Spectral::Swsh::Tags::Eth&gt;,
+<span class="lineNum">     290 </span>            :       Tags::Dy&lt;Tags::BondiJ&gt;, Tags::Dy&lt;Tags::BondiQ&gt;,
+<span class="lineNum">     291 </span>            :       Tags::Dy&lt;Tags::Dy&lt;Tags::BondiQ&gt;&gt;,
+<span class="lineNum">     292 </span>            :       Tags::EvolutionGaugeBoundaryValue&lt;Tags::BondiR&gt;, Tags::EthRDividedByR&gt;;
+<span class="lineNum">     293 </span><span class="lineNoCov">          0 :   using argument_tags = tmpl::push_back&lt;tensor_argument_tags, Tags::LMax,</span>
+<span class="lineNum">     294 </span>            :                                         Tags::NumberOfRadialPoints&gt;;
+<span class="lineNum">     295 </span>            : 
+<span class="lineNum">     296 </span><span class="lineNoCov">          0 :   static void apply(</span>
+<span class="lineNum">     297 </span>            :       gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 1&gt;&gt;*&gt; psi_1,
+<span class="lineNum">     298 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; dy_dy_bondi_beta,
+<span class="lineNum">     299 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 1&gt;&gt;&amp; eth_dy_dy_bondi_beta,
+<span class="lineNum">     300 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;&amp; dy_bondi_j,
+<span class="lineNum">     301 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 1&gt;&gt;&amp; dy_bondi_q,
+<span class="lineNum">     302 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 1&gt;&gt;&amp; dy_dy_bondi_q,
+<span class="lineNum">     303 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; boundary_r,
+<span class="lineNum">     304 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 1&gt;&gt;&amp; eth_r_divided_by_r,
+<span class="lineNum">     305 </span>            :       size_t l_max, size_t number_of_radial_points) noexcept;
+<span class="lineNum">     306 </span>            : };
+<span class="lineNum">     307 </span>            : 
+<span class="lineNum">     308 </span>            : /*!
+<span class="lineNum">     309 </span>            :  * \brief Computes the leading part of \f$\Psi_0\f$ near \f$\mathcal I^+\f$.
+<span class="lineNum">     310 </span>            :  *
+<span class="lineNum">     311 </span>            :  * \details The value \f$\Psi_0\f$ scales asymptotically as \f$r^{-5}\f$, and
+<span class="lineNum">     312 </span>            :  * has the form (in the coordinates used for regularity preserving CCE)
+<span class="lineNum">     313 </span>            :  *
+<span class="lineNum">     314 </span>            :  * \f{align*}{
+<span class="lineNum">     315 </span>            :  * \Psi_0^{(5)} = \frac{3}{2}\left(\frac{1}{4}\bar J^{(1)} J^{(1)} {}^2
+<span class="lineNum">     316 </span>            :  * - J^{(3)}\right)
+<span class="lineNum">     317 </span>            :  * \f}
+<span class="lineNum">     318 </span>            :  *
+<span class="lineNum">     319 </span>            :  * where \f$A^{(n)}\f$ is the \f$1/r^n\f$ part of \f$A\f$ evaluated at
+<span class="lineNum">     320 </span>            :  * \f$\mathcal I^+\f$, so for any quantity \f$A\f$,
+<span class="lineNum">     321 </span>            :  *
+<span class="lineNum">     322 </span>            :  * \f{align*}{
+<span class="lineNum">     323 </span>            :  * A^{(1)} &amp;= (- 2 R \partial_y A)|_{y = 1} \notag\\
+<span class="lineNum">     324 </span>            :  * A^{(3)} &amp;= \left(-\frac{4}{3} R^3 \partial_y^3 A\right)|_{y = 1},
+<span class="lineNum">     325 </span>            :  * \f}
+<span class="lineNum">     326 </span>            :  *
+<span class="lineNum">     327 </span>            :  * where the expansion is determined by the conversion between Bondi and
+<span class="lineNum">     328 </span>            :  * numerical radii \f$r = 2 R / (1 - y)\f$.
+<span class="lineNum">     329 </span>            :  */
+<span class="lineNum">     330 </span>            : template &lt;&gt;
+<span class="lineNum">     331 </span><span class="lineCov">          1 : struct CalculateScriPlusValue&lt;Tags::ScriPlus&lt;Tags::Psi0&gt;&gt; {</span>
+<span class="lineNum">     332 </span><span class="lineNoCov">          0 :   using return_tags = tmpl::list&lt;Tags::ScriPlus&lt;Tags::Psi0&gt;&gt;;</span>
+<span class="lineNum">     333 </span>            :   // extra typelist for more convenient testing
+<span class="lineNum">     334 </span><span class="lineNoCov">          0 :   using tensor_argument_tags =</span>
+<span class="lineNum">     335 </span>            :       tmpl::list&lt;Tags::Dy&lt;Tags::BondiJ&gt;,
+<span class="lineNum">     336 </span>            :                  Tags::Dy&lt;Tags::Dy&lt;Tags::Dy&lt;Tags::BondiJ&gt;&gt;&gt;,
+<span class="lineNum">     337 </span>            :                  Tags::EvolutionGaugeBoundaryValue&lt;Tags::BondiR&gt;&gt;;
+<span class="lineNum">     338 </span><span class="lineNoCov">          0 :   using argument_tags = tmpl::push_back&lt;tensor_argument_tags, Tags::LMax,</span>
+<span class="lineNum">     339 </span>            :                                         Tags::NumberOfRadialPoints&gt;;
+<span class="lineNum">     340 </span>            : 
+<span class="lineNum">     341 </span><span class="lineNoCov">          0 :   static void apply(</span>
+<span class="lineNum">     342 </span>            :       gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;*&gt; psi_0,
+<span class="lineNum">     343 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;&amp; dy_bondi_j,
+<span class="lineNum">     344 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;&amp; dy_dy_dy_bondi_j,
+<span class="lineNum">     345 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; boundary_r,
+<span class="lineNum">     346 </span>            :       size_t l_max, size_t number_of_radial_points) noexcept;
+<span class="lineNum">     347 </span>            : };
+<span class="lineNum">     348 </span>            : 
+<span class="lineNum">     349 </span>            : /*!
+<span class="lineNum">     350 </span>            :  * \brief Computes the leading part of the strain \f$h\f$ near \f$\mathcal
+<span class="lineNum">     351 </span>            :  * I^+\f$.
+<span class="lineNum">     352 </span>            :  *
+<span class="lineNum">     353 </span>            :  * \details The value \f$h\f$ scales asymptotically as \f$r^{-1}\f$, and
+<span class="lineNum">     354 </span>            :  * has the form (in the coordinates used for regularity preserving CCE)
+<span class="lineNum">     355 </span>            :  *
+<span class="lineNum">     356 </span>            :  * \f{align*}{
+<span class="lineNum">     357 </span>            :  * h = \bar J^{(1)} + \bar \eth \bar \eth u^{(0)},
+<span class="lineNum">     358 </span>            :  * \f}
+<span class="lineNum">     359 </span>            :  *
+<span class="lineNum">     360 </span>            :  * where \f$u^{(0)}\f$ is the asymptotically inertial retarded time, and
+<span class="lineNum">     361 </span>            :  * \f$A^{(n)}\f$ is the \f$1/r^n\f$ part of \f$A\f$ evaluated at
+<span class="lineNum">     362 </span>            :  * \f$\mathcal I^+\f$, so for any quantity \f$A\f$,
+<span class="lineNum">     363 </span>            :  *
+<span class="lineNum">     364 </span>            :  * \f{align*}{
+<span class="lineNum">     365 </span>            :  * A^{(1)} = (- 2 R \partial_y A)|_{y = 1},
+<span class="lineNum">     366 </span>            :  * \f}
+<span class="lineNum">     367 </span>            :  *
+<span class="lineNum">     368 </span>            :  * where the expansion is determined by the conversion between Bondi and
+<span class="lineNum">     369 </span>            :  * numerical radii \f$r = 2 R / (1 - y)\f$.
+<span class="lineNum">     370 </span>            :  */
+<span class="lineNum">     371 </span>            : template &lt;&gt;
+<span class="lineNum">     372 </span><span class="lineCov">          1 : struct CalculateScriPlusValue&lt;Tags::ScriPlus&lt;Tags::Strain&gt;&gt; {</span>
+<span class="lineNum">     373 </span><span class="lineNoCov">          0 :   using return_tags = tmpl::list&lt;Tags::ScriPlus&lt;Tags::Strain&gt;&gt;;</span>
+<span class="lineNum">     374 </span>            :   // extra typelist for more convenient testing
+<span class="lineNum">     375 </span><span class="lineNoCov">          0 :   using tensor_argument_tags = tmpl::list&lt;</span>
+<span class="lineNum">     376 </span>            :       Tags::Dy&lt;Tags::BondiJ&gt;,
+<span class="lineNum">     377 </span>            :       Spectral::Swsh::Tags::Derivative&lt;Tags::ComplexInertialRetardedTime,
+<span class="lineNum">     378 </span>            :                                        Spectral::Swsh::Tags::EthEth&gt;,
+<span class="lineNum">     379 </span>            :       Tags::EvolutionGaugeBoundaryValue&lt;Tags::BondiR&gt;&gt;;
+<span class="lineNum">     380 </span><span class="lineNoCov">          0 :   using argument_tags = tmpl::push_back&lt;tensor_argument_tags, Tags::LMax,</span>
+<span class="lineNum">     381 </span>            :                                         Tags::NumberOfRadialPoints&gt;;
+<span class="lineNum">     382 </span>            : 
+<span class="lineNum">     383 </span><span class="lineNoCov">          0 :   static void apply(</span>
+<span class="lineNum">     384 </span>            :       gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, -2&gt;&gt;*&gt; strain,
+<span class="lineNum">     385 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;&amp; dy_bondi_j,
+<span class="lineNum">     386 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;&amp; eth_eth_retarded_time,
+<span class="lineNum">     387 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; boundary_r,
+<span class="lineNum">     388 </span>            :       size_t l_max, size_t number_of_radial_points) noexcept;
+<span class="lineNum">     389 </span>            : };
+<span class="lineNum">     390 </span>            : 
+<span class="lineNum">     391 </span>            : /*!
+<span class="lineNum">     392 </span>            :  * \brief Assign the time derivative of the asymptotically inertial time
+<span class="lineNum">     393 </span>            :  * coordinate.
+<span class="lineNum">     394 </span>            :  *
+<span class="lineNum">     395 </span>            :  * \details The asymptotically inertial time coordinate \f$\mathring u\f$ obeys
+<span class="lineNum">     396 </span>            :  * the differential equation:
+<span class="lineNum">     397 </span>            :  *
+<span class="lineNum">     398 </span>            :  * \f{align*}{
+<span class="lineNum">     399 </span>            :  * \partial_u \mathring u = e^{2 \beta}.
+<span class="lineNum">     400 </span>            :  * \f}
+<span class="lineNum">     401 </span>            :  */
+<span class="lineNum">     402 </span>            : template &lt;&gt;
+<span class="lineNum">     403 </span><span class="lineCov">          1 : struct CalculateScriPlusValue&lt;::Tags::dt&lt;Tags::InertialRetardedTime&gt;&gt; {</span>
+<span class="lineNum">     404 </span><span class="lineNoCov">          0 :   using return_tags = tmpl::list&lt;::Tags::dt&lt;Tags::InertialRetardedTime&gt;&gt;;</span>
+<span class="lineNum">     405 </span><span class="lineNoCov">          0 :   using argument_tags = tmpl::list&lt;Tags::Exp2Beta&gt;;</span>
+<span class="lineNum">     406 </span>            : 
+<span class="lineNum">     407 </span><span class="lineNoCov">          0 :   static void apply(</span>
+<span class="lineNum">     408 </span>            :       gsl::not_null&lt;Scalar&lt;DataVector&gt;*&gt; dt_inertial_time,
+<span class="lineNum">     409 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; exp_2_beta) noexcept;
+<span class="lineNum">     410 </span>            : };
+<span class="lineNum">     411 </span>            : 
+<span class="lineNum">     412 </span>            : /// Initialize the \f$\mathcal I^+\f$ value `Tag` for the first hypersurface.
+<span class="lineNum">     413 </span>            : template &lt;typename Tag&gt;
+<span class="lineNum">     414 </span><span class="lineCov">          1 : struct InitializeScriPlusValue;</span>
+<span class="lineNum">     415 </span>            : 
+<span class="lineNum">     416 </span>            : /// Initialize the inertial retarded time to the value provided in the mutator
+<span class="lineNum">     417 </span>            : /// arguments.
+<span class="lineNum">     418 </span>            : template &lt;&gt;
+<span class="lineNum">     419 </span><span class="lineCov">          1 : struct InitializeScriPlusValue&lt;Tags::InertialRetardedTime&gt; {</span>
+<span class="lineNum">     420 </span><span class="lineNoCov">          0 :   using argument_tags = tmpl::list&lt;&gt;;</span>
+<span class="lineNum">     421 </span><span class="lineNoCov">          0 :   using return_tags = tmpl::list&lt;Tags::InertialRetardedTime&gt;;</span>
+<span class="lineNum">     422 </span>            : 
+<span class="lineNum">     423 </span><span class="lineNoCov">          0 :   static void apply(const gsl::not_null&lt;Scalar&lt;DataVector&gt;*&gt; inertial_time,</span>
+<span class="lineNum">     424 </span>            :                     const double initial_time = 0.0) noexcept {
+<span class="lineNum">     425 </span>            :     // this is arbitrary, and has to do with choosing a BMS frame.
+<span class="lineNum">     426 </span>            :     get(*inertial_time) = initial_time;
+<span class="lineNum">     427 </span>            :   }
+<span class="lineNum">     428 </span>            : };
+<span class="lineNum">     429 </span>            : }  // namespace Cce
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

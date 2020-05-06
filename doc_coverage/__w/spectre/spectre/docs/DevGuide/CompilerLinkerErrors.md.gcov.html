@@ -1,0 +1,212 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - /__w/spectre/spectre/docs/DevGuide/CompilerLinkerErrors.md</title>
+  <link rel="stylesheet" type="text/css" href="../../../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../../../index.html">top level</a> - <a href="index.html">__w/spectre/spectre/docs/DevGuide</a> - CompilerLinkerErrors.md</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : \cond NEVER</span>
+<span class="lineNum">       2 </span>            : Distributed under the MIT License.
+<span class="lineNum">       3 </span>            : See LICENSE.txt for details.
+<span class="lineNum">       4 </span>            : \endcond
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : # Understanding Compiler and Linker Errors {#compiler_and_linker_errors}
+<span class="lineNum">       7 </span>            : 
+<span class="lineNum">       8 </span>            : # Linker Errors {#understanding_linker_errors}
+<span class="lineNum">       9 </span>            : 
+<span class="lineNum">      10 </span>            : There are a few common mistakes that can lead to linker problems, specifically
+<span class="lineNum">      11 </span>            : problems where there is an `undefined reference`. These include:
+<span class="lineNum">      12 </span>            : - forgetting to add a `.cpp` file to the list of sources of a library in a
+<span class="lineNum">      13 </span>            :   `CMakeLists.txt` file
+<span class="lineNum">      14 </span>            : - missing an explicit instantiation of a function or class template in a `cpp`
+<span class="lineNum">      15 </span>            :   file
+<span class="lineNum">      16 </span>            : - not including a `tpp` file inside a `cpp` file
+<span class="lineNum">      17 </span>            : - the template specialization or function overload has been explicitly disabled
+<span class="lineNum">      18 </span>            :   via SFINAE (usually through the use of a `Requires`)
+<span class="lineNum">      19 </span>            : - not linking a library (explained below)
+<span class="lineNum">      20 </span>            : 
+<span class="lineNum">      21 </span>            : Possibly the most difficult part of fixing linking errors is understanding what
+<span class="lineNum">      22 </span>            : they are trying to tell you. Let's take the following example
+<span class="lineNum">      23 </span>            : ```
+<span class="lineNum">      24 </span>            : error: undefined reference to 'Tensor&lt;DataVector,
+<span class="lineNum">      25 </span>            : brigand::list&lt;brigand::integral_constant&lt;int, 1&gt; &gt;,
+<span class="lineNum">      26 </span>            : brigand::list&lt;Tensor_detail::TensorIndexType&lt;3ul, (UpLo)0, Frame::Inertial,
+<span class="lineNum">      27 </span>            : (IndexType)0&gt; &gt; &gt;
+<span class="lineNum">      28 </span>            : random_unit_normal&lt;DataVector&gt;(gsl::not_null&lt;std::mersenne_twister_engine&lt;
+<span class="lineNum">      29 </span>            : unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul,
+<span class="lineNum">      30 </span>            : 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul&gt;*&gt;, Tensor&lt;DataVector,
+<span class="lineNum">      31 </span>            : brigand::list&lt;brigand::integral_constant&lt;int, 1&gt;,
+<span class="lineNum">      32 </span>            : brigand::integral_constant&lt;int, 1&gt; &gt;,
+<span class="lineNum">      33 </span>            : brigand::list&lt;Tensor_detail::TensorIndexType&lt;3ul, (UpLo)1, Frame::Inertial,
+<span class="lineNum">      34 </span>            : (IndexType)0&gt;, Tensor_detail::TensorIndexType&lt;3ul, (UpLo)1, Frame::Inertial,
+<span class="lineNum">      35 </span>            : (IndexType)0&gt; &gt; &gt; const&amp;)' in
+<span class="lineNum">      36 </span>            : lib/libTest_GeneralizedHarmonic.a(Test_UpwindFlux.cpp.o):
+<span class="lineNum">      37 </span>            : Test_UpwindFlux.cpp:function (anonymous namespace)::test_upwind_flux_random()
+<span class="lineNum">      38 </span>            : ```
+<span class="lineNum">      39 </span>            : We can start by splitting out information about different parts of the
+<span class="lineNum">      40 </span>            : error. First,
+<span class="lineNum">      41 </span>            : ```
+<span class="lineNum">      42 </span>            : error: undefined reference to
+<span class="lineNum">      43 </span>            : ```
+<span class="lineNum">      44 </span>            : tells us that we forgot to add a link dependency for a library or
+<span class="lineNum">      45 </span>            : executable. The next relevant part of information is which library (executable)
+<span class="lineNum">      46 </span>            : and file the missing function/class was in. This is at the end of the error
+<span class="lineNum">      47 </span>            : message (unfortunately, where in the error message can depend on your linker,
+<span class="lineNum">      48 </span>            : these examples used `ld.lld` v9):
+<span class="lineNum">      49 </span>            : ```
+<span class="lineNum">      50 </span>            : lib/libTest_GeneralizedHarmonic.a(Test_UpwindFlux.cpp.o):
+<span class="lineNum">      51 </span>            : Test_UpwindFlux.cpp:function (anonymous namespace)::test_upwind_flux_random()
+<span class="lineNum">      52 </span>            : ```
+<span class="lineNum">      53 </span>            : What this means is that the missing link dependency is used in the library
+<span class="lineNum">      54 </span>            : `Test_GeneralizedHarmonic`, the file `Test_UpwindFlux.cpp`, and the function
+<span class="lineNum">      55 </span>            : `test_upwind_flux_random()`.
+<span class="lineNum">      56 </span>            : 
+<span class="lineNum">      57 </span>            : We have now determined what the linker error is (a missing link dependency), and
+<span class="lineNum">      58 </span>            : in which library, file, and function the missing link dependency is used. We now
+<span class="lineNum">      59 </span>            : need to understand what the missing link dependency is. Since SpECTRE uses a lot
+<span class="lineNum">      60 </span>            : of templates, the missing reference (link dependency) can be quite
+<span class="lineNum">      61 </span>            : long. In this case it is:
+<span class="lineNum">      62 </span>            : ```
+<span class="lineNum">      63 </span>            : Tensor&lt;DataVector,
+<span class="lineNum">      64 </span>            : brigand::list&lt;brigand::integral_constant&lt;int, 1&gt; &gt;,
+<span class="lineNum">      65 </span>            : brigand::list&lt;Tensor_detail::TensorIndexType&lt;3ul, (UpLo)0, Frame::Inertial,
+<span class="lineNum">      66 </span>            : (IndexType)0&gt; &gt; &gt;
+<span class="lineNum">      67 </span>            : random_unit_normal&lt;DataVector&gt;(gsl::not_null&lt;std::mersenne_twister_engine&lt;
+<span class="lineNum">      68 </span>            : unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul,
+<span class="lineNum">      69 </span>            : 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul&gt;*&gt;, Tensor&lt;DataVector,
+<span class="lineNum">      70 </span>            : brigand::list&lt;brigand::integral_constant&lt;int, 1&gt;,
+<span class="lineNum">      71 </span>            : brigand::integral_constant&lt;int, 1&gt; &gt;,
+<span class="lineNum">      72 </span>            : brigand::list&lt;Tensor_detail::TensorIndexType&lt;3ul, (UpLo)1, Frame::Inertial,
+<span class="lineNum">      73 </span>            : (IndexType)0&gt;, Tensor_detail::TensorIndexType&lt;3ul, (UpLo)1, Frame::Inertial,
+<span class="lineNum">      74 </span>            : (IndexType)0&gt; &gt; &gt; const&amp;)
+<span class="lineNum">      75 </span>            : ```
+<span class="lineNum">      76 </span>            : In order to make this easier to read, it is recommended to run the code through
+<span class="lineNum">      77 </span>            : ClangFormat. This can be done by copying the linker output into an empty `cpp`
+<span class="lineNum">      78 </span>            : file and running `clang-format -i EMPTY_FILE_WITH_LINKER_OUTPUT`. Keep in mind
+<span class="lineNum">      79 </span>            : that ClangFormat will only work if you have only copied the part of the linker
+<span class="lineNum">      80 </span>            : output that resembles valid C++. Doing so in this case gives:
+<span class="lineNum">      81 </span>            : \code{.cpp}
+<span class="lineNum">      82 </span>            : Tensor&lt;DataVector, brigand::list&lt;brigand::integral_constant&lt;int, 1&gt; &gt;,
+<span class="lineNum">      83 </span>            :        brigand::list&lt;Tensor_detail::TensorIndexType&lt;
+<span class="lineNum">      84 </span>            :            3ul, (UpLo)0, Frame::Inertial, (IndexType)0&gt; &gt; &gt;
+<span class="lineNum">      85 </span>            : random_unit_normal&lt;DataVector&gt;(
+<span class="lineNum">      86 </span>            :     gsl::not_null&lt;std::mersenne_twister_engine&lt;
+<span class="lineNum">      87 </span>            :         unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul,
+<span class="lineNum">      88 </span>            :         4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul,
+<span class="lineNum">      89 </span>            :         1812433253ul&gt;*&gt;,
+<span class="lineNum">      90 </span>            :     Tensor&lt;DataVector,
+<span class="lineNum">      91 </span>            :            brigand::list&lt;brigand::integral_constant&lt;int, 1&gt;,
+<span class="lineNum">      92 </span>            :                          brigand::integral_constant&lt;int, 1&gt; &gt;,
+<span class="lineNum">      93 </span>            :            brigand::list&lt;
+<span class="lineNum">      94 </span>            :                Tensor_detail::TensorIndexType&lt;3ul, (UpLo)1, Frame::Inertial,
+<span class="lineNum">      95 </span>            :                                               (IndexType)0&gt;,
+<span class="lineNum">      96 </span>            :                Tensor_detail::TensorIndexType&lt;3ul, (UpLo)1, Frame::Inertial,
+<span class="lineNum">      97 </span>            :                                               (IndexType)0&gt; &gt; &gt; const&amp;);
+<span class="lineNum">      98 </span>            : \endcode
+<span class="lineNum">      99 </span>            : We see that it is the function `random_unit_normal` that isn't found. Now we can
+<span class="lineNum">     100 </span>            : search in the code base where than function is defined. Doing a
+<span class="lineNum">     101 </span>            : `git grep &quot;random_unit_normal&quot;` points to
+<span class="lineNum">     102 </span>            : `tests/Unit/Helpers/DataStructures/RandomUnitNormal.?pp`. Looking
+<span class="lineNum">     103 </span>            : at `tests/Unit/Helpers/DataStructures/RandomUnitNormal.hpp` we see that the
+<span class="lineNum">     104 </span>            : function `random_unit_normal` is declared there, and looking in the
+<span class="lineNum">     105 </span>            : corresponding `cpp` we see `random_unit_normal` is instantiated in the source
+<span class="lineNum">     106 </span>            : file. Opening up `tests/Unit/Helpers/DataStructures/CMakeLists.txt` we see that
+<span class="lineNum">     107 </span>            : the library name is `DataStructuresHelpers`, and `RandomUnitNormal.cpp` is in
+<span class="lineNum">     108 </span>            : the list of sources for the library. Thus, linking
+<span class="lineNum">     109 </span>            : `Test_GeneralizedHarmonic` against `DataStructuresHelpers` will resolve our
+<span class="lineNum">     110 </span>            : error. To link against a library, you must add it to the
+<span class="lineNum">     111 </span>            : `target_link_libraries`, or the last argument passed to `add_test_library`.
+<span class="lineNum">     112 </span>            : 
+<span class="lineNum">     113 </span>            : If `random_unit_normal` had been defined in the header file, then the error
+<span class="lineNum">     114 </span>            : would've indicated that we did not include the header (or `tpp`) file into
+<span class="lineNum">     115 </span>            : `Test_UpwindFlux.cpp`, and so the compiler could not generate an
+<span class="lineNum">     116 </span>            : instantiation.
+<span class="lineNum">     117 </span>            : 
+<span class="lineNum">     118 </span>            : In summary:
+<span class="lineNum">     119 </span>            : - Identify target with undefined reference, i.e. the file included in a library
+<span class="lineNum">     120 </span>            :   or executable.
+<span class="lineNum">     121 </span>            : - Identify missing source definition (usually a function or static variable).
+<span class="lineNum">     122 </span>            : - Find source declaration and definition in repository.
+<span class="lineNum">     123 </span>            : - If source definition is in a `cpp` file, make sure it is in the list of
+<span class="lineNum">     124 </span>            :   sources in the `CMakeLists.txt` in the same directory and that the
+<span class="lineNum">     125 </span>            :   corresponding library is linked against by the target.
+<span class="lineNum">     126 </span>            : 
+<span class="lineNum">     127 </span>            :   If the undefined reference is a template, make sure the required instantiation
+<span class="lineNum">     128 </span>            :   exists.
+<span class="lineNum">     129 </span>            : - If the undefined reference's definition is in a `tpp` file, make sure the
+<span class="lineNum">     130 </span>            :   `tpp` file is included in the target file.
+<span class="lineNum">     131 </span>            : - If the undefined reference's source definition is in an `hpp` file, make sure
+<span class="lineNum">     132 </span>            :   the specific instantiation is possible (e.g. not forbidden by a `Requires`)
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

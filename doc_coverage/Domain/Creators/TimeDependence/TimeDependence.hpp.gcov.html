@@ -1,0 +1,173 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - Domain/Creators/TimeDependence/TimeDependence.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../index.html">top level</a> - <a href="index.html">Domain/Creators/TimeDependence</a> - TimeDependence.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">5</td>
+            <td class="headerCovTableEntry">13</td>
+            <td class="headerCovTableEntryLo">38.5 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #pragma once
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;cstddef&gt;
+<span class="lineNum">       7 </span>            : #include &lt;memory&gt;
+<span class="lineNum">       8 </span>            : #include &lt;string&gt;
+<span class="lineNum">       9 </span>            : #include &lt;unordered_map&gt;
+<span class="lineNum">      10 </span>            : #include &lt;vector&gt;
+<span class="lineNum">      11 </span>            : 
+<span class="lineNum">      12 </span>            : #include &quot;Utilities/TMPL.hpp&quot;
+<span class="lineNum">      13 </span>            : 
+<span class="lineNum">      14 </span>            : /// \cond
+<span class="lineNum">      15 </span>            : namespace domain {
+<span class="lineNum">      16 </span>            : template &lt;typename SourceFrame, typename TargetFrame, size_t Dim&gt;
+<span class="lineNum">      17 </span>            : class CoordinateMapBase;
+<span class="lineNum">      18 </span>            : namespace FunctionsOfTime {
+<span class="lineNum">      19 </span>            : class FunctionOfTime;
+<span class="lineNum">      20 </span>            : }  // namespace FunctionsOfTime
+<span class="lineNum">      21 </span>            : }  // namespace domain
+<span class="lineNum">      22 </span>            : namespace Frame {
+<span class="lineNum">      23 </span>            : struct Grid;
+<span class="lineNum">      24 </span>            : struct Inertial;
+<span class="lineNum">      25 </span>            : }  // namespace Frame
+<span class="lineNum">      26 </span>            : 
+<span class="lineNum">      27 </span>            : namespace domain {
+<span class="lineNum">      28 </span>            : namespace creators {
+<span class="lineNum">      29 </span>            : namespace time_dependence {
+<span class="lineNum">      30 </span>            : template &lt;size_t MeshDim&gt;
+<span class="lineNum">      31 </span>            : class CubicScale;
+<span class="lineNum">      32 </span>            : template &lt;size_t MeshDim&gt;
+<span class="lineNum">      33 </span>            : class None;
+<span class="lineNum">      34 </span>            : template &lt;size_t MeshDim&gt;
+<span class="lineNum">      35 </span>            : class UniformTranslation;
+<span class="lineNum">      36 </span>            : }  // namespace time_dependence
+<span class="lineNum">      37 </span>            : }  // namespace creators
+<span class="lineNum">      38 </span>            : }  // namespace domain
+<span class="lineNum">      39 </span>            : /// \endcond
+<span class="lineNum">      40 </span>            : 
+<span class="lineNum">      41 </span>            : namespace domain {
+<span class="lineNum">      42 </span>            : namespace creators {
+<span class="lineNum">      43 </span>            : /// \ingroup ComputationalDomainGroup
+<span class="lineNum">      44 </span>            : /// \brief Classes and functions for adding time dependence to a domain.
+<span class="lineNum">      45 </span>            : namespace time_dependence {
+<span class="lineNum">      46 </span>            : /// \brief The abstract base class off of which specific classes for adding
+<span class="lineNum">      47 </span>            : /// time dependence into a domain creator must inherit off of.
+<span class="lineNum">      48 </span>            : ///
+<span class="lineNum">      49 </span>            : /// The simplest examples of a `TimeDependence` are `None` and
+<span class="lineNum">      50 </span>            : /// `UniformTranslation`. The `None` class is treated in a special manner to
+<span class="lineNum">      51 </span>            : /// communicate to the code that the domain is time-independent.
+<span class="lineNum">      52 </span>            : template &lt;size_t MeshDim&gt;
+<span class="lineNum">      53 </span><span class="lineCov">          1 : struct TimeDependence {</span>
+<span class="lineNum">      54 </span><span class="lineNoCov">          0 :   using creatable_classes = tmpl::list&lt;CubicScale&lt;MeshDim&gt;, None&lt;MeshDim&gt;,</span>
+<span class="lineNum">      55 </span>            :                                        UniformTranslation&lt;MeshDim&gt;&gt;;
+<span class="lineNum">      56 </span>            : 
+<span class="lineNum">      57 </span><span class="lineNoCov">          0 :   TimeDependence() = default;</span>
+<span class="lineNum">      58 </span><span class="lineNoCov">          0 :   virtual ~TimeDependence() = 0;</span>
+<span class="lineNum">      59 </span><span class="lineNoCov">          0 :   TimeDependence(const TimeDependence&amp;) = default;</span>
+<span class="lineNum">      60 </span><span class="lineNoCov">          0 :   TimeDependence&amp; operator=(const TimeDependence&amp;) = default;</span>
+<span class="lineNum">      61 </span><span class="lineNoCov">          0 :   TimeDependence(TimeDependence&amp;&amp;) = default;</span>
+<span class="lineNum">      62 </span><span class="lineNoCov">          0 :   TimeDependence&amp; operator=(TimeDependence&amp;&amp;) = default;</span>
+<span class="lineNum">      63 </span>            : 
+<span class="lineNum">      64 </span>            :   /// Returns a `std::unique_ptr` pointing to a copy of the `TimeDependence`.
+<span class="lineNum">      65 </span><span class="lineCov">          1 :   virtual auto get_clone() const noexcept</span>
+<span class="lineNum">      66 </span>            :       -&gt; std::unique_ptr&lt;TimeDependence&gt; = 0;
+<span class="lineNum">      67 </span>            : 
+<span class="lineNum">      68 </span>            :   /// Returns the coordinate maps from the `Frame::Grid` to the
+<span class="lineNum">      69 </span>            :   /// `Frame::Inertial` frame for each block.
+<span class="lineNum">      70 </span><span class="lineCov">          1 :   virtual auto block_maps(size_t number_of_blocks) const noexcept</span>
+<span class="lineNum">      71 </span>            :       -&gt; std::vector&lt;std::unique_ptr&lt;domain::CoordinateMapBase&lt;
+<span class="lineNum">      72 </span>            :           Frame::Grid, Frame::Inertial, MeshDim&gt;&gt;&gt; = 0;
+<span class="lineNum">      73 </span>            : 
+<span class="lineNum">      74 </span>            :   /// Returns the functions of time for the domain.
+<span class="lineNum">      75 </span><span class="lineCov">          1 :   virtual auto functions_of_time() const noexcept -&gt; std::unordered_map&lt;</span>
+<span class="lineNum">      76 </span>            :       std::string,
+<span class="lineNum">      77 </span>            :       std::unique_ptr&lt;domain::FunctionsOfTime::FunctionOfTime&gt;&gt; = 0;
+<span class="lineNum">      78 </span>            : 
+<span class="lineNum">      79 </span>            :   /// Returns `true` if the instance is `None`, meaning no time dependence.
+<span class="lineNum">      80 </span><span class="lineCov">          1 :   bool is_none() const noexcept {</span>
+<span class="lineNum">      81 </span>            :     return dynamic_cast&lt;const None&lt;MeshDim&gt;*&gt;(this) != nullptr;
+<span class="lineNum">      82 </span>            :   }
+<span class="lineNum">      83 </span>            : };
+<span class="lineNum">      84 </span>            : 
+<span class="lineNum">      85 </span>            : template &lt;size_t MeshDim&gt;
+<span class="lineNum">      86 </span>            : TimeDependence&lt;MeshDim&gt;::~TimeDependence() = default;
+<span class="lineNum">      87 </span>            : }  // namespace time_dependence
+<span class="lineNum">      88 </span>            : }  // namespace creators
+<span class="lineNum">      89 </span>            : }  // namespace domain
+<span class="lineNum">      90 </span>            : 
+<span class="lineNum">      91 </span>            : #include &quot;Domain/Creators/TimeDependence/CubicScale.hpp&quot;
+<span class="lineNum">      92 </span>            : #include &quot;Domain/Creators/TimeDependence/None.hpp&quot;
+<span class="lineNum">      93 </span>            : #include &quot;Domain/Creators/TimeDependence/UniformTranslation.hpp&quot;
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

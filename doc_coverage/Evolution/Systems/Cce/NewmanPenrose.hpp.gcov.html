@@ -1,0 +1,146 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - Evolution/Systems/Cce/NewmanPenrose.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../index.html">top level</a> - <a href="index.html">Evolution/Systems/Cce</a> - NewmanPenrose.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntry">5</td>
+            <td class="headerCovTableEntryLo">20.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #pragma once
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &quot;DataStructures/SpinWeighted.hpp&quot;
+<span class="lineNum">       7 </span>            : #include &quot;DataStructures/Tensor/Tensor.hpp&quot;
+<span class="lineNum">       8 </span>            : #include &quot;Evolution/Systems/Cce/Tags.hpp&quot;
+<span class="lineNum">       9 </span>            : #include &quot;Utilities/Gsl.hpp&quot;
+<span class="lineNum">      10 </span>            : #include &quot;Utilities/TMPL.hpp&quot;
+<span class="lineNum">      11 </span>            : 
+<span class="lineNum">      12 </span>            : /// \cond
+<span class="lineNum">      13 </span>            : class ComplexDataVector;
+<span class="lineNum">      14 </span>            : /// \endcond
+<span class="lineNum">      15 </span>            : 
+<span class="lineNum">      16 </span>            : namespace Cce {
+<span class="lineNum">      17 </span>            : 
+<span class="lineNum">      18 </span>            : /// \cond
+<span class="lineNum">      19 </span>            : template &lt;typename Tag&gt;
+<span class="lineNum">      20 </span>            : struct VolumeWeyl;
+<span class="lineNum">      21 </span>            : /// \endcond
+<span class="lineNum">      22 </span>            : 
+<span class="lineNum">      23 </span>            : /*!
+<span class="lineNum">      24 </span>            :  * \brief Compute the Weyl scalar \f$\Psi_0\f$ in the volume according to a
+<span class="lineNum">      25 </span>            :  * standard set of Newman-Penrose vectors.
+<span class="lineNum">      26 </span>            :  *
+<span class="lineNum">      27 </span>            :  * \details The Bondi forms of the Newman-Penrose vectors that are needed for
+<span class="lineNum">      28 </span>            :  * \f$\Psi_0\f$ are:
+<span class="lineNum">      29 </span>            :  *
+<span class="lineNum">      30 </span>            :  * \f{align}{
+<span class="lineNum">      31 </span>            :  * \mathbf{l} &amp;= \partial_r / \sqrt{2}\\
+<span class="lineNum">      32 </span>            :  * \mathbf{m} &amp;= \frac{-1}{2 r} \left(\sqrt{1 + K} q^A \partial_A -
+<span class="lineNum">      33 </span>            :  *   \frac{J}{\sqrt{1 + K}}\bar{q}^A \partial_A \right)
+<span class="lineNum">      34 </span>            :  * \f}
+<span class="lineNum">      35 </span>            :  *
+<span class="lineNum">      36 </span>            :  * Then, we may compute \f$\Psi_0 =  l^\alpha m^\beta l^\mu m^\nu C_{\alpha
+<span class="lineNum">      37 </span>            :  * \beta \mu \nu}\f$ from the Bondi system, giving
+<span class="lineNum">      38 </span>            :  *
+<span class="lineNum">      39 </span>            :  * \f{align*}{
+<span class="lineNum">      40 </span>            :  * \Psi_0 = \frac{(1 - y)^4}{16 r^2 K}
+<span class="lineNum">      41 </span>            :  * \bigg[&amp; \partial_y \beta \left((1 + K) (\partial_y J)
+<span class="lineNum">      42 </span>            :  * - \frac{J^2 \partial_y \bar J}{1 + K}\right)
+<span class="lineNum">      43 </span>            :  * - \frac{1}{2} (1 + K) (\partial_y^2 J)
+<span class="lineNum">      44 </span>            :  * + \frac{J^2 \partial_y^2 \bar J}{2(K + 1)}\\
+<span class="lineNum">      45 </span>            :  * &amp; + \frac{1}{K^2} \left(- \frac{1}{4} J \left(\bar{J}^2 \left(\partial_y
+<span class="lineNum">      46 </span>            :  * J\right)^2 + J^2 \left(\partial_y \bar J\right)^2\right)
+<span class="lineNum">      47 </span>            :  * + \frac{1 + K^2}{2} J (\partial_y J) (\partial_y \bar J)
+<span class="lineNum">      48 </span>            :  * \right)\bigg].
+<span class="lineNum">      49 </span>            :  * \f}
+<span class="lineNum">      50 </span>            :  */
+<span class="lineNum">      51 </span>            : template &lt;&gt;
+<span class="lineNum">      52 </span><span class="lineCov">          1 : struct VolumeWeyl&lt;Tags::Psi0&gt; {</span>
+<span class="lineNum">      53 </span><span class="lineNoCov">          0 :   using return_tags = tmpl::list&lt;Tags::Psi0&gt;;</span>
+<span class="lineNum">      54 </span><span class="lineNoCov">          0 :   using argument_tags = tmpl::list&lt;Tags::BondiJ, Tags::Dy&lt;Tags::BondiJ&gt;,</span>
+<span class="lineNum">      55 </span>            :                                    Tags::Dy&lt;Tags::Dy&lt;Tags::BondiJ&gt;&gt;,
+<span class="lineNum">      56 </span>            :                                    Tags::BondiK, Tags::BondiR, Tags::OneMinusY&gt;;
+<span class="lineNum">      57 </span><span class="lineNoCov">          0 :   static void apply(</span>
+<span class="lineNum">      58 </span>            :       gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;*&gt; psi_0,
+<span class="lineNum">      59 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;&amp; bondi_j,
+<span class="lineNum">      60 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;&amp; dy_j,
+<span class="lineNum">      61 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;&amp; dy_dy_j,
+<span class="lineNum">      62 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; bondi_k,
+<span class="lineNum">      63 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; bondi_r,
+<span class="lineNum">      64 </span>            :       const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; one_minus_y) noexcept;
+<span class="lineNum">      65 </span>            : };
+<span class="lineNum">      66 </span>            : }  // namespace Cce
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

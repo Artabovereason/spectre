@@ -1,0 +1,358 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - Evolution/Systems/Cce/AnalyticSolutions/WorldtubeData.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../../index.html">top level</a> - <a href="index.html">Evolution/Systems/Cce/AnalyticSolutions</a> - WorldtubeData.cpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #include &quot;Evolution/Systems/Cce/AnalyticSolutions/WorldtubeData.hpp&quot;
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;cstddef&gt;
+<span class="lineNum">       7 </span>            : 
+<span class="lineNum">       8 </span>            : #include &quot;DataStructures/ComplexDataVector.hpp&quot;
+<span class="lineNum">       9 </span>            : #include &quot;DataStructures/DataVector.hpp&quot;
+<span class="lineNum">      10 </span>            : #include &quot;DataStructures/Tags.hpp&quot;
+<span class="lineNum">      11 </span>            : #include &quot;DataStructures/Tensor/Tensor.hpp&quot;
+<span class="lineNum">      12 </span>            : #include &quot;Evolution/Systems/GeneralizedHarmonic/Tags.hpp&quot;
+<span class="lineNum">      13 </span>            : #include &quot;NumericalAlgorithms/LinearOperators/PartialDerivatives.hpp&quot;
+<span class="lineNum">      14 </span>            : #include &quot;NumericalAlgorithms/Spectral/SwshCollocation.hpp&quot;
+<span class="lineNum">      15 </span>            : #include &quot;Parallel/CharmPupable.hpp&quot;
+<span class="lineNum">      16 </span>            : #include &quot;PointwiseFunctions/GeneralRelativity/ComputeGhQuantities.hpp&quot;
+<span class="lineNum">      17 </span>            : #include &quot;PointwiseFunctions/GeneralRelativity/ComputeSpacetimeQuantities.hpp&quot;
+<span class="lineNum">      18 </span>            : #include &quot;PointwiseFunctions/GeneralRelativity/Tags.hpp&quot;
+<span class="lineNum">      19 </span>            : #include &quot;Utilities/Gsl.hpp&quot;
+<span class="lineNum">      20 </span>            : #include &quot;Utilities/TMPL.hpp&quot;
+<span class="lineNum">      21 </span>            : 
+<span class="lineNum">      22 </span>            : namespace Cce {
+<span class="lineNum">      23 </span>            : namespace Solutions {
+<span class="lineNum">      24 </span>            : 
+<span class="lineNum">      25 </span>            : /// \cond
+<span class="lineNum">      26 </span>            : void WorldtubeData::variables_impl(
+<span class="lineNum">      27 </span>            :     const gsl::not_null&lt;tnsr::i&lt;DataVector, 3&gt;*&gt; cartesian_coordinates,
+<span class="lineNum">      28 </span>            :     const size_t output_l_max, double /*time*/,
+<span class="lineNum">      29 </span>            :     tmpl::type_&lt;Tags::CauchyCartesianCoords&gt; /*meta*/) const noexcept {
+<span class="lineNum">      30 </span>            :   const auto&amp; collocation = Spectral::Swsh::cached_collocation_metadata&lt;
+<span class="lineNum">      31 </span>            :       Spectral::Swsh::ComplexRepresentation::Interleaved&gt;(output_l_max);
+<span class="lineNum">      32 </span>            :   for (const auto&amp; collocation_point : collocation) {
+<span class="lineNum">      33 </span>            :     get&lt;0&gt;(*cartesian_coordinates)[collocation_point.offset] =
+<span class="lineNum">      34 </span>            :         extraction_radius_ * cos(collocation_point.phi) *
+<span class="lineNum">      35 </span>            :         sin(collocation_point.theta);
+<span class="lineNum">      36 </span>            :     get&lt;1&gt;(*cartesian_coordinates)[collocation_point.offset] =
+<span class="lineNum">      37 </span>            :         extraction_radius_ * sin(collocation_point.phi) *
+<span class="lineNum">      38 </span>            :         sin(collocation_point.theta);
+<span class="lineNum">      39 </span>            :     get&lt;2&gt;(*cartesian_coordinates)[collocation_point.offset] =
+<span class="lineNum">      40 </span>            :         extraction_radius_ * cos(collocation_point.theta);
+<span class="lineNum">      41 </span>            :   }
+<span class="lineNum">      42 </span>            : }
+<span class="lineNum">      43 </span>            : 
+<span class="lineNum">      44 </span>            : void WorldtubeData::variables_impl(
+<span class="lineNum">      45 </span>            :     const gsl::not_null&lt;tnsr::i&lt;DataVector, 3&gt;*&gt; dr_cartesian_coordinates,
+<span class="lineNum">      46 </span>            :     const size_t output_l_max, const double /*time*/,
+<span class="lineNum">      47 </span>            :     tmpl::type_&lt;Tags::Dr&lt;Tags::CauchyCartesianCoords&gt;&gt; /*meta*/) const
+<span class="lineNum">      48 </span>            :     noexcept {
+<span class="lineNum">      49 </span>            :   const auto&amp; collocation = Spectral::Swsh::cached_collocation_metadata&lt;
+<span class="lineNum">      50 </span>            :       Spectral::Swsh::ComplexRepresentation::Interleaved&gt;(output_l_max);
+<span class="lineNum">      51 </span>            :   for (const auto&amp; collocation_point : collocation) {
+<span class="lineNum">      52 </span>            :     get&lt;0&gt;(*dr_cartesian_coordinates)[collocation_point.offset] =
+<span class="lineNum">      53 </span>            :         cos(collocation_point.phi) * sin(collocation_point.theta);
+<span class="lineNum">      54 </span>            :     get&lt;1&gt;(*dr_cartesian_coordinates)[collocation_point.offset] =
+<span class="lineNum">      55 </span>            :         sin(collocation_point.phi) * sin(collocation_point.theta);
+<span class="lineNum">      56 </span>            :     get&lt;2&gt;(*dr_cartesian_coordinates)[collocation_point.offset] =
+<span class="lineNum">      57 </span>            :         cos(collocation_point.theta);
+<span class="lineNum">      58 </span>            :   }
+<span class="lineNum">      59 </span>            : }
+<span class="lineNum">      60 </span>            : 
+<span class="lineNum">      61 </span>            : void WorldtubeData::variables_impl(
+<span class="lineNum">      62 </span>            :     const gsl::not_null&lt;tnsr::aa&lt;DataVector, 3&gt;*&gt; pi, const size_t output_l_max,
+<span class="lineNum">      63 </span>            :     const double time,
+<span class="lineNum">      64 </span>            :     tmpl::type_&lt;GeneralizedHarmonic::Tags::Pi&lt;3, ::Frame::Inertial&gt;&gt; /*meta*/)
+<span class="lineNum">      65 </span>            :     const noexcept {
+<span class="lineNum">      66 </span>            :   const auto&amp; d_spacetime_metric =
+<span class="lineNum">      67 </span>            :       cache_or_compute&lt;GeneralizedHarmonic::Tags::Phi&lt;3, ::Frame::Inertial&gt;&gt;(
+<span class="lineNum">      68 </span>            :           output_l_max, time);
+<span class="lineNum">      69 </span>            :   const auto&amp; dt_spacetime_metric = cache_or_compute&lt;
+<span class="lineNum">      70 </span>            :       ::Tags::dt&lt;gr::Tags::SpacetimeMetric&lt;3, ::Frame::Inertial, DataVector&gt;&gt;&gt;(
+<span class="lineNum">      71 </span>            :       output_l_max, time);
+<span class="lineNum">      72 </span>            :   const auto&amp; lapse =
+<span class="lineNum">      73 </span>            :       cache_or_compute&lt;gr::Tags::Lapse&lt;DataVector&gt;&gt;(output_l_max, time);
+<span class="lineNum">      74 </span>            :   const auto&amp; shift =
+<span class="lineNum">      75 </span>            :       cache_or_compute&lt;gr::Tags::Shift&lt;3, ::Frame::Inertial, DataVector&gt;&gt;(
+<span class="lineNum">      76 </span>            :           output_l_max, time);
+<span class="lineNum">      77 </span>            :   for (size_t a = 0; a &lt; 4; ++a) {
+<span class="lineNum">      78 </span>            :     for (size_t b = a; b &lt; 4; ++b) {
+<span class="lineNum">      79 </span>            :       pi-&gt;get(a, b) = -dt_spacetime_metric.get(a, b) / get(lapse);
+<span class="lineNum">      80 </span>            :       for (size_t i = 0; i &lt; 3; ++i) {
+<span class="lineNum">      81 </span>            :         pi-&gt;get(a, b) +=
+<span class="lineNum">      82 </span>            :             shift.get(i) * d_spacetime_metric.get(i, a, b) / get(lapse);
+<span class="lineNum">      83 </span>            :       }
+<span class="lineNum">      84 </span>            :     }
+<span class="lineNum">      85 </span>            :   }
+<span class="lineNum">      86 </span>            : }
+<span class="lineNum">      87 </span>            : 
+<span class="lineNum">      88 </span>            : void WorldtubeData::variables_impl(
+<span class="lineNum">      89 </span>            :     const gsl::not_null&lt;tnsr::ii&lt;DataVector, 3&gt;*&gt; spatial_metric,
+<span class="lineNum">      90 </span>            :     const size_t output_l_max, const double time,
+<span class="lineNum">      91 </span>            :     tmpl::type_&lt;gr::Tags::SpatialMetric&lt;3, ::Frame::Inertial,
+<span class="lineNum">      92 </span>            :                                         DataVector&gt;&gt; /*meta*/) const noexcept {
+<span class="lineNum">      93 </span>            :   gr::spatial_metric(
+<span class="lineNum">      94 </span>            :       spatial_metric,
+<span class="lineNum">      95 </span>            :       cache_or_compute&lt;
+<span class="lineNum">      96 </span>            :           gr::Tags::SpacetimeMetric&lt;3, ::Frame::Inertial, DataVector&gt;&gt;(
+<span class="lineNum">      97 </span>            :           output_l_max, time));
+<span class="lineNum">      98 </span>            : }
+<span class="lineNum">      99 </span>            : 
+<span class="lineNum">     100 </span>            : void WorldtubeData::variables_impl(
+<span class="lineNum">     101 </span>            :     const gsl::not_null&lt;tnsr::ii&lt;DataVector, 3&gt;*&gt; dt_spatial_metric,
+<span class="lineNum">     102 </span>            :     const size_t output_l_max, const double time,
+<span class="lineNum">     103 </span>            :     tmpl::type_&lt;::Tags::dt&lt;gr::Tags::SpatialMetric&lt;3, ::Frame::Inertial,
+<span class="lineNum">     104 </span>            :                                                    DataVector&gt;&gt;&gt; /*meta*/) const
+<span class="lineNum">     105 </span>            :     noexcept {
+<span class="lineNum">     106 </span>            :   const auto&amp; dt_spacetime_metric = cache_or_compute&lt;
+<span class="lineNum">     107 </span>            :       ::Tags::dt&lt;gr::Tags::SpacetimeMetric&lt;3, ::Frame::Inertial, DataVector&gt;&gt;&gt;(
+<span class="lineNum">     108 </span>            :       output_l_max, time);
+<span class="lineNum">     109 </span>            : 
+<span class="lineNum">     110 </span>            :   for (size_t i = 0; i &lt; 3; ++i) {
+<span class="lineNum">     111 </span>            :     for (size_t j = i; j &lt; 3; ++j) {
+<span class="lineNum">     112 </span>            :       dt_spatial_metric-&gt;get(i, j) = dt_spacetime_metric.get(i + 1, j + 1);
+<span class="lineNum">     113 </span>            :     }
+<span class="lineNum">     114 </span>            :   }
+<span class="lineNum">     115 </span>            : }
+<span class="lineNum">     116 </span>            : 
+<span class="lineNum">     117 </span>            : void WorldtubeData::variables_impl(
+<span class="lineNum">     118 </span>            :     const gsl::not_null&lt;tnsr::ii&lt;DataVector, 3&gt;*&gt; dr_spatial_metric,
+<span class="lineNum">     119 </span>            :     const size_t output_l_max, const double time,
+<span class="lineNum">     120 </span>            :     tmpl::type_&lt;Tags::Dr&lt;gr::Tags::SpatialMetric&lt;3, ::Frame::Inertial,
+<span class="lineNum">     121 </span>            :                                                  DataVector&gt;&gt;&gt; /*meta*/) const
+<span class="lineNum">     122 </span>            :     noexcept {
+<span class="lineNum">     123 </span>            :   const auto&amp; dr_cartesian_coordinates =
+<span class="lineNum">     124 </span>            :       cache_or_compute&lt;Tags::Dr&lt;Tags::CauchyCartesianCoords&gt;&gt;(output_l_max,
+<span class="lineNum">     125 </span>            :                                                               time);
+<span class="lineNum">     126 </span>            :   const auto&amp; d_spacetime_metric =
+<span class="lineNum">     127 </span>            :       cache_or_compute&lt;GeneralizedHarmonic::Tags::Phi&lt;3, ::Frame::Inertial&gt;&gt;(
+<span class="lineNum">     128 </span>            :           output_l_max, time);
+<span class="lineNum">     129 </span>            :   for (size_t i = 0; i &lt; 3; ++i) {
+<span class="lineNum">     130 </span>            :     for (size_t j = i; j &lt; 3; ++j) {
+<span class="lineNum">     131 </span>            :       dr_spatial_metric-&gt;get(i, j) = get&lt;0&gt;(dr_cartesian_coordinates) *
+<span class="lineNum">     132 </span>            :                                      d_spacetime_metric.get(0, i + 1, j + 1);
+<span class="lineNum">     133 </span>            :       for (size_t k = 1; k &lt; 3; ++k) {
+<span class="lineNum">     134 </span>            :         dr_spatial_metric-&gt;get(i, j) += dr_cartesian_coordinates.get(k) *
+<span class="lineNum">     135 </span>            :                                         d_spacetime_metric.get(k, i + 1, j + 1);
+<span class="lineNum">     136 </span>            :       }
+<span class="lineNum">     137 </span>            :     }
+<span class="lineNum">     138 </span>            :   }
+<span class="lineNum">     139 </span>            : }
+<span class="lineNum">     140 </span>            : 
+<span class="lineNum">     141 </span>            : void WorldtubeData::variables_impl(
+<span class="lineNum">     142 </span>            :     const gsl::not_null&lt;tnsr::I&lt;DataVector, 3&gt;*&gt; shift,
+<span class="lineNum">     143 </span>            :     const size_t output_l_max, const double time,
+<span class="lineNum">     144 </span>            :     tmpl::type_&lt;gr::Tags::Shift&lt;3, ::Frame::Inertial, DataVector&gt;&gt; /*meta*/)
+<span class="lineNum">     145 </span>            :     const noexcept {
+<span class="lineNum">     146 </span>            :   const auto&amp; spacetime_metric = cache_or_compute&lt;
+<span class="lineNum">     147 </span>            :       gr::Tags::SpacetimeMetric&lt;3, ::Frame::Inertial, DataVector&gt;&gt;(output_l_max,
+<span class="lineNum">     148 </span>            :                                                                    time);
+<span class="lineNum">     149 </span>            :   const auto&amp; spatial_metric = cache_or_compute&lt;
+<span class="lineNum">     150 </span>            :       gr::Tags::SpatialMetric&lt;3, ::Frame::Inertial, DataVector&gt;&gt;(output_l_max,
+<span class="lineNum">     151 </span>            :                                                                  time);
+<span class="lineNum">     152 </span>            :   gr::shift(shift, spacetime_metric,
+<span class="lineNum">     153 </span>            :             determinant_and_inverse(spatial_metric).second);
+<span class="lineNum">     154 </span>            : }
+<span class="lineNum">     155 </span>            : 
+<span class="lineNum">     156 </span>            : void WorldtubeData::variables_impl(
+<span class="lineNum">     157 </span>            :     const gsl::not_null&lt;tnsr::I&lt;DataVector, 3&gt;*&gt; dt_shift,
+<span class="lineNum">     158 </span>            :     const size_t output_l_max, const double time,
+<span class="lineNum">     159 </span>            :     tmpl::type_&lt;
+<span class="lineNum">     160 </span>            :         ::Tags::dt&lt;gr::Tags::Shift&lt;3, ::Frame::Inertial, DataVector&gt;&gt;&gt; /*meta*/)
+<span class="lineNum">     161 </span>            :     const noexcept {
+<span class="lineNum">     162 </span>            :   const auto&amp; lapse =
+<span class="lineNum">     163 </span>            :       cache_or_compute&lt;gr::Tags::Lapse&lt;DataVector&gt;&gt;(output_l_max, time);
+<span class="lineNum">     164 </span>            :   const auto&amp; shift =
+<span class="lineNum">     165 </span>            :       cache_or_compute&lt;gr::Tags::Shift&lt;3, ::Frame::Inertial, DataVector&gt;&gt;(
+<span class="lineNum">     166 </span>            :           output_l_max, time);
+<span class="lineNum">     167 </span>            :   GeneralizedHarmonic::time_deriv_of_shift(
+<span class="lineNum">     168 </span>            :       dt_shift, lapse, shift,
+<span class="lineNum">     169 </span>            :       determinant_and_inverse(
+<span class="lineNum">     170 </span>            :           cache_or_compute&lt;
+<span class="lineNum">     171 </span>            :               gr::Tags::SpatialMetric&lt;3, ::Frame::Inertial, DataVector&gt;&gt;(
+<span class="lineNum">     172 </span>            :               output_l_max, time))
+<span class="lineNum">     173 </span>            :           .second,
+<span class="lineNum">     174 </span>            :       gr::spacetime_normal_vector(lapse, shift),
+<span class="lineNum">     175 </span>            :       cache_or_compute&lt;GeneralizedHarmonic::Tags::Phi&lt;3, ::Frame::Inertial&gt;&gt;(
+<span class="lineNum">     176 </span>            :           output_l_max, time),
+<span class="lineNum">     177 </span>            :       cache_or_compute&lt;GeneralizedHarmonic::Tags::Pi&lt;3, ::Frame::Inertial&gt;&gt;(
+<span class="lineNum">     178 </span>            :           output_l_max, time));
+<span class="lineNum">     179 </span>            : }
+<span class="lineNum">     180 </span>            : 
+<span class="lineNum">     181 </span>            : void WorldtubeData::variables_impl(
+<span class="lineNum">     182 </span>            :     const gsl::not_null&lt;tnsr::I&lt;DataVector, 3&gt;*&gt; dr_shift,
+<span class="lineNum">     183 </span>            :     const size_t output_l_max, const double time,
+<span class="lineNum">     184 </span>            :     tmpl::type_&lt;
+<span class="lineNum">     185 </span>            :         Tags::Dr&lt;gr::Tags::Shift&lt;3, ::Frame::Inertial, DataVector&gt;&gt;&gt; /*meta*/)
+<span class="lineNum">     186 </span>            :     const noexcept {
+<span class="lineNum">     187 </span>            :   const auto&amp; lapse =
+<span class="lineNum">     188 </span>            :       cache_or_compute&lt;gr::Tags::Lapse&lt;DataVector&gt;&gt;(output_l_max, time);
+<span class="lineNum">     189 </span>            :   const auto&amp; shift =
+<span class="lineNum">     190 </span>            :       cache_or_compute&lt;gr::Tags::Shift&lt;3, ::Frame::Inertial, DataVector&gt;&gt;(
+<span class="lineNum">     191 </span>            :           output_l_max, time);
+<span class="lineNum">     192 </span>            :   const auto d_shift = GeneralizedHarmonic::spatial_deriv_of_shift(
+<span class="lineNum">     193 </span>            :       lapse,
+<span class="lineNum">     194 </span>            :       gr::inverse_spacetime_metric(
+<span class="lineNum">     195 </span>            :           lapse, shift,
+<span class="lineNum">     196 </span>            :           determinant_and_inverse(
+<span class="lineNum">     197 </span>            :               cache_or_compute&lt;
+<span class="lineNum">     198 </span>            :                   gr::Tags::SpatialMetric&lt;3, ::Frame::Inertial, DataVector&gt;&gt;(
+<span class="lineNum">     199 </span>            :                   output_l_max, time))
+<span class="lineNum">     200 </span>            :               .second),
+<span class="lineNum">     201 </span>            :       gr::spacetime_normal_vector(lapse, shift),
+<span class="lineNum">     202 </span>            :       cache_or_compute&lt;GeneralizedHarmonic::Tags::Phi&lt;3, ::Frame::Inertial&gt;&gt;(
+<span class="lineNum">     203 </span>            :           output_l_max, time));
+<span class="lineNum">     204 </span>            :   const auto&amp; dr_cartesian_coordinates =
+<span class="lineNum">     205 </span>            :       cache_or_compute&lt;Tags::Dr&lt;Tags::CauchyCartesianCoords&gt;&gt;(output_l_max,
+<span class="lineNum">     206 </span>            :                                                               time);
+<span class="lineNum">     207 </span>            : 
+<span class="lineNum">     208 </span>            :   for (size_t i = 0; i &lt; 3; ++i) {
+<span class="lineNum">     209 </span>            :     dr_shift-&gt;get(i) = get&lt;0&gt;(dr_cartesian_coordinates) * d_shift.get(0, i);
+<span class="lineNum">     210 </span>            :     for (size_t j = 1; j &lt; 3; ++j) {
+<span class="lineNum">     211 </span>            :       dr_shift-&gt;get(i) += dr_cartesian_coordinates.get(j) * d_shift.get(j, i);
+<span class="lineNum">     212 </span>            :     }
+<span class="lineNum">     213 </span>            :   }
+<span class="lineNum">     214 </span>            : }
+<span class="lineNum">     215 </span>            : 
+<span class="lineNum">     216 </span>            : void WorldtubeData::variables_impl(
+<span class="lineNum">     217 </span>            :     const gsl::not_null&lt;Scalar&lt;DataVector&gt;*&gt; lapse, const size_t output_l_max,
+<span class="lineNum">     218 </span>            :     const double time, tmpl::type_&lt;gr::Tags::Lapse&lt;DataVector&gt;&gt; /*meta*/) const
+<span class="lineNum">     219 </span>            :     noexcept {
+<span class="lineNum">     220 </span>            :   gr::lapse(lapse,
+<span class="lineNum">     221 </span>            :             cache_or_compute&lt;gr::Tags::Shift&lt;3, ::Frame::Inertial, DataVector&gt;&gt;(
+<span class="lineNum">     222 </span>            :                 output_l_max, time),
+<span class="lineNum">     223 </span>            :             cache_or_compute&lt;
+<span class="lineNum">     224 </span>            :                 gr::Tags::SpacetimeMetric&lt;3, ::Frame::Inertial, DataVector&gt;&gt;(
+<span class="lineNum">     225 </span>            :                 output_l_max, time));
+<span class="lineNum">     226 </span>            : }
+<span class="lineNum">     227 </span>            : 
+<span class="lineNum">     228 </span>            : void WorldtubeData::variables_impl(
+<span class="lineNum">     229 </span>            :     const gsl::not_null&lt;Scalar&lt;DataVector&gt;*&gt; dt_lapse,
+<span class="lineNum">     230 </span>            :     const size_t output_l_max, const double time,
+<span class="lineNum">     231 </span>            :     tmpl::type_&lt;::Tags::dt&lt;gr::Tags::Lapse&lt;DataVector&gt;&gt;&gt; /*meta*/) const
+<span class="lineNum">     232 </span>            :     noexcept {
+<span class="lineNum">     233 </span>            :   const auto&amp; lapse =
+<span class="lineNum">     234 </span>            :       cache_or_compute&lt;gr::Tags::Lapse&lt;DataVector&gt;&gt;(output_l_max, time);
+<span class="lineNum">     235 </span>            :   const auto&amp; shift =
+<span class="lineNum">     236 </span>            :       cache_or_compute&lt;gr::Tags::Shift&lt;3, ::Frame::Inertial, DataVector&gt;&gt;(
+<span class="lineNum">     237 </span>            :           output_l_max, time);
+<span class="lineNum">     238 </span>            :   GeneralizedHarmonic::time_deriv_of_lapse(
+<span class="lineNum">     239 </span>            :       dt_lapse, lapse, shift, gr::spacetime_normal_vector(lapse, shift),
+<span class="lineNum">     240 </span>            :       cache_or_compute&lt;GeneralizedHarmonic::Tags::Phi&lt;3, ::Frame::Inertial&gt;&gt;(
+<span class="lineNum">     241 </span>            :           output_l_max, time),
+<span class="lineNum">     242 </span>            :       cache_or_compute&lt;GeneralizedHarmonic::Tags::Pi&lt;3, ::Frame::Inertial&gt;&gt;(
+<span class="lineNum">     243 </span>            :           output_l_max, time));
+<span class="lineNum">     244 </span>            : }
+<span class="lineNum">     245 </span>            : 
+<span class="lineNum">     246 </span>            : void WorldtubeData::variables_impl(
+<span class="lineNum">     247 </span>            :     const gsl::not_null&lt;Scalar&lt;DataVector&gt;*&gt; dr_lapse,
+<span class="lineNum">     248 </span>            :     const size_t output_l_max, const double time,
+<span class="lineNum">     249 </span>            :     tmpl::type_&lt;Tags::Dr&lt;gr::Tags::Lapse&lt;DataVector&gt;&gt;&gt; /*meta*/) const
+<span class="lineNum">     250 </span>            :     noexcept {
+<span class="lineNum">     251 </span>            :   const auto&amp; lapse =
+<span class="lineNum">     252 </span>            :       cache_or_compute&lt;gr::Tags::Lapse&lt;DataVector&gt;&gt;(output_l_max, time);
+<span class="lineNum">     253 </span>            :   const auto&amp; shift =
+<span class="lineNum">     254 </span>            :       cache_or_compute&lt;gr::Tags::Shift&lt;3, ::Frame::Inertial, DataVector&gt;&gt;(
+<span class="lineNum">     255 </span>            :           output_l_max, time);
+<span class="lineNum">     256 </span>            :   const auto d_lapse = GeneralizedHarmonic::spatial_deriv_of_lapse(
+<span class="lineNum">     257 </span>            :       lapse, gr::spacetime_normal_vector(lapse, shift),
+<span class="lineNum">     258 </span>            :       cache_or_compute&lt;GeneralizedHarmonic::Tags::Phi&lt;3, ::Frame::Inertial&gt;&gt;(
+<span class="lineNum">     259 </span>            :           output_l_max, time));
+<span class="lineNum">     260 </span>            :   const auto&amp; dr_cartesian_coordinates =
+<span class="lineNum">     261 </span>            :       cache_or_compute&lt;Tags::Dr&lt;Tags::CauchyCartesianCoords&gt;&gt;(output_l_max,
+<span class="lineNum">     262 </span>            :                                                               time);
+<span class="lineNum">     263 </span>            : 
+<span class="lineNum">     264 </span>            :   get(*dr_lapse) = get&lt;0&gt;(dr_cartesian_coordinates) * get&lt;0&gt;(d_lapse) +
+<span class="lineNum">     265 </span>            :                    get&lt;1&gt;(dr_cartesian_coordinates) * get&lt;1&gt;(d_lapse) +
+<span class="lineNum">     266 </span>            :                    get&lt;2&gt;(dr_cartesian_coordinates) * get&lt;2&gt;(d_lapse);
+<span class="lineNum">     267 </span>            : }
+<span class="lineNum">     268 </span>            : 
+<span class="lineNum">     269 </span>            : void WorldtubeData::pup(PUP::er&amp; p) noexcept {
+<span class="lineNum">     270 </span>            :   p | extraction_radius_;
+<span class="lineNum">     271 </span>            :   if(p.isUnpacking()) {
+<span class="lineNum">     272 </span>            :     intermediate_cache_ = IntermediateCacheTuple{};
+<span class="lineNum">     273 </span>            :   }
+<span class="lineNum">     274 </span>            : }
+<span class="lineNum">     275 </span>            : 
+<span class="lineNum">     276 </span>            : /// \endcond
+<span class="lineNum">     277 </span>            : }  // namespace Solutions
+<span class="lineNum">     278 </span>            : }  // namespace Cce
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

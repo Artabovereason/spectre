@@ -1,0 +1,427 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - Evolution/Systems/Cce/OptionTags.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../index.html">top level</a> - <a href="index.html">Evolution/Systems/Cce</a> - OptionTags.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">4</td>
+            <td class="headerCovTableEntry">155</td>
+            <td class="headerCovTableEntryLo">2.6 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #pragma once
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;cstddef&gt;
+<span class="lineNum">       7 </span>            : #include &lt;limits&gt;
+<span class="lineNum">       8 </span>            : 
+<span class="lineNum">       9 </span>            : #include &quot;DataStructures/DataBox/Tag.hpp&quot;
+<span class="lineNum">      10 </span>            : #include &quot;Evolution/Systems/Cce/Initialize/InitializeJ.hpp&quot;
+<span class="lineNum">      11 </span>            : #include &quot;Evolution/Systems/Cce/InterfaceManagers/GhLockstepInterfaceManager.hpp&quot;
+<span class="lineNum">      12 </span>            : #include &quot;Evolution/Systems/Cce/InterfaceManagers/WorldtubeInterfaceManager.hpp&quot;
+<span class="lineNum">      13 </span>            : #include &quot;Evolution/Systems/Cce/ReadBoundaryDataH5.hpp&quot;
+<span class="lineNum">      14 </span>            : #include &quot;NumericalAlgorithms/Interpolation/SpanInterpolator.hpp&quot;
+<span class="lineNum">      15 </span>            : #include &quot;Options/Options.hpp&quot;
+<span class="lineNum">      16 </span>            : 
+<span class="lineNum">      17 </span>            : namespace Cce {
+<span class="lineNum">      18 </span><span class="lineNoCov">          0 : namespace OptionTags {</span>
+<span class="lineNum">      19 </span>            : 
+<span class="lineNum">      20 </span>            : /// %Option group
+<span class="lineNum">      21 </span><span class="lineCov">          1 : struct Cce {</span>
+<span class="lineNum">      22 </span><span class="lineNoCov">          0 :   static constexpr OptionString help = {&quot;Options for the Cce evolution system&quot;};</span>
+<span class="lineNum">      23 </span>            : };
+<span class="lineNum">      24 </span>            : 
+<span class="lineNum">      25 </span>            : /// %Option group
+<span class="lineNum">      26 </span><span class="lineCov">          1 : struct Filtering {</span>
+<span class="lineNum">      27 </span><span class="lineNoCov">          0 :   static constexpr OptionString help = {&quot;Options for the filtering in Cce&quot;};</span>
+<span class="lineNum">      28 </span><span class="lineNoCov">          0 :   using group = Cce;</span>
+<span class="lineNum">      29 </span>            : };
+<span class="lineNum">      30 </span>            : 
+<span class="lineNum">      31 </span><span class="lineNoCov">          0 : struct LMax {</span>
+<span class="lineNum">      32 </span><span class="lineNoCov">          0 :   using type = size_t;</span>
+<span class="lineNum">      33 </span><span class="lineNoCov">          0 :   static constexpr OptionString help{</span>
+<span class="lineNum">      34 </span>            :       &quot;Maximum l value for spin-weighted spherical harmonics&quot;};
+<span class="lineNum">      35 </span><span class="lineNoCov">          0 :   using group = Cce;</span>
+<span class="lineNum">      36 </span>            : };
+<span class="lineNum">      37 </span>            : 
+<span class="lineNum">      38 </span><span class="lineNoCov">          0 : struct FilterLMax {</span>
+<span class="lineNum">      39 </span><span class="lineNoCov">          0 :   using type = size_t;</span>
+<span class="lineNum">      40 </span><span class="lineNoCov">          0 :   static constexpr OptionString help{&quot;l mode cutoff for angular filtering&quot;};</span>
+<span class="lineNum">      41 </span><span class="lineNoCov">          0 :   using group = Filtering;</span>
+<span class="lineNum">      42 </span>            : };
+<span class="lineNum">      43 </span>            : 
+<span class="lineNum">      44 </span><span class="lineNoCov">          0 : struct RadialFilterAlpha {</span>
+<span class="lineNum">      45 </span><span class="lineNoCov">          0 :   using type = double;</span>
+<span class="lineNum">      46 </span><span class="lineNoCov">          0 :   static constexpr OptionString help{</span>
+<span class="lineNum">      47 </span>            :       &quot;alpha parameter in exponential radial filter&quot;};
+<span class="lineNum">      48 </span><span class="lineNoCov">          0 :   using group = Filtering;</span>
+<span class="lineNum">      49 </span>            : };
+<span class="lineNum">      50 </span>            : 
+<span class="lineNum">      51 </span><span class="lineNoCov">          0 : struct RadialFilterHalfPower {</span>
+<span class="lineNum">      52 </span><span class="lineNoCov">          0 :   using type = size_t;</span>
+<span class="lineNum">      53 </span><span class="lineNoCov">          0 :   static constexpr OptionString help{</span>
+<span class="lineNum">      54 </span>            :       &quot;Half-power of the exponential radial filter argument&quot;};
+<span class="lineNum">      55 </span><span class="lineNoCov">          0 :   using group = Filtering;</span>
+<span class="lineNum">      56 </span>            : };
+<span class="lineNum">      57 </span>            : 
+<span class="lineNum">      58 </span><span class="lineNoCov">          0 : struct ObservationLMax {</span>
+<span class="lineNum">      59 </span><span class="lineNoCov">          0 :   using type = size_t;</span>
+<span class="lineNum">      60 </span><span class="lineNoCov">          0 :   static constexpr OptionString help{&quot;Maximum l value for swsh output&quot;};</span>
+<span class="lineNum">      61 </span><span class="lineNoCov">          0 :   using group = Cce;</span>
+<span class="lineNum">      62 </span>            : };
+<span class="lineNum">      63 </span>            : 
+<span class="lineNum">      64 </span><span class="lineNoCov">          0 : struct NumberOfRadialPoints {</span>
+<span class="lineNum">      65 </span><span class="lineNoCov">          0 :   using type = size_t;</span>
+<span class="lineNum">      66 </span><span class="lineNoCov">          0 :   static constexpr OptionString help{</span>
+<span class="lineNum">      67 </span>            :       &quot;Number of radial grid points in the spherical domain&quot;};
+<span class="lineNum">      68 </span><span class="lineNoCov">          0 :   using group = Cce;</span>
+<span class="lineNum">      69 </span>            : };
+<span class="lineNum">      70 </span>            : 
+<span class="lineNum">      71 </span><span class="lineNoCov">          0 : struct ExtractionRadius {</span>
+<span class="lineNum">      72 </span><span class="lineNoCov">          0 :   using type = double;</span>
+<span class="lineNum">      73 </span><span class="lineNoCov">          0 :   static constexpr OptionString help{&quot;Extraction radius from the GH system.&quot;};</span>
+<span class="lineNum">      74 </span><span class="lineNoCov">          0 :   using group = Cce;</span>
+<span class="lineNum">      75 </span>            : };
+<span class="lineNum">      76 </span>            : 
+<span class="lineNum">      77 </span><span class="lineNoCov">          0 : struct EndTime {</span>
+<span class="lineNum">      78 </span><span class="lineNoCov">          0 :   using type = double;</span>
+<span class="lineNum">      79 </span><span class="lineNoCov">          0 :   static constexpr OptionString help{&quot;End time for the Cce Evolution.&quot;};</span>
+<span class="lineNum">      80 </span><span class="lineNoCov">          0 :   static double default_value() noexcept {</span>
+<span class="lineNum">      81 </span>            :     return std::numeric_limits&lt;double&gt;::infinity();
+<span class="lineNum">      82 </span>            :   }
+<span class="lineNum">      83 </span><span class="lineNoCov">          0 :   using group = Cce;</span>
+<span class="lineNum">      84 </span>            : };
+<span class="lineNum">      85 </span>            : 
+<span class="lineNum">      86 </span><span class="lineNoCov">          0 : struct StartTime {</span>
+<span class="lineNum">      87 </span><span class="lineNoCov">          0 :   using type = double;</span>
+<span class="lineNum">      88 </span><span class="lineNoCov">          0 :   static constexpr OptionString help{</span>
+<span class="lineNum">      89 </span>            :       &quot;Cce Start time (default to earliest possible time).&quot;};
+<span class="lineNum">      90 </span><span class="lineNoCov">          0 :   static double default_value() noexcept {</span>
+<span class="lineNum">      91 </span>            :     return -std::numeric_limits&lt;double&gt;::infinity();
+<span class="lineNum">      92 </span>            :   }
+<span class="lineNum">      93 </span><span class="lineNoCov">          0 :   using group = Cce;</span>
+<span class="lineNum">      94 </span>            : };
+<span class="lineNum">      95 </span>            : 
+<span class="lineNum">      96 </span><span class="lineNoCov">          0 : struct TargetStepSize {</span>
+<span class="lineNum">      97 </span><span class="lineNoCov">          0 :   using type = double;</span>
+<span class="lineNum">      98 </span><span class="lineNoCov">          0 :   static constexpr OptionString help{&quot;Target time step size for Cce Evolution&quot;};</span>
+<span class="lineNum">      99 </span><span class="lineNoCov">          0 :   using group = Cce;</span>
+<span class="lineNum">     100 </span>            : };
+<span class="lineNum">     101 </span>            : 
+<span class="lineNum">     102 </span><span class="lineNoCov">          0 : struct BoundaryDataFilename {</span>
+<span class="lineNum">     103 </span><span class="lineNoCov">          0 :   using type = std::string;</span>
+<span class="lineNum">     104 </span><span class="lineNoCov">          0 :   static constexpr OptionString help{</span>
+<span class="lineNum">     105 </span>            :       &quot;H5 file to read the wordltube data from.&quot;};
+<span class="lineNum">     106 </span><span class="lineNoCov">          0 :   using group = Cce;</span>
+<span class="lineNum">     107 </span>            : };
+<span class="lineNum">     108 </span>            : 
+<span class="lineNum">     109 </span><span class="lineNoCov">          0 : struct H5LookaheadTimes {</span>
+<span class="lineNum">     110 </span><span class="lineNoCov">          0 :   using type = size_t;</span>
+<span class="lineNum">     111 </span><span class="lineNoCov">          0 :   static constexpr OptionString help{</span>
+<span class="lineNum">     112 </span>            :       &quot;Number of times steps from the h5 to cache each read.&quot;};
+<span class="lineNum">     113 </span><span class="lineNoCov">          0 :   static size_t default_value() noexcept { return 200; }</span>
+<span class="lineNum">     114 </span><span class="lineNoCov">          0 :   using group = Cce;</span>
+<span class="lineNum">     115 </span>            : };
+<span class="lineNum">     116 </span>            : 
+<span class="lineNum">     117 </span><span class="lineNoCov">          0 : struct H5Interpolator {</span>
+<span class="lineNum">     118 </span><span class="lineNoCov">          0 :   using type = std::unique_ptr&lt;intrp::SpanInterpolator&gt;;</span>
+<span class="lineNum">     119 </span><span class="lineNoCov">          0 :   static constexpr OptionString help{</span>
+<span class="lineNum">     120 </span>            :       &quot;The interpolator for imported h5 worldtube data.&quot;};
+<span class="lineNum">     121 </span><span class="lineNoCov">          0 :   using group = Cce;</span>
+<span class="lineNum">     122 </span>            : };
+<span class="lineNum">     123 </span>            : 
+<span class="lineNum">     124 </span><span class="lineNoCov">          0 : struct GhInterfaceManager {</span>
+<span class="lineNum">     125 </span><span class="lineNoCov">          0 :   using type = std::unique_ptr&lt;GhWorldtubeInterfaceManager&gt;;</span>
+<span class="lineNum">     126 </span><span class="lineNoCov">          0 :   static constexpr OptionString help{</span>
+<span class="lineNum">     127 </span>            :       &quot;Class to manage worldtube data from a GH system.&quot;};
+<span class="lineNum">     128 </span><span class="lineNoCov">          0 :   using group = Cce;</span>
+<span class="lineNum">     129 </span>            : };
+<span class="lineNum">     130 </span>            : 
+<span class="lineNum">     131 </span><span class="lineNoCov">          0 : struct ScriInterpolationOrder {</span>
+<span class="lineNum">     132 </span><span class="lineNoCov">          0 :   static std::string name() noexcept { return &quot;ScriInterpOrder&quot;; }</span>
+<span class="lineNum">     133 </span><span class="lineNoCov">          0 :   using type = size_t;</span>
+<span class="lineNum">     134 </span><span class="lineNoCov">          0 :   static constexpr OptionString help{&quot;Order of time interpolation at scri+.&quot;};</span>
+<span class="lineNum">     135 </span><span class="lineNoCov">          0 :   static size_t default_value() noexcept { return 5; }</span>
+<span class="lineNum">     136 </span><span class="lineNoCov">          0 :   using group = Cce;</span>
+<span class="lineNum">     137 </span>            : };
+<span class="lineNum">     138 </span>            : 
+<span class="lineNum">     139 </span><span class="lineNoCov">          0 : struct ScriOutputDensity {</span>
+<span class="lineNum">     140 </span><span class="lineNoCov">          0 :   using type = size_t;</span>
+<span class="lineNum">     141 </span><span class="lineNoCov">          0 :   static constexpr OptionString help{</span>
+<span class="lineNum">     142 </span>            :       &quot;Number of scri output points per timestep.&quot;};
+<span class="lineNum">     143 </span><span class="lineNoCov">          0 :   static size_t default_value() noexcept { return 1; }</span>
+<span class="lineNum">     144 </span><span class="lineNoCov">          0 :   using group = Cce;</span>
+<span class="lineNum">     145 </span>            : };
+<span class="lineNum">     146 </span>            : 
+<span class="lineNum">     147 </span><span class="lineNoCov">          0 : struct InitializeJ {</span>
+<span class="lineNum">     148 </span><span class="lineNoCov">          0 :   using type = std::unique_ptr&lt;::Cce::InitializeJ::InitializeJ&gt;;</span>
+<span class="lineNum">     149 </span><span class="lineNoCov">          0 :   static constexpr OptionString help{</span>
+<span class="lineNum">     150 </span>            :       &quot;The initialization for the first hypersurface for J&quot;};
+<span class="lineNum">     151 </span><span class="lineNoCov">          0 :   using group = Cce;</span>
+<span class="lineNum">     152 </span>            : };
+<span class="lineNum">     153 </span>            : 
+<span class="lineNum">     154 </span>            : }  // namespace OptionTags
+<span class="lineNum">     155 </span>            : 
+<span class="lineNum">     156 </span><span class="lineNoCov">          0 : namespace InitializationTags {</span>
+<span class="lineNum">     157 </span>            : /// An initialization tag that constructs a `WorldtubeDataManager` from options
+<span class="lineNum">     158 </span><span class="lineCov">          1 : struct H5WorldtubeBoundaryDataManager : db::SimpleTag {</span>
+<span class="lineNum">     159 </span><span class="lineNoCov">          0 :   using type = WorldtubeDataManager;</span>
+<span class="lineNum">     160 </span><span class="lineNoCov">          0 :   using option_tags =</span>
+<span class="lineNum">     161 </span>            :       tmpl::list&lt;OptionTags::LMax, OptionTags::BoundaryDataFilename,
+<span class="lineNum">     162 </span>            :                  OptionTags::H5LookaheadTimes, OptionTags::H5Interpolator&gt;;
+<span class="lineNum">     163 </span>            : 
+<span class="lineNum">     164 </span><span class="lineNoCov">          0 :   static constexpr bool pass_metavariables = false;</span>
+<span class="lineNum">     165 </span><span class="lineNoCov">          0 :   static WorldtubeDataManager create_from_options(</span>
+<span class="lineNum">     166 </span>            :       const size_t l_max, const std::string&amp; filename,
+<span class="lineNum">     167 </span>            :       const size_t number_of_lookahead_times,
+<span class="lineNum">     168 </span>            :       const std::unique_ptr&lt;intrp::SpanInterpolator&gt;&amp; interpolator) noexcept {
+<span class="lineNum">     169 </span>            :     return WorldtubeDataManager{
+<span class="lineNum">     170 </span>            :         std::make_unique&lt;SpecWorldtubeH5BufferUpdater&gt;(filename), l_max,
+<span class="lineNum">     171 </span>            :         number_of_lookahead_times, interpolator-&gt;get_clone()};
+<span class="lineNum">     172 </span>            :   }
+<span class="lineNum">     173 </span>            : };
+<span class="lineNum">     174 </span>            : 
+<span class="lineNum">     175 </span><span class="lineNoCov">          0 : struct ScriInterpolationOrder : db::SimpleTag {</span>
+<span class="lineNum">     176 </span><span class="lineNoCov">          0 :   using type = size_t;</span>
+<span class="lineNum">     177 </span><span class="lineNoCov">          0 :   using option_tags = tmpl::list&lt;OptionTags::ScriInterpolationOrder&gt;;</span>
+<span class="lineNum">     178 </span>            : 
+<span class="lineNum">     179 </span><span class="lineNoCov">          0 :   static constexpr bool pass_metavariables = false;</span>
+<span class="lineNum">     180 </span><span class="lineNoCov">          0 :   static size_t create_from_options(</span>
+<span class="lineNum">     181 </span>            :       const size_t scri_plus_interpolation_order) noexcept {
+<span class="lineNum">     182 </span>            :     return scri_plus_interpolation_order;
+<span class="lineNum">     183 </span>            :   }
+<span class="lineNum">     184 </span>            : };
+<span class="lineNum">     185 </span>            : 
+<span class="lineNum">     186 </span><span class="lineNoCov">          0 : struct TargetStepSize : db::SimpleTag {</span>
+<span class="lineNum">     187 </span><span class="lineNoCov">          0 :   using type = double;</span>
+<span class="lineNum">     188 </span><span class="lineNoCov">          0 :   using option_tags = tmpl::list&lt;OptionTags::TargetStepSize&gt;;</span>
+<span class="lineNum">     189 </span>            : 
+<span class="lineNum">     190 </span><span class="lineNoCov">          0 :   static constexpr bool pass_metavariables = false;</span>
+<span class="lineNum">     191 </span><span class="lineNoCov">          0 :   static double create_from_options(const double target_step_size) noexcept {</span>
+<span class="lineNum">     192 </span>            :     return target_step_size;
+<span class="lineNum">     193 </span>            :   }
+<span class="lineNum">     194 </span>            : };
+<span class="lineNum">     195 </span>            : 
+<span class="lineNum">     196 </span><span class="lineNoCov">          0 : struct ExtractionRadius : db::SimpleTag {</span>
+<span class="lineNum">     197 </span><span class="lineNoCov">          0 :   using type = double;</span>
+<span class="lineNum">     198 </span><span class="lineNoCov">          0 :   using option_tags = tmpl::list&lt;OptionTags::ExtractionRadius&gt;;</span>
+<span class="lineNum">     199 </span>            : 
+<span class="lineNum">     200 </span>            :   template &lt;typename Metavariables&gt;
+<span class="lineNum">     201 </span><span class="lineNoCov">          0 :   static double create_from_options(const double extraction_radius) noexcept {</span>
+<span class="lineNum">     202 </span>            :     return extraction_radius;
+<span class="lineNum">     203 </span>            :   }
+<span class="lineNum">     204 </span>            : };
+<span class="lineNum">     205 </span>            : 
+<span class="lineNum">     206 </span><span class="lineNoCov">          0 : struct ScriOutputDensity : db::SimpleTag {</span>
+<span class="lineNum">     207 </span><span class="lineNoCov">          0 :   using type = size_t;</span>
+<span class="lineNum">     208 </span><span class="lineNoCov">          0 :   using option_tags = tmpl::list&lt;OptionTags::ScriOutputDensity&gt;;</span>
+<span class="lineNum">     209 </span>            : 
+<span class="lineNum">     210 </span><span class="lineNoCov">          0 :   static constexpr bool pass_metavariables = false;</span>
+<span class="lineNum">     211 </span><span class="lineNoCov">          0 :   static size_t create_from_options(const size_t scri_output_density) noexcept {</span>
+<span class="lineNum">     212 </span>            :     return scri_output_density;
+<span class="lineNum">     213 </span>            :   }
+<span class="lineNum">     214 </span>            : };
+<span class="lineNum">     215 </span>            : }  // namespace InitializationTags
+<span class="lineNum">     216 </span>            : 
+<span class="lineNum">     217 </span>            : namespace Tags {
+<span class="lineNum">     218 </span><span class="lineNoCov">          0 : struct LMax : db::SimpleTag, Spectral::Swsh::Tags::LMaxBase {</span>
+<span class="lineNum">     219 </span><span class="lineNoCov">          0 :   using type = size_t;</span>
+<span class="lineNum">     220 </span><span class="lineNoCov">          0 :   using option_tags = tmpl::list&lt;OptionTags::LMax&gt;;</span>
+<span class="lineNum">     221 </span>            : 
+<span class="lineNum">     222 </span><span class="lineNoCov">          0 :   static constexpr bool pass_metavariables = false;</span>
+<span class="lineNum">     223 </span><span class="lineNoCov">          0 :   static size_t create_from_options(const size_t l_max) noexcept {</span>
+<span class="lineNum">     224 </span>            :     return l_max;
+<span class="lineNum">     225 </span>            :   }
+<span class="lineNum">     226 </span>            : };
+<span class="lineNum">     227 </span>            : 
+<span class="lineNum">     228 </span>            : struct NumberOfRadialPoints : db::SimpleTag,
+<span class="lineNum">     229 </span><span class="lineNoCov">          0 :                               Spectral::Swsh::Tags::NumberOfRadialPointsBase {</span>
+<span class="lineNum">     230 </span><span class="lineNoCov">          0 :   using type = size_t;</span>
+<span class="lineNum">     231 </span><span class="lineNoCov">          0 :   using option_tags = tmpl::list&lt;OptionTags::NumberOfRadialPoints&gt;;</span>
+<span class="lineNum">     232 </span>            : 
+<span class="lineNum">     233 </span><span class="lineNoCov">          0 :   static constexpr bool pass_metavariables = false;</span>
+<span class="lineNum">     234 </span><span class="lineNoCov">          0 :   static size_t create_from_options(</span>
+<span class="lineNum">     235 </span>            :       const size_t number_of_radial_points) noexcept {
+<span class="lineNum">     236 </span>            :     return number_of_radial_points;
+<span class="lineNum">     237 </span>            :   }
+<span class="lineNum">     238 </span>            : };
+<span class="lineNum">     239 </span>            : 
+<span class="lineNum">     240 </span><span class="lineNoCov">          0 : struct ObservationLMax : db::SimpleTag {</span>
+<span class="lineNum">     241 </span><span class="lineNoCov">          0 :   using type = size_t;</span>
+<span class="lineNum">     242 </span><span class="lineNoCov">          0 :   using option_tags = tmpl::list&lt;OptionTags::ObservationLMax&gt;;</span>
+<span class="lineNum">     243 </span>            : 
+<span class="lineNum">     244 </span><span class="lineNoCov">          0 :   static constexpr bool pass_metavariables = false;</span>
+<span class="lineNum">     245 </span><span class="lineNoCov">          0 :   static size_t create_from_options(const size_t observation_l_max) noexcept {</span>
+<span class="lineNum">     246 </span>            :     return observation_l_max;
+<span class="lineNum">     247 </span>            :   }
+<span class="lineNum">     248 </span>            : };
+<span class="lineNum">     249 </span>            : 
+<span class="lineNum">     250 </span><span class="lineNoCov">          0 : struct FilterLMax : db::SimpleTag {</span>
+<span class="lineNum">     251 </span><span class="lineNoCov">          0 :   using type = size_t;</span>
+<span class="lineNum">     252 </span><span class="lineNoCov">          0 :   using option_tags = tmpl::list&lt;OptionTags::FilterLMax&gt;;</span>
+<span class="lineNum">     253 </span>            : 
+<span class="lineNum">     254 </span><span class="lineNoCov">          0 :   static constexpr bool pass_metavariables = false;</span>
+<span class="lineNum">     255 </span><span class="lineNoCov">          0 :   static size_t create_from_options(const size_t filter_l_max) noexcept {</span>
+<span class="lineNum">     256 </span>            :     return filter_l_max;
+<span class="lineNum">     257 </span>            :   }
+<span class="lineNum">     258 </span>            : };
+<span class="lineNum">     259 </span>            : 
+<span class="lineNum">     260 </span><span class="lineNoCov">          0 : struct RadialFilterAlpha : db::SimpleTag {</span>
+<span class="lineNum">     261 </span><span class="lineNoCov">          0 :   using type = double;</span>
+<span class="lineNum">     262 </span><span class="lineNoCov">          0 :   using option_tags = tmpl::list&lt;OptionTags::RadialFilterAlpha&gt;;</span>
+<span class="lineNum">     263 </span>            : 
+<span class="lineNum">     264 </span><span class="lineNoCov">          0 :   static constexpr bool pass_metavariables = false;</span>
+<span class="lineNum">     265 </span><span class="lineNoCov">          0 :   static double create_from_options(const double radial_filter_alpha) noexcept {</span>
+<span class="lineNum">     266 </span>            :     return radial_filter_alpha;
+<span class="lineNum">     267 </span>            :   }
+<span class="lineNum">     268 </span>            : };
+<span class="lineNum">     269 </span>            : 
+<span class="lineNum">     270 </span><span class="lineNoCov">          0 : struct RadialFilterHalfPower : db::SimpleTag {</span>
+<span class="lineNum">     271 </span><span class="lineNoCov">          0 :   using type = size_t;</span>
+<span class="lineNum">     272 </span><span class="lineNoCov">          0 :   using option_tags = tmpl::list&lt;OptionTags::RadialFilterHalfPower&gt;;</span>
+<span class="lineNum">     273 </span>            : 
+<span class="lineNum">     274 </span><span class="lineNoCov">          0 :   static constexpr bool pass_metavariables = false;</span>
+<span class="lineNum">     275 </span><span class="lineNoCov">          0 :   static size_t create_from_options(</span>
+<span class="lineNum">     276 </span>            :       const size_t radial_filter_half_power) noexcept {
+<span class="lineNum">     277 </span>            :     return radial_filter_half_power;
+<span class="lineNum">     278 </span>            :   }
+<span class="lineNum">     279 </span>            : };
+<span class="lineNum">     280 </span>            : 
+<span class="lineNum">     281 </span><span class="lineNoCov">          0 : struct StartTime : db::SimpleTag {</span>
+<span class="lineNum">     282 </span><span class="lineNoCov">          0 :   using type = double;</span>
+<span class="lineNum">     283 </span><span class="lineNoCov">          0 :   using option_tags =</span>
+<span class="lineNum">     284 </span>            :       tmpl::list&lt;OptionTags::StartTime, OptionTags::BoundaryDataFilename&gt;;
+<span class="lineNum">     285 </span>            : 
+<span class="lineNum">     286 </span><span class="lineNoCov">          0 :   static constexpr bool pass_metavariables = false;</span>
+<span class="lineNum">     287 </span><span class="lineNoCov">          0 :   static double create_from_options(double start_time,</span>
+<span class="lineNum">     288 </span>            :                                     const std::string&amp; filename) noexcept {
+<span class="lineNum">     289 </span>            :     if (start_time == -std::numeric_limits&lt;double&gt;::infinity()) {
+<span class="lineNum">     290 </span>            :       SpecWorldtubeH5BufferUpdater h5_boundary_updater{filename};
+<span class="lineNum">     291 </span>            :       const auto&amp; time_buffer = h5_boundary_updater.get_time_buffer();
+<span class="lineNum">     292 </span>            :       start_time = time_buffer[0];
+<span class="lineNum">     293 </span>            :     }
+<span class="lineNum">     294 </span>            :     return start_time;
+<span class="lineNum">     295 </span>            :   }
+<span class="lineNum">     296 </span>            : };
+<span class="lineNum">     297 </span>            : 
+<span class="lineNum">     298 </span>            : /// \brief Represents the final time of a bounded CCE evolution, determined
+<span class="lineNum">     299 </span>            : /// either from option specification or from the file
+<span class="lineNum">     300 </span>            : ///
+<span class="lineNum">     301 </span>            : /// \details If the option `OptionTags::EndTime` is set to
+<span class="lineNum">     302 </span>            : /// `std::numeric_limits&lt;double&gt;::%infinity()`, this will find the end time from
+<span class="lineNum">     303 </span>            : /// the provided H5 file. If `OptionTags::EndTime` takes any other value, it
+<span class="lineNum">     304 </span>            : /// will be used directly as the end time for the CCE evolution instead.
+<span class="lineNum">     305 </span><span class="lineCov">          1 : struct EndTime : db::SimpleTag {</span>
+<span class="lineNum">     306 </span><span class="lineNoCov">          0 :   using type = double;</span>
+<span class="lineNum">     307 </span><span class="lineNoCov">          0 :   using option_tags =</span>
+<span class="lineNum">     308 </span>            :       tmpl::list&lt;OptionTags::EndTime, OptionTags::BoundaryDataFilename&gt;;
+<span class="lineNum">     309 </span>            : 
+<span class="lineNum">     310 </span><span class="lineNoCov">          0 :   static constexpr bool pass_metavariables = false;</span>
+<span class="lineNum">     311 </span><span class="lineNoCov">          0 :   static double create_from_options(double end_time,</span>
+<span class="lineNum">     312 </span>            :                                     const std::string&amp; filename) {
+<span class="lineNum">     313 </span>            :     if (end_time == std::numeric_limits&lt;double&gt;::infinity()) {
+<span class="lineNum">     314 </span>            :       SpecWorldtubeH5BufferUpdater h5_boundary_updater{filename};
+<span class="lineNum">     315 </span>            :       const auto&amp; time_buffer = h5_boundary_updater.get_time_buffer();
+<span class="lineNum">     316 </span>            :       end_time = time_buffer[time_buffer.size() - 1];
+<span class="lineNum">     317 </span>            :     }
+<span class="lineNum">     318 </span>            :     return end_time;
+<span class="lineNum">     319 </span>            :   }
+<span class="lineNum">     320 </span>            : };
+<span class="lineNum">     321 </span>            : 
+<span class="lineNum">     322 </span><span class="lineNoCov">          0 : struct GhInterfaceManager : db::SimpleTag {</span>
+<span class="lineNum">     323 </span><span class="lineNoCov">          0 :   using type = std::unique_ptr&lt;GhWorldtubeInterfaceManager&gt;;</span>
+<span class="lineNum">     324 </span><span class="lineNoCov">          0 :   using option_tags = tmpl::list&lt;OptionTags::GhInterfaceManager&gt;;</span>
+<span class="lineNum">     325 </span>            : 
+<span class="lineNum">     326 </span>            :   template &lt;typename Metavariables&gt;
+<span class="lineNum">     327 </span>            :   static std::unique_ptr&lt;::Cce::GhWorldtubeInterfaceManager&gt;
+<span class="lineNum">     328 </span><span class="lineNoCov">          0 :   create_from_options(const std::unique_ptr&lt;::Cce::GhWorldtubeInterfaceManager&gt;&amp;</span>
+<span class="lineNum">     329 </span>            :                           interface_manager) noexcept {
+<span class="lineNum">     330 </span>            :     return interface_manager-&gt;get_clone();
+<span class="lineNum">     331 </span>            :   }
+<span class="lineNum">     332 </span>            : };
+<span class="lineNum">     333 </span>            : 
+<span class="lineNum">     334 </span><span class="lineNoCov">          0 : struct InitializeJ : db::SimpleTag {</span>
+<span class="lineNum">     335 </span><span class="lineNoCov">          0 :   using type = std::unique_ptr&lt;::Cce::InitializeJ::InitializeJ&gt;;</span>
+<span class="lineNum">     336 </span><span class="lineNoCov">          0 :   using option_tags = tmpl::list&lt;OptionTags::InitializeJ&gt;;</span>
+<span class="lineNum">     337 </span>            : 
+<span class="lineNum">     338 </span><span class="lineNoCov">          0 :   static constexpr bool pass_metavariables = false;</span>
+<span class="lineNum">     339 </span><span class="lineNoCov">          0 :   static std::unique_ptr&lt;::Cce::InitializeJ::InitializeJ&gt; create_from_options(</span>
+<span class="lineNum">     340 </span>            :       const std::unique_ptr&lt;::Cce::InitializeJ::InitializeJ&gt;&amp;
+<span class="lineNum">     341 </span>            :           initialize_j) noexcept {
+<span class="lineNum">     342 </span>            :     return initialize_j-&gt;get_clone();
+<span class="lineNum">     343 </span>            :   }
+<span class="lineNum">     344 </span>            : };
+<span class="lineNum">     345 </span>            : 
+<span class="lineNum">     346 </span>            : }  // namespace Tags
+<span class="lineNum">     347 </span>            : }  // namespace Cce
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

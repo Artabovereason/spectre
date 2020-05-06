@@ -1,0 +1,138 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - Domain/SegmentId.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">Domain</a> - SegmentId.cpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntry">3</td>
+            <td class="headerCovTableEntryLo">33.3 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #include &quot;Domain/SegmentId.hpp&quot;
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;boost/functional/hash.hpp&gt;
+<span class="lineNum">       7 </span>            : #include &lt;ostream&gt;
+<span class="lineNum">       8 </span>            : #include &lt;pup.h&gt;
+<span class="lineNum">       9 </span>            : 
+<span class="lineNum">      10 </span>            : #include &quot;ErrorHandling/Assert.hpp&quot;
+<span class="lineNum">      11 </span>            : #include &quot;Utilities/ConstantExpressions.hpp&quot;
+<span class="lineNum">      12 </span>            : 
+<span class="lineNum">      13 </span>            : SegmentId::SegmentId(const size_t refinement_level, const size_t index) noexcept
+<span class="lineNum">      14 </span>            :     : block_id_(0), refinement_level_(refinement_level), index_(index) {
+<span class="lineNum">      15 </span>            :   ASSERT(refinement_level &lt;= max_refinement_level,
+<span class="lineNum">      16 </span>            :          &quot;Refinement level out of bounds: &quot; &lt;&lt; refinement_level);
+<span class="lineNum">      17 </span>            :   ASSERT(index &lt; two_to_the(refinement_level),
+<span class="lineNum">      18 </span>            :          &quot;index = &quot; &lt;&lt; index &lt;&lt; &quot;, refinement_level = &quot; &lt;&lt; refinement_level);
+<span class="lineNum">      19 </span>            : }
+<span class="lineNum">      20 </span>            : 
+<span class="lineNum">      21 </span>            : SegmentId::SegmentId(const size_t block_id, const size_t refinement_level,
+<span class="lineNum">      22 </span>            :                      const size_t index) noexcept
+<span class="lineNum">      23 </span>            :     : block_id_(block_id), refinement_level_(refinement_level), index_(index) {
+<span class="lineNum">      24 </span>            :   ASSERT(block_id &lt; two_to_the(block_id_bits),
+<span class="lineNum">      25 </span>            :          &quot;Block id out of bounds: &quot; &lt;&lt; block_id &lt;&lt; &quot;\nMaximum value is: &quot;
+<span class="lineNum">      26 </span>            :                                     &lt;&lt; two_to_the(block_id_bits) - 1);
+<span class="lineNum">      27 </span>            :   ASSERT(refinement_level &lt;= max_refinement_level,
+<span class="lineNum">      28 </span>            :          &quot;Refinement level out of bounds: &quot; &lt;&lt; refinement_level
+<span class="lineNum">      29 </span>            :                                             &lt;&lt; &quot;\nMaximum value is: &quot;
+<span class="lineNum">      30 </span>            :                                             &lt;&lt; max_refinement_level);
+<span class="lineNum">      31 </span>            :   ASSERT(index &lt; two_to_the(refinement_level),
+<span class="lineNum">      32 </span>            :          &quot;index = &quot; &lt;&lt; index &lt;&lt; &quot;, refinement_level = &quot; &lt;&lt; refinement_level);
+<span class="lineNum">      33 </span>            : }
+<span class="lineNum">      34 </span>            : 
+<span class="lineNum">      35 </span>            : // Because `ElementId` is built up of `VolumeDim` `SegmentId`s, and `ElementId`
+<span class="lineNum">      36 </span>            : // is used as a Charm++ index, `ElementId` has the following restrictions:
+<span class="lineNum">      37 </span>            : // - `ElementId` must satisfy `std::is_pod`
+<span class="lineNum">      38 </span>            : // - `ElementId` must not be larger than the size of three `int`s, i.e.
+<span class="lineNum">      39 </span>            : //   `sizeof(ElementId) &lt;= 3 * sizeof(int)`
+<span class="lineNum">      40 </span>            : // which means `SegmentId` must be the size of an `int` and satisfy
+<span class="lineNum">      41 </span>            : // `std::is_pod`.
+<span class="lineNum">      42 </span>            : static_assert(std::is_pod&lt;SegmentId&gt;::value, &quot;SegmentId is not POD&quot;);
+<span class="lineNum">      43 </span>            : static_assert(sizeof(SegmentId) == sizeof(int),
+<span class="lineNum">      44 </span>            :               &quot;SegmentId does not fit in an int&quot;);
+<span class="lineNum">      45 </span>            : 
+<span class="lineNum">      46 </span><span class="lineCov">          1 : std::ostream&amp; operator&lt;&lt;(std::ostream&amp; os, const SegmentId&amp; id) noexcept {</span>
+<span class="lineNum">      47 </span>            :   os &lt;&lt; 'L' &lt;&lt; id.refinement_level() &lt;&lt; 'I' &lt;&lt; id.index();
+<span class="lineNum">      48 </span>            :   return os;
+<span class="lineNum">      49 </span>            : }
+<span class="lineNum">      50 </span>            : 
+<span class="lineNum">      51 </span>            : // LCOV_EXCL_START
+<span class="lineNum">      52 </span><span class="lineNoCov">          0 : size_t hash_value(const SegmentId&amp; segment_id) noexcept {</span>
+<span class="lineNum">      53 </span>            :   size_t hash = 0;
+<span class="lineNum">      54 </span>            :   boost::hash_combine(hash, segment_id.refinement_level());
+<span class="lineNum">      55 </span>            :   boost::hash_combine(hash, segment_id.index());
+<span class="lineNum">      56 </span>            :   return hash;
+<span class="lineNum">      57 </span>            : }
+<span class="lineNum">      58 </span>            : // LCOV_EXCL_STOP
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

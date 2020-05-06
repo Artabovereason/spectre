@@ -1,0 +1,205 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - NumericalAlgorithms/DiscontinuousGalerkin/NumericalFluxes/NumericalFluxHelpers.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../index.html">top level</a> - <a href="index.html">NumericalAlgorithms/DiscontinuousGalerkin/NumericalFluxes</a> - NumericalFluxHelpers.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">3</td>
+            <td class="headerCovTableEntry">4</td>
+            <td class="headerCovTableEntryMed">75.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #pragma once
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &quot;DataStructures/Variables.hpp&quot;
+<span class="lineNum">       7 </span>            : #include &quot;NumericalAlgorithms/DiscontinuousGalerkin/Protocols.hpp&quot;
+<span class="lineNum">       8 </span>            : #include &quot;NumericalAlgorithms/DiscontinuousGalerkin/SimpleBoundaryData.hpp&quot;
+<span class="lineNum">       9 </span>            : #include &quot;Utilities/Gsl.hpp&quot;
+<span class="lineNum">      10 </span>            : #include &quot;Utilities/ProtocolHelpers.hpp&quot;
+<span class="lineNum">      11 </span>            : #include &quot;Utilities/TMPL.hpp&quot;
+<span class="lineNum">      12 </span>            : #include &quot;Utilities/TaggedTuple.hpp&quot;
+<span class="lineNum">      13 </span>            : 
+<span class="lineNum">      14 </span>            : namespace dg {
+<span class="lineNum">      15 </span>            : namespace NumericalFluxes {
+<span class="lineNum">      16 </span>            : 
+<span class="lineNum">      17 </span>            : namespace detail {
+<span class="lineNum">      18 </span>            : template &lt;typename NumericalFluxType, typename... AllFieldTags,
+<span class="lineNum">      19 </span>            :           typename... AllExtraTags, typename... Args,
+<span class="lineNum">      20 </span>            :           typename... PackageFieldTags, typename... PackageExtraTags&gt;
+<span class="lineNum">      21 </span>            : void package_data_impl(
+<span class="lineNum">      22 </span>            :     const gsl::not_null&lt;dg::SimpleBoundaryData&lt;tmpl::list&lt;AllFieldTags...&gt;,
+<span class="lineNum">      23 </span>            :                                                tmpl::list&lt;AllExtraTags...&gt;&gt;*&gt;
+<span class="lineNum">      24 </span>            :         packaged_data,
+<span class="lineNum">      25 </span>            :     const NumericalFluxType&amp; numerical_flux_computer,
+<span class="lineNum">      26 </span>            :     tmpl::list&lt;PackageFieldTags...&gt; /*meta*/,
+<span class="lineNum">      27 </span>            :     tmpl::list&lt;PackageExtraTags...&gt; /*meta*/, const Args&amp;... args) noexcept {
+<span class="lineNum">      28 </span>            :   numerical_flux_computer.package_data(
+<span class="lineNum">      29 </span>            :       make_not_null(&amp;get&lt;PackageFieldTags&gt;(packaged_data-&gt;field_data))...,
+<span class="lineNum">      30 </span>            :       make_not_null(&amp;get&lt;PackageExtraTags&gt;(packaged_data-&gt;extra_data))...,
+<span class="lineNum">      31 </span>            :       args...);
+<span class="lineNum">      32 </span>            : }
+<span class="lineNum">      33 </span>            : 
+<span class="lineNum">      34 </span>            : template &lt;typename NumericalFluxType, typename... AllFieldTags,
+<span class="lineNum">      35 </span>            :           typename... AllExtraTags, typename... NormalDotNumericalFluxTypes,
+<span class="lineNum">      36 </span>            :           typename... PackageFieldTags, typename... PackageExtraTags&gt;
+<span class="lineNum">      37 </span>            : void normal_dot_numerical_fluxes_impl(
+<span class="lineNum">      38 </span>            :     const NumericalFluxType&amp; numerical_flux_computer,
+<span class="lineNum">      39 </span>            :     const dg::SimpleBoundaryData&lt;tmpl::list&lt;AllFieldTags...&gt;,
+<span class="lineNum">      40 </span>            :                                  tmpl::list&lt;AllExtraTags...&gt;&gt;&amp;
+<span class="lineNum">      41 </span>            :         packaged_data_int,
+<span class="lineNum">      42 </span>            :     const dg::SimpleBoundaryData&lt;tmpl::list&lt;AllFieldTags...&gt;,
+<span class="lineNum">      43 </span>            :                                  tmpl::list&lt;AllExtraTags...&gt;&gt;&amp;
+<span class="lineNum">      44 </span>            :         packaged_data_ext,
+<span class="lineNum">      45 </span>            :     tmpl::list&lt;PackageFieldTags...&gt; /*meta*/,
+<span class="lineNum">      46 </span>            :     tmpl::list&lt;PackageExtraTags...&gt; /*meta*/,
+<span class="lineNum">      47 </span>            :     // Taking output arguments last in this detail implementation so the
+<span class="lineNum">      48 </span>            :     // `NormalDotNumericalFluxTypes` can be inferred
+<span class="lineNum">      49 </span>            :     const gsl::not_null&lt;
+<span class="lineNum">      50 </span>            :         NormalDotNumericalFluxTypes*&gt;... n_dot_num_fluxes) noexcept {
+<span class="lineNum">      51 </span>            :   numerical_flux_computer(
+<span class="lineNum">      52 </span>            :       n_dot_num_fluxes...,
+<span class="lineNum">      53 </span>            :       get&lt;PackageFieldTags&gt;(packaged_data_int.field_data)...,
+<span class="lineNum">      54 </span>            :       get&lt;PackageExtraTags&gt;(packaged_data_int.extra_data)...,
+<span class="lineNum">      55 </span>            :       get&lt;PackageFieldTags&gt;(packaged_data_ext.field_data)...,
+<span class="lineNum">      56 </span>            :       get&lt;PackageExtraTags&gt;(packaged_data_ext.extra_data)...);
+<span class="lineNum">      57 </span>            : }
+<span class="lineNum">      58 </span>            : }  // namespace detail
+<span class="lineNum">      59 </span>            : 
+<span class="lineNum">      60 </span>            : // @{
+<span class="lineNum">      61 </span>            : /// Helper function to unpack arguments when invoking the numerical flux
+<span class="lineNum">      62 </span>            : template &lt;typename NumericalFluxType, typename... AllFieldTags,
+<span class="lineNum">      63 </span>            :           typename... AllExtraTags, typename... Args&gt;
+<span class="lineNum">      64 </span><span class="lineCov">          1 : void package_data(</span>
+<span class="lineNum">      65 </span>            :     const gsl::not_null&lt;dg::SimpleBoundaryData&lt;tmpl::list&lt;AllFieldTags...&gt;,
+<span class="lineNum">      66 </span>            :                                                tmpl::list&lt;AllExtraTags...&gt;&gt;*&gt;
+<span class="lineNum">      67 </span>            :         packaged_data,
+<span class="lineNum">      68 </span>            :     const NumericalFluxType&amp; numerical_flux_computer,
+<span class="lineNum">      69 </span>            :     const Args&amp;... args) noexcept {
+<span class="lineNum">      70 </span>            :   static_assert(
+<span class="lineNum">      71 </span>            :       tt::conforms_to_v&lt;NumericalFluxType, protocols::NumericalFlux&gt;,
+<span class="lineNum">      72 </span>            :       &quot;The 'NumericalFluxType' must conform to 'dg::protocol::NumericalFlux'.&quot;);
+<span class="lineNum">      73 </span>            :   detail::package_data_impl(packaged_data, numerical_flux_computer,
+<span class="lineNum">      74 </span>            :                             typename NumericalFluxType::package_field_tags{},
+<span class="lineNum">      75 </span>            :                             typename NumericalFluxType::package_extra_tags{},
+<span class="lineNum">      76 </span>            :                             args...);
+<span class="lineNum">      77 </span>            : }
+<span class="lineNum">      78 </span>            : 
+<span class="lineNum">      79 </span>            : template &lt;typename NumericalFluxType, typename... AllFieldTags,
+<span class="lineNum">      80 </span>            :           typename... AllExtraTags, typename... NormalDotNumericalFluxTags&gt;
+<span class="lineNum">      81 </span><span class="lineCov">          1 : void normal_dot_numerical_fluxes(</span>
+<span class="lineNum">      82 </span>            :     const gsl::not_null&lt;Variables&lt;tmpl::list&lt;NormalDotNumericalFluxTags...&gt;&gt;*&gt;
+<span class="lineNum">      83 </span>            :         n_dot_num_fluxes,
+<span class="lineNum">      84 </span>            :     const NumericalFluxType&amp; numerical_flux_computer,
+<span class="lineNum">      85 </span>            :     const dg::SimpleBoundaryData&lt;tmpl::list&lt;AllFieldTags...&gt;,
+<span class="lineNum">      86 </span>            :                                  tmpl::list&lt;AllExtraTags...&gt;&gt;&amp;
+<span class="lineNum">      87 </span>            :         packaged_data_int,
+<span class="lineNum">      88 </span>            :     const dg::SimpleBoundaryData&lt;tmpl::list&lt;AllFieldTags...&gt;,
+<span class="lineNum">      89 </span>            :                                  tmpl::list&lt;AllExtraTags...&gt;&gt;&amp;
+<span class="lineNum">      90 </span>            :         packaged_data_ext) noexcept {
+<span class="lineNum">      91 </span>            :   static_assert(
+<span class="lineNum">      92 </span>            :       tt::conforms_to_v&lt;NumericalFluxType, protocols::NumericalFlux&gt;,
+<span class="lineNum">      93 </span>            :       &quot;The 'NumericalFluxType' must conform to 'dg::protocol::NumericalFlux'.&quot;);
+<span class="lineNum">      94 </span>            :   detail::normal_dot_numerical_fluxes_impl(
+<span class="lineNum">      95 </span>            :       numerical_flux_computer, packaged_data_int, packaged_data_ext,
+<span class="lineNum">      96 </span>            :       typename NumericalFluxType::package_field_tags{},
+<span class="lineNum">      97 </span>            :       typename NumericalFluxType::package_extra_tags{},
+<span class="lineNum">      98 </span>            :       make_not_null(&amp;get&lt;NormalDotNumericalFluxTags&gt;(*n_dot_num_fluxes))...);
+<span class="lineNum">      99 </span>            : }
+<span class="lineNum">     100 </span>            : 
+<span class="lineNum">     101 </span>            : template &lt;typename NumericalFluxType, typename... AllFieldTags,
+<span class="lineNum">     102 </span>            :           typename... AllExtraTags, typename... NormalDotNumericalFluxes&gt;
+<span class="lineNum">     103 </span><span class="lineCov">          1 : void normal_dot_numerical_fluxes(</span>
+<span class="lineNum">     104 </span>            :     const NumericalFluxType&amp; numerical_flux_computer,
+<span class="lineNum">     105 </span>            :     const dg::SimpleBoundaryData&lt;tmpl::list&lt;AllFieldTags...&gt;,
+<span class="lineNum">     106 </span>            :                                  tmpl::list&lt;AllExtraTags...&gt;&gt;&amp;
+<span class="lineNum">     107 </span>            :         packaged_data_int,
+<span class="lineNum">     108 </span>            :     const dg::SimpleBoundaryData&lt;tmpl::list&lt;AllFieldTags...&gt;,
+<span class="lineNum">     109 </span>            :                                  tmpl::list&lt;AllExtraTags...&gt;&gt;&amp;
+<span class="lineNum">     110 </span>            :         packaged_data_ext,
+<span class="lineNum">     111 </span>            :     // Need to take these return-by-reference arguments last so the template
+<span class="lineNum">     112 </span>            :     // parameter pack deduction works
+<span class="lineNum">     113 </span>            :     gsl::not_null&lt;NormalDotNumericalFluxes*&gt;... n_dot_num_fluxes) noexcept {
+<span class="lineNum">     114 </span>            :   static_assert(
+<span class="lineNum">     115 </span>            :       tt::conforms_to_v&lt;NumericalFluxType, protocols::NumericalFlux&gt;,
+<span class="lineNum">     116 </span>            :       &quot;The 'NumericalFluxType' must conform to 'dg::protocol::NumericalFlux'.&quot;);
+<span class="lineNum">     117 </span>            :   detail::normal_dot_numerical_fluxes_impl(
+<span class="lineNum">     118 </span>            :       numerical_flux_computer, packaged_data_int, packaged_data_ext,
+<span class="lineNum">     119 </span>            :       typename NumericalFluxType::package_field_tags{},
+<span class="lineNum">     120 </span>            :       typename NumericalFluxType::package_extra_tags{}, n_dot_num_fluxes...);
+<span class="lineNum">     121 </span>            : }
+<span class="lineNum">     122 </span>            : // @}
+<span class="lineNum">     123 </span>            : 
+<span class="lineNum">     124 </span>            : }  // namespace NumericalFluxes
+<span class="lineNum">     125 </span>            : }  // namespace dg
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

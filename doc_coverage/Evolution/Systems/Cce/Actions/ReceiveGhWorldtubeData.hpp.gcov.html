@@ -1,0 +1,167 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - Evolution/Systems/Cce/Actions/ReceiveGhWorldtubeData.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../../index.html">top level</a> - <a href="index.html">Evolution/Systems/Cce/Actions</a> - ReceiveGhWorldtubeData.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntry">3</td>
+            <td class="headerCovTableEntryLo">33.3 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #pragma once
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;string&gt;
+<span class="lineNum">       7 </span>            : #include &lt;tuple&gt;
+<span class="lineNum">       8 </span>            : 
+<span class="lineNum">       9 </span>            : #include &quot;DataStructures/DataBox/DataBox.hpp&quot;
+<span class="lineNum">      10 </span>            : #include &quot;DataStructures/DataVector.hpp&quot;
+<span class="lineNum">      11 </span>            : #include &quot;DataStructures/Tensor/Tensor.hpp&quot;
+<span class="lineNum">      12 </span>            : #include &quot;DataStructures/Variables.hpp&quot;
+<span class="lineNum">      13 </span>            : #include &quot;Evolution/Systems/Cce/Actions/BoundaryComputeAndSendToEvolution.hpp&quot;
+<span class="lineNum">      14 </span>            : #include &quot;Evolution/Systems/Cce/InterfaceManagers/WorldtubeInterfaceManager.hpp&quot;
+<span class="lineNum">      15 </span>            : #include &quot;Evolution/Systems/Cce/OptionTags.hpp&quot;
+<span class="lineNum">      16 </span>            : #include &quot;Evolution/Systems/Cce/ReadBoundaryDataH5.hpp&quot;
+<span class="lineNum">      17 </span>            : #include &quot;Parallel/ConstGlobalCache.hpp&quot;
+<span class="lineNum">      18 </span>            : #include &quot;Parallel/Invoke.hpp&quot;
+<span class="lineNum">      19 </span>            : #include &quot;Time/Tags.hpp&quot;
+<span class="lineNum">      20 </span>            : #include &quot;Time/TimeStepId.hpp&quot;
+<span class="lineNum">      21 </span>            : #include &quot;Utilities/Gsl.hpp&quot;
+<span class="lineNum">      22 </span>            : #include &quot;Utilities/Requires.hpp&quot;
+<span class="lineNum">      23 </span>            : #include &quot;Utilities/TMPL.hpp&quot;
+<span class="lineNum">      24 </span>            : #include &quot;Utilities/TypeTraits.hpp&quot;
+<span class="lineNum">      25 </span>            : 
+<span class="lineNum">      26 </span>            : namespace Cce {
+<span class="lineNum">      27 </span>            : namespace Actions {
+<span class="lineNum">      28 </span>            : 
+<span class="lineNum">      29 </span>            : /*!
+<span class="lineNum">      30 </span>            :  * \ingroup ActionsGroup
+<span class="lineNum">      31 </span>            :  * \brief Stores the boundary data from the GH evolution in the
+<span class="lineNum">      32 </span>            :  * `Cce::GhWorldtubeInterfaceManager`, and sends to the `EvolutionComponent`
+<span class="lineNum">      33 </span>            :  * (template argument) if the data fulfills a prior request.
+<span class="lineNum">      34 </span>            :  *
+<span class="lineNum">      35 </span>            :  * \details If the new data fulfills a prior request submitted to the
+<span class="lineNum">      36 </span>            :  * `Cce::GhWorldtubeInterfaceManager`, this will dispatch the result to
+<span class="lineNum">      37 </span>            :  * `Cce::Actions::SendToEvolution&lt;GhWorldtubeBoundary&lt;Metavariables&gt;,
+<span class="lineNum">      38 </span>            :  * EvolutionComponent&gt;` for sending the processed boundary data to
+<span class="lineNum">      39 </span>            :  * the `EvolutionComponent`.
+<span class="lineNum">      40 </span>            :  *
+<span class="lineNum">      41 </span>            :  * \ref DataBoxGroup changes:
+<span class="lineNum">      42 </span>            :  * - Adds: nothing
+<span class="lineNum">      43 </span>            :  * - Removes: nothing
+<span class="lineNum">      44 </span>            :  * - Modifies:
+<span class="lineNum">      45 </span>            :  *   - `Tags::GhInterfaceManager`
+<span class="lineNum">      46 </span>            :  */
+<span class="lineNum">      47 </span>            : template &lt;typename EvolutionComponent&gt;
+<span class="lineNum">      48 </span><span class="lineCov">          1 : struct ReceiveGhWorldtubeData {</span>
+<span class="lineNum">      49 </span>            :   template &lt;typename ParallelComponent, typename... DbTags,
+<span class="lineNum">      50 </span>            :             typename Metavariables, typename ArrayIndex,
+<span class="lineNum">      51 </span>            :             Requires&lt;tmpl::list_contains_v&lt;tmpl::list&lt;DbTags...&gt;,
+<span class="lineNum">      52 </span>            :                                            Tags::GhInterfaceManager&gt;&gt; = nullptr&gt;
+<span class="lineNum">      53 </span><span class="lineNoCov">          0 :   static void apply(</span>
+<span class="lineNum">      54 </span>            :       db::DataBox&lt;tmpl::list&lt;DbTags...&gt;&gt;&amp; box,
+<span class="lineNum">      55 </span>            :       Parallel::ConstGlobalCache&lt;Metavariables&gt;&amp; cache,
+<span class="lineNum">      56 </span>            :       const ArrayIndex&amp; /*array_index*/, const TimeStepId&amp; time,
+<span class="lineNum">      57 </span>            :       const tnsr::aa&lt;DataVector, 3&gt;&amp; spacetime_metric,
+<span class="lineNum">      58 </span>            :       const tnsr::iaa&lt;DataVector, 3&gt;&amp; phi, const tnsr::aa&lt;DataVector, 3&gt;&amp; pi,
+<span class="lineNum">      59 </span>            :       const tnsr::aa&lt;DataVector, 3&gt;&amp; dt_spacetime_metric =
+<span class="lineNum">      60 </span>            :           tnsr::aa&lt;DataVector, 3&gt;{},
+<span class="lineNum">      61 </span>            :       const tnsr::iaa&lt;DataVector, 3&gt;&amp; dt_phi = tnsr::iaa&lt;DataVector, 3&gt;{},
+<span class="lineNum">      62 </span>            :       const tnsr::aa&lt;DataVector, 3&gt;&amp; dt_pi =
+<span class="lineNum">      63 </span>            :           tnsr::aa&lt;DataVector, 3&gt;{}) noexcept {
+<span class="lineNum">      64 </span>            :     db::mutate&lt;Tags::GhInterfaceManager&gt;(
+<span class="lineNum">      65 </span>            :         make_not_null(&amp;box),
+<span class="lineNum">      66 </span>            :         [&amp;spacetime_metric, &amp;phi, &amp;pi, &amp;dt_spacetime_metric, &amp;dt_phi, &amp;dt_pi,
+<span class="lineNum">      67 </span>            :          &amp;time, &amp;cache](
+<span class="lineNum">      68 </span>            :             const gsl::not_null&lt;std::unique_ptr&lt;GhWorldtubeInterfaceManager&gt;*&gt;
+<span class="lineNum">      69 </span>            :                 interface_manager) noexcept {
+<span class="lineNum">      70 </span>            :           (*interface_manager)
+<span class="lineNum">      71 </span>            :               -&gt;insert_gh_data(time, spacetime_metric, phi, pi,
+<span class="lineNum">      72 </span>            :                                dt_spacetime_metric, dt_phi, dt_pi);
+<span class="lineNum">      73 </span>            :           const auto gh_data =
+<span class="lineNum">      74 </span>            :               (*interface_manager)-&gt;retrieve_and_remove_first_ready_gh_data();
+<span class="lineNum">      75 </span>            :           if (static_cast&lt;bool&gt;(gh_data)) {
+<span class="lineNum">      76 </span>            :             Parallel::simple_action&lt;Actions::SendToEvolution&lt;
+<span class="lineNum">      77 </span>            :                 GhWorldtubeBoundary&lt;Metavariables&gt;, EvolutionComponent&gt;&gt;(
+<span class="lineNum">      78 </span>            :                 Parallel::get_parallel_component&lt;
+<span class="lineNum">      79 </span>            :                     GhWorldtubeBoundary&lt;Metavariables&gt;&gt;(cache),
+<span class="lineNum">      80 </span>            :                 get&lt;0&gt;(*gh_data), get&lt;1&gt;(*gh_data), get&lt;2&gt;(*gh_data),
+<span class="lineNum">      81 </span>            :                 get&lt;3&gt;(*gh_data));
+<span class="lineNum">      82 </span>            :           }
+<span class="lineNum">      83 </span>            :         });
+<span class="lineNum">      84 </span>            :   }
+<span class="lineNum">      85 </span>            : };
+<span class="lineNum">      86 </span>            : }  // namespace Actions
+<span class="lineNum">      87 </span>            : }  // namespace Cce
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

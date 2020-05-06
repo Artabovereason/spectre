@@ -1,0 +1,310 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - NumericalAlgorithms/LinearOperators/PartialDerivatives.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">NumericalAlgorithms/LinearOperators</a> - PartialDerivatives.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">9</td>
+            <td class="headerCovTableEntry">29</td>
+            <td class="headerCovTableEntryLo">31.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineCov">          1 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : /// \file
+<span class="lineNum">       5 </span>            : /// Defines functions computing partial derivatives.
+<span class="lineNum">       6 </span>            : 
+<span class="lineNum">       7 </span>            : #pragma once
+<span class="lineNum">       8 </span>            : 
+<span class="lineNum">       9 </span>            : #include &lt;array&gt;
+<span class="lineNum">      10 </span>            : #include &lt;cstddef&gt;
+<span class="lineNum">      11 </span>            : #include &lt;string&gt;
+<span class="lineNum">      12 </span>            : 
+<span class="lineNum">      13 </span>            : #include &quot;DataStructures/DataBox/DataBoxTag.hpp&quot;
+<span class="lineNum">      14 </span>            : #include &quot;DataStructures/DataBox/PrefixHelpers.hpp&quot;
+<span class="lineNum">      15 </span>            : #include &quot;DataStructures/DataBox/Tag.hpp&quot;
+<span class="lineNum">      16 </span>            : #include &quot;DataStructures/DataBox/TagName.hpp&quot;
+<span class="lineNum">      17 </span>            : #include &quot;DataStructures/Variables.hpp&quot;
+<span class="lineNum">      18 </span>            : #include &quot;Utilities/Requires.hpp&quot;
+<span class="lineNum">      19 </span>            : #include &quot;Utilities/TMPL.hpp&quot;
+<span class="lineNum">      20 </span>            : #include &quot;Utilities/TypeTraits/IsA.hpp&quot;
+<span class="lineNum">      21 </span>            : 
+<span class="lineNum">      22 </span>            : /// \cond
+<span class="lineNum">      23 </span>            : class DataVector;
+<span class="lineNum">      24 </span>            : template &lt;size_t Dim&gt;
+<span class="lineNum">      25 </span>            : class Mesh;
+<span class="lineNum">      26 </span>            : 
+<span class="lineNum">      27 </span>            : namespace domain {
+<span class="lineNum">      28 </span>            : namespace Tags {
+<span class="lineNum">      29 </span>            : template &lt;size_t Dim&gt;
+<span class="lineNum">      30 </span>            : struct Mesh;
+<span class="lineNum">      31 </span>            : }  // namespace Tags
+<span class="lineNum">      32 </span>            : }  // namespace domain
+<span class="lineNum">      33 </span>            : namespace Tags {
+<span class="lineNum">      34 </span>            : template &lt;class TagList&gt;
+<span class="lineNum">      35 </span>            : struct Variables;
+<span class="lineNum">      36 </span>            : }  // namespace Tags
+<span class="lineNum">      37 </span>            : /// \endcond
+<span class="lineNum">      38 </span>            : 
+<span class="lineNum">      39 </span>            : namespace Tags {
+<span class="lineNum">      40 </span>            : /*!
+<span class="lineNum">      41 </span>            :  * \ingroup DataBoxTagsGroup
+<span class="lineNum">      42 </span>            :  * \brief Prefix indicating spatial derivatives
+<span class="lineNum">      43 </span>            :  *
+<span class="lineNum">      44 </span>            :  * Prefix indicating the spatial derivatives of a Tensor or that a Variables
+<span class="lineNum">      45 </span>            :  * contains spatial derivatives of Tensors.
+<span class="lineNum">      46 </span>            :  *
+<span class="lineNum">      47 </span>            :  * \tparam Tag The tag to wrap
+<span class="lineNum">      48 </span>            :  * \tparam Dim The volume dim as a type (e.g. `tmpl::size_t&lt;Dim&gt;`)
+<span class="lineNum">      49 </span>            :  * \tparam Frame The frame of the derivative index
+<span class="lineNum">      50 </span>            :  *
+<span class="lineNum">      51 </span>            :  * \see Tags::DerivCompute
+<span class="lineNum">      52 </span>            :  */
+<span class="lineNum">      53 </span>            : template &lt;typename Tag, typename Dim, typename Frame, typename = std::nullptr_t&gt;
+<span class="lineNum">      54 </span><span class="lineCov">          1 : struct deriv;</span>
+<span class="lineNum">      55 </span>            : 
+<span class="lineNum">      56 </span>            : template &lt;typename Tag, typename Dim, typename Frame&gt;
+<span class="lineNum">      57 </span>            : struct deriv&lt;Tag, Dim, Frame,
+<span class="lineNum">      58 </span>            :              Requires&lt;tt::is_a_v&lt;Tensor, db::const_item_type&lt;Tag&gt;&gt;&gt;&gt;
+<span class="lineNum">      59 </span><span class="lineNoCov">          0 :     : db::PrefixTag, db::SimpleTag {</span>
+<span class="lineNum">      60 </span><span class="lineNoCov">          0 :   using type =</span>
+<span class="lineNum">      61 </span>            :       TensorMetafunctions::prepend_spatial_index&lt;db::const_item_type&lt;Tag&gt;,
+<span class="lineNum">      62 </span>            :                                                  Dim::value, UpLo::Lo, Frame&gt;;
+<span class="lineNum">      63 </span><span class="lineNoCov">          0 :   using tag = Tag;</span>
+<span class="lineNum">      64 </span><span class="lineNoCov">          0 :   static std::string name() noexcept {</span>
+<span class="lineNum">      65 </span>            :     return &quot;deriv(&quot; + db::tag_name&lt;Tag&gt;() + &quot;)&quot;;
+<span class="lineNum">      66 </span>            :   }
+<span class="lineNum">      67 </span>            : };
+<span class="lineNum">      68 </span>            : template &lt;typename Tag, typename Dim, typename Frame&gt;
+<span class="lineNum">      69 </span>            : struct deriv&lt;Tag, Dim, Frame,
+<span class="lineNum">      70 </span>            :              Requires&lt;tt::is_a_v&lt;::Variables, db::const_item_type&lt;Tag&gt;&gt;&gt;&gt;
+<span class="lineNum">      71 </span><span class="lineNoCov">          0 :     : db::PrefixTag, db::SimpleTag {</span>
+<span class="lineNum">      72 </span><span class="lineNoCov">          0 :   using type = db::const_item_type&lt;Tag&gt;;</span>
+<span class="lineNum">      73 </span><span class="lineNoCov">          0 :   using tag = Tag;</span>
+<span class="lineNum">      74 </span><span class="lineNoCov">          0 :   static std::string name() noexcept {</span>
+<span class="lineNum">      75 </span>            :     return &quot;deriv(&quot; + db::tag_name&lt;Tag&gt;() + &quot;)&quot;;
+<span class="lineNum">      76 </span>            :   }
+<span class="lineNum">      77 </span>            : };
+<span class="lineNum">      78 </span>            : 
+<span class="lineNum">      79 </span>            : /*!
+<span class="lineNum">      80 </span>            :  * \ingroup DataBoxTagsGroup
+<span class="lineNum">      81 </span>            :  * \brief Prefix indicating spacetime derivatives
+<span class="lineNum">      82 </span>            :  *
+<span class="lineNum">      83 </span>            :  * Prefix indicating the spacetime derivatives of a Tensor or that a Variables
+<span class="lineNum">      84 </span>            :  * contains spatial derivatives of Tensors.
+<span class="lineNum">      85 </span>            :  *
+<span class="lineNum">      86 </span>            :  * \tparam Tag The tag to wrap
+<span class="lineNum">      87 </span>            :  * \tparam Dim The volume dim as a type (e.g. `tmpl::size_t&lt;Dim&gt;`)
+<span class="lineNum">      88 </span>            :  * \tparam Frame The frame of the derivative index
+<span class="lineNum">      89 </span>            :  */
+<span class="lineNum">      90 </span>            : template &lt;typename Tag, typename Dim, typename Frame, typename = std::nullptr_t&gt;
+<span class="lineNum">      91 </span><span class="lineCov">          1 : struct spacetime_deriv;</span>
+<span class="lineNum">      92 </span>            : 
+<span class="lineNum">      93 </span>            : template &lt;typename Tag, typename Dim, typename Frame&gt;
+<span class="lineNum">      94 </span>            : struct spacetime_deriv&lt;Tag, Dim, Frame,
+<span class="lineNum">      95 </span>            :                        Requires&lt;tt::is_a_v&lt;Tensor, db::const_item_type&lt;Tag&gt;&gt;&gt;&gt;
+<span class="lineNum">      96 </span><span class="lineNoCov">          0 :     : db::PrefixTag, db::SimpleTag {</span>
+<span class="lineNum">      97 </span><span class="lineNoCov">          0 :   using type =</span>
+<span class="lineNum">      98 </span>            :       TensorMetafunctions::prepend_spacetime_index&lt;db::const_item_type&lt;Tag&gt;,
+<span class="lineNum">      99 </span>            :                                                    Dim::value, UpLo::Lo, Frame&gt;;
+<span class="lineNum">     100 </span><span class="lineNoCov">          0 :   using tag = Tag;</span>
+<span class="lineNum">     101 </span><span class="lineNoCov">          0 :   static std::string name() noexcept {</span>
+<span class="lineNum">     102 </span>            :     return &quot;spacetime_deriv(&quot; + db::tag_name&lt;Tag&gt;() + &quot;)&quot;;
+<span class="lineNum">     103 </span>            :   }
+<span class="lineNum">     104 </span>            : };
+<span class="lineNum">     105 </span>            : template &lt;typename Tag, typename Dim, typename Frame&gt;
+<span class="lineNum">     106 </span>            : struct spacetime_deriv&lt;
+<span class="lineNum">     107 </span>            :     Tag, Dim, Frame,
+<span class="lineNum">     108 </span>            :     Requires&lt;tt::is_a_v&lt;::Variables, db::const_item_type&lt;Tag&gt;&gt;&gt;&gt;
+<span class="lineNum">     109 </span><span class="lineNoCov">          0 :     : db::PrefixTag, db::SimpleTag {</span>
+<span class="lineNum">     110 </span><span class="lineNoCov">          0 :   using type = db::const_item_type&lt;Tag&gt;;</span>
+<span class="lineNum">     111 </span><span class="lineNoCov">          0 :   using tag = Tag;</span>
+<span class="lineNum">     112 </span><span class="lineNoCov">          0 :   static std::string name() noexcept {</span>
+<span class="lineNum">     113 </span>            :     return &quot;spacetime_deriv(&quot; + db::tag_name&lt;Tag&gt;() + &quot;)&quot;;
+<span class="lineNum">     114 </span>            :   }
+<span class="lineNum">     115 </span>            : };
+<span class="lineNum">     116 </span>            : 
+<span class="lineNum">     117 </span>            : }  // namespace Tags
+<span class="lineNum">     118 </span>            : 
+<span class="lineNum">     119 </span>            : // @{
+<span class="lineNum">     120 </span>            : /// \ingroup NumericalAlgorithmsGroup
+<span class="lineNum">     121 </span>            : /// \brief Compute the partial derivatives of each variable with respect to
+<span class="lineNum">     122 </span>            : /// the logical coordinate.
+<span class="lineNum">     123 </span>            : ///
+<span class="lineNum">     124 </span>            : /// \requires `DerivativeTags` to be the head of `VariableTags`
+<span class="lineNum">     125 </span>            : ///
+<span class="lineNum">     126 </span>            : /// Returns a `Variables` with a spatial tensor index appended to the front
+<span class="lineNum">     127 </span>            : /// of each tensor within `u` and each `Tag` wrapped with a `Tags::deriv`.
+<span class="lineNum">     128 </span>            : ///
+<span class="lineNum">     129 </span>            : /// \tparam DerivativeTags the subset of `VariableTags` for which derivatives
+<span class="lineNum">     130 </span>            : /// are computed.
+<span class="lineNum">     131 </span>            : template &lt;typename DerivativeTags, typename VariableTags, size_t Dim&gt;
+<span class="lineNum">     132 </span><span class="lineCov">          1 : void logical_partial_derivatives(</span>
+<span class="lineNum">     133 </span>            :     gsl::not_null&lt;std::array&lt;Variables&lt;DerivativeTags&gt;, Dim&gt;*&gt;
+<span class="lineNum">     134 </span>            :         logical_partial_derivatives_of_u,
+<span class="lineNum">     135 </span>            :     const Variables&lt;VariableTags&gt;&amp; u, const Mesh&lt;Dim&gt;&amp; mesh) noexcept;
+<span class="lineNum">     136 </span>            : 
+<span class="lineNum">     137 </span>            : template &lt;typename DerivativeTags, typename VariableTags, size_t Dim&gt;
+<span class="lineNum">     138 </span><span class="lineCov">          1 : auto logical_partial_derivatives(const Variables&lt;VariableTags&gt;&amp; u,</span>
+<span class="lineNum">     139 </span>            :                                  const Mesh&lt;Dim&gt;&amp; mesh) noexcept
+<span class="lineNum">     140 </span>            :     -&gt; std::array&lt;Variables&lt;DerivativeTags&gt;, Dim&gt;;
+<span class="lineNum">     141 </span>            : // @}
+<span class="lineNum">     142 </span>            : 
+<span class="lineNum">     143 </span>            : // @{
+<span class="lineNum">     144 </span>            : /// \ingroup NumericalAlgorithmsGroup
+<span class="lineNum">     145 </span>            : /// \brief Compute the partial derivatives of each variable with respect to
+<span class="lineNum">     146 </span>            : /// the coordinates of `DerivativeFrame`.
+<span class="lineNum">     147 </span>            : ///
+<span class="lineNum">     148 </span>            : /// \requires `DerivativeTags` to be the head of `VariableTags`
+<span class="lineNum">     149 </span>            : ///
+<span class="lineNum">     150 </span>            : /// Returns a `Variables` with a spatial tensor index appended to the front
+<span class="lineNum">     151 </span>            : /// of each tensor within `u` and each `Tag` wrapped with a `Tags::deriv`.
+<span class="lineNum">     152 </span>            : ///
+<span class="lineNum">     153 </span>            : /// \tparam DerivativeTags the subset of `VariableTags` for which derivatives
+<span class="lineNum">     154 </span>            : /// are computed.
+<span class="lineNum">     155 </span>            : template &lt;typename DerivativeTags, size_t Dim, typename DerivativeFrame&gt;
+<span class="lineNum">     156 </span><span class="lineCov">          1 : void partial_derivatives(</span>
+<span class="lineNum">     157 </span>            :     gsl::not_null&lt;Variables&lt;db::wrap_tags_in&lt;
+<span class="lineNum">     158 </span>            :         Tags::deriv, DerivativeTags, tmpl::size_t&lt;Dim&gt;, DerivativeFrame&gt;&gt;*&gt;
+<span class="lineNum">     159 </span>            :         du,
+<span class="lineNum">     160 </span>            :     const std::array&lt;Variables&lt;DerivativeTags&gt;, Dim&gt;&amp;
+<span class="lineNum">     161 </span>            :         logical_partial_derivatives_of_u,
+<span class="lineNum">     162 </span>            :     const InverseJacobian&lt;DataVector, Dim, Frame::Logical, DerivativeFrame&gt;&amp;
+<span class="lineNum">     163 </span>            :         inverse_jacobian) noexcept;
+<span class="lineNum">     164 </span>            : 
+<span class="lineNum">     165 </span>            : template &lt;typename DerivativeTags, typename VariableTags, size_t Dim,
+<span class="lineNum">     166 </span>            :           typename DerivativeFrame&gt;
+<span class="lineNum">     167 </span><span class="lineCov">          1 : void partial_derivatives(</span>
+<span class="lineNum">     168 </span>            :     gsl::not_null&lt;Variables&lt;db::wrap_tags_in&lt;
+<span class="lineNum">     169 </span>            :         Tags::deriv, DerivativeTags, tmpl::size_t&lt;Dim&gt;, DerivativeFrame&gt;&gt;*&gt;
+<span class="lineNum">     170 </span>            :         du,
+<span class="lineNum">     171 </span>            :     const Variables&lt;VariableTags&gt;&amp; u, const Mesh&lt;Dim&gt;&amp; mesh,
+<span class="lineNum">     172 </span>            :     const InverseJacobian&lt;DataVector, Dim, Frame::Logical, DerivativeFrame&gt;&amp;
+<span class="lineNum">     173 </span>            :         inverse_jacobian) noexcept;
+<span class="lineNum">     174 </span>            : 
+<span class="lineNum">     175 </span>            : template &lt;typename DerivativeTags, typename VariableTags, size_t Dim,
+<span class="lineNum">     176 </span>            :           typename DerivativeFrame&gt;
+<span class="lineNum">     177 </span><span class="lineCov">          1 : auto partial_derivatives(</span>
+<span class="lineNum">     178 </span>            :     const Variables&lt;VariableTags&gt;&amp; u, const Mesh&lt;Dim&gt;&amp; mesh,
+<span class="lineNum">     179 </span>            :     const InverseJacobian&lt;DataVector, Dim, Frame::Logical, DerivativeFrame&gt;&amp;
+<span class="lineNum">     180 </span>            :         inverse_jacobian) noexcept
+<span class="lineNum">     181 </span>            :     -&gt; Variables&lt;db::wrap_tags_in&lt;Tags::deriv, DerivativeTags,
+<span class="lineNum">     182 </span>            :                                   tmpl::size_t&lt;Dim&gt;, DerivativeFrame&gt;&gt;;
+<span class="lineNum">     183 </span>            : // @}
+<span class="lineNum">     184 </span>            : 
+<span class="lineNum">     185 </span>            : namespace Tags {
+<span class="lineNum">     186 </span>            : 
+<span class="lineNum">     187 </span>            : /*!
+<span class="lineNum">     188 </span>            :  * \ingroup DataBoxTagsGroup
+<span class="lineNum">     189 </span>            :  * \brief Compute the spatial derivatives of tags in a Variables
+<span class="lineNum">     190 </span>            :  *
+<span class="lineNum">     191 </span>            :  * Computes the spatial derivatives of the Tensors in the Variables represented
+<span class="lineNum">     192 </span>            :  * by `VariablesTag` in the frame mapped to by `InverseJacobianTag`. To only
+<span class="lineNum">     193 </span>            :  * take the derivatives of a subset of these Tensors you can set the
+<span class="lineNum">     194 </span>            :  * `DerivTags` template parameter. It takes a `tmpl::list` of the desired
+<span class="lineNum">     195 </span>            :  * tags and defaults to the full `tags_list` of the Variables.
+<span class="lineNum">     196 </span>            :  *
+<span class="lineNum">     197 </span>            :  * This tag may be retrieved via `db::variables_tag_with_tags_list&lt;VariablesTag,
+<span class="lineNum">     198 </span>            :  * DerivTags&gt;` prefixed with `Tags::deriv`.
+<span class="lineNum">     199 </span>            :  */
+<span class="lineNum">     200 </span>            : template &lt;typename VariablesTag, typename InverseJacobianTag,
+<span class="lineNum">     201 </span>            :           typename DerivTags =
+<span class="lineNum">     202 </span>            :               typename db::const_item_type&lt;VariablesTag&gt;::tags_list&gt;
+<span class="lineNum">     203 </span>            : struct DerivCompute
+<span class="lineNum">     204 </span>            :     : db::add_tag_prefix&lt;
+<span class="lineNum">     205 </span>            :           deriv, db::variables_tag_with_tags_list&lt;VariablesTag, DerivTags&gt;,
+<span class="lineNum">     206 </span>            :           tmpl::size_t&lt;tmpl::back&lt;typename db::const_item_type&lt;
+<span class="lineNum">     207 </span>            :               InverseJacobianTag&gt;::index_list&gt;::dim&gt;,
+<span class="lineNum">     208 </span>            :           typename tmpl::back&lt;typename db::const_item_type&lt;
+<span class="lineNum">     209 </span>            :               InverseJacobianTag&gt;::index_list&gt;::Frame&gt;,
+<span class="lineNum">     210 </span><span class="lineCov">          1 :       db::ComputeTag {</span>
+<span class="lineNum">     211 </span>            :  private:
+<span class="lineNum">     212 </span><span class="lineNoCov">          0 :   using inv_jac_indices =</span>
+<span class="lineNum">     213 </span>            :       typename db::const_item_type&lt;InverseJacobianTag&gt;::index_list;
+<span class="lineNum">     214 </span><span class="lineNoCov">          0 :   static constexpr auto Dim = tmpl::back&lt;inv_jac_indices&gt;::dim;</span>
+<span class="lineNum">     215 </span><span class="lineNoCov">          0 :   using deriv_frame = typename tmpl::back&lt;inv_jac_indices&gt;::Frame;</span>
+<span class="lineNum">     216 </span>            : 
+<span class="lineNum">     217 </span>            :  public:
+<span class="lineNum">     218 </span>            :   static constexpr ::Variables&lt;db::wrap_tags_in&lt;
+<span class="lineNum">     219 </span>            :       Tags::deriv, DerivTags, tmpl::size_t&lt;Dim&gt;, deriv_frame&gt;&gt; (*function)(
+<span class="lineNum">     220 </span>            :       const ::Variables&lt;typename db::const_item_type&lt;VariablesTag&gt;::tags_list&gt;&amp;,
+<span class="lineNum">     221 </span>            :       const ::Mesh&lt;Dim&gt;&amp;,
+<span class="lineNum">     222 </span>            :       const ::InverseJacobian&lt;DataVector, Dim, Frame::Logical, deriv_frame&gt;&amp;) =
+<span class="lineNum">     223 </span>            :       partial_derivatives&lt;DerivTags,
+<span class="lineNum">     224 </span>            :                           typename db::const_item_type&lt;VariablesTag&gt;::tags_list,
+<span class="lineNum">     225 </span>            :                           Dim, deriv_frame&gt;;
+<span class="lineNum">     226 </span><span class="lineNoCov">          0 :   using argument_tags =</span>
+<span class="lineNum">     227 </span>            :       tmpl::list&lt;VariablesTag, domain::Tags::Mesh&lt;Dim&gt;, InverseJacobianTag&gt;;
+<span class="lineNum">     228 </span>            : };
+<span class="lineNum">     229 </span>            : 
+<span class="lineNum">     230 </span>            : }  // namespace Tags
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

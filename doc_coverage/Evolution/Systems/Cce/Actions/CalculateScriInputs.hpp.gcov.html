@@ -1,0 +1,175 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - Evolution/Systems/Cce/Actions/CalculateScriInputs.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../../index.html">top level</a> - <a href="index.html">Evolution/Systems/Cce/Actions</a> - CalculateScriInputs.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntry">5</td>
+            <td class="headerCovTableEntryLo">20.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #pragma once
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;cstddef&gt;
+<span class="lineNum">       7 </span>            : #include &lt;tuple&gt;
+<span class="lineNum">       8 </span>            : #include &lt;utility&gt;
+<span class="lineNum">       9 </span>            : 
+<span class="lineNum">      10 </span>            : #include &quot;DataStructures/DataBox/DataBox.hpp&quot;
+<span class="lineNum">      11 </span>            : #include &quot;Evolution/Systems/Cce/IntegrandInputSteps.hpp&quot;
+<span class="lineNum">      12 </span>            : #include &quot;Evolution/Systems/Cce/OptionTags.hpp&quot;
+<span class="lineNum">      13 </span>            : #include &quot;Evolution/Systems/Cce/PreSwshDerivatives.hpp&quot;
+<span class="lineNum">      14 </span>            : #include &quot;Evolution/Systems/Cce/SwshDerivatives.hpp&quot;
+<span class="lineNum">      15 </span>            : #include &quot;NumericalAlgorithms/Spectral/SwshDerivatives.hpp&quot;
+<span class="lineNum">      16 </span>            : #include &quot;Parallel/ConstGlobalCache.hpp&quot;
+<span class="lineNum">      17 </span>            : #include &quot;Utilities/Gsl.hpp&quot;
+<span class="lineNum">      18 </span>            : #include &quot;Utilities/TMPL.hpp&quot;
+<span class="lineNum">      19 </span>            : 
+<span class="lineNum">      20 </span>            : namespace Cce {
+<span class="lineNum">      21 </span>            : namespace Actions {
+<span class="lineNum">      22 </span>            : 
+<span class="lineNum">      23 </span>            : /*!
+<span class="lineNum">      24 </span>            :  * \ingroup Actions
+<span class="lineNum">      25 </span>            :  * \brief Calculates the Bondi quantities that are required for any of the
+<span class="lineNum">      26 </span>            :  * `CalculateScriPlusValue` mutators.
+<span class="lineNum">      27 </span>            :  *
+<span class="lineNum">      28 </span>            :  * \details Internally dispatches to the `PreSwshDerivatives` and
+<span class="lineNum">      29 </span>            :  * `Spectral::Swsh::AngularDerivatives` utilities to perform the radial and
+<span class="lineNum">      30 </span>            :  * angular differentiation that is required to prepare all of the Bondi
+<span class="lineNum">      31 </span>            :  * quantities needed for evaluating the scri+ values. This relies on the
+<span class="lineNum">      32 </span>            :  * typelists `Cce::all_pre_swsh_derivative_tags_for_scri`,
+<span class="lineNum">      33 </span>            :  * `Cce::all_boundary_pre_swsh_derivative_tags_for_scri`,
+<span class="lineNum">      34 </span>            :  * `Cce::all_swsh_derivative_tags_for_scri`, and
+<span class="lineNum">      35 </span>            :  * `Cce::all_boundary_swsh_derivative_tags_for_scri` to determine which
+<span class="lineNum">      36 </span>            :  * calculations to perform.
+<span class="lineNum">      37 </span>            :  */
+<span class="lineNum">      38 </span><span class="lineCov">          1 : struct CalculateScriInputs {</span>
+<span class="lineNum">      39 </span><span class="lineNoCov">          0 :   using const_global_cache_tags =</span>
+<span class="lineNum">      40 </span>            :       tmpl::list&lt;Tags::LMax, Tags::NumberOfRadialPoints&gt;;
+<span class="lineNum">      41 </span>            : 
+<span class="lineNum">      42 </span>            :   template &lt;typename DbTags, typename... InboxTags, typename Metavariables,
+<span class="lineNum">      43 </span>            :             typename ArrayIndex, typename ActionList,
+<span class="lineNum">      44 </span>            :             typename ParallelComponent&gt;
+<span class="lineNum">      45 </span><span class="lineNoCov">          0 :   static std::tuple&lt;db::DataBox&lt;DbTags&gt;&amp;&amp;&gt; apply(</span>
+<span class="lineNum">      46 </span>            :       db::DataBox&lt;DbTags&gt;&amp; box,
+<span class="lineNum">      47 </span>            :       const tuples::TaggedTuple&lt;InboxTags...&gt;&amp; /*inboxes*/,
+<span class="lineNum">      48 </span>            :       const Parallel::ConstGlobalCache&lt;Metavariables&gt;&amp; /*cache*/,
+<span class="lineNum">      49 </span>            :       const ArrayIndex&amp; /*array_index*/, const ActionList /*meta*/,
+<span class="lineNum">      50 </span>            :       const ParallelComponent* const /*meta*/) noexcept {
+<span class="lineNum">      51 </span>            :     tmpl::for_each&lt;
+<span class="lineNum">      52 </span>            :         tmpl::append&lt;all_pre_swsh_derivative_tags_for_scri,
+<span class="lineNum">      53 </span>            :                      all_boundary_pre_swsh_derivative_tags_for_scri&gt;&gt;([&amp;box](
+<span class="lineNum">      54 </span>            :         auto pre_swsh_derivative_tag_v) noexcept {
+<span class="lineNum">      55 </span>            :       using pre_swsh_derivative_tag =
+<span class="lineNum">      56 </span>            :           typename decltype(pre_swsh_derivative_tag_v)::type;
+<span class="lineNum">      57 </span>            :       db::mutate_apply&lt;PreSwshDerivatives&lt;pre_swsh_derivative_tag&gt;&gt;(
+<span class="lineNum">      58 </span>            :           make_not_null(&amp;box));
+<span class="lineNum">      59 </span>            :     });
+<span class="lineNum">      60 </span>            : 
+<span class="lineNum">      61 </span>            :     db::mutate_apply&lt;
+<span class="lineNum">      62 </span>            :         Spectral::Swsh::AngularDerivatives&lt;all_swsh_derivative_tags_for_scri&gt;&gt;(
+<span class="lineNum">      63 </span>            :         make_not_null(&amp;box));
+<span class="lineNum">      64 </span>            :     boundary_derivative_impl(box, db::get&lt;Tags::LMax&gt;(box),
+<span class="lineNum">      65 </span>            :                              all_boundary_swsh_derivative_tags_for_scri{});
+<span class="lineNum">      66 </span>            : 
+<span class="lineNum">      67 </span>            :     tmpl::for_each&lt;all_swsh_derivative_tags_for_scri&gt;([&amp;box](
+<span class="lineNum">      68 </span>            :         auto derivative_tag_v) noexcept {
+<span class="lineNum">      69 </span>            :       using derivative_tag = typename decltype(derivative_tag_v)::type;
+<span class="lineNum">      70 </span>            :       ::Cce::detail::apply_swsh_jacobian_helper&lt;derivative_tag&gt;(
+<span class="lineNum">      71 </span>            :           make_not_null(&amp;box), typename ApplySwshJacobianInplace&lt;
+<span class="lineNum">      72 </span>            :                                    derivative_tag&gt;::on_demand_argument_tags{});
+<span class="lineNum">      73 </span>            :     });
+<span class="lineNum">      74 </span>            :     return {std::move(box)};
+<span class="lineNum">      75 </span>            :   }
+<span class="lineNum">      76 </span>            : 
+<span class="lineNum">      77 </span>            :   template &lt;typename DbTags, typename... TagPack&gt;
+<span class="lineNum">      78 </span><span class="lineNoCov">          0 :   static void boundary_derivative_impl(</span>
+<span class="lineNum">      79 </span>            :       db::DataBox&lt;DbTags&gt;&amp; box, const size_t l_max,
+<span class="lineNum">      80 </span>            :       tmpl::list&lt;TagPack...&gt; /*meta*/) noexcept {
+<span class="lineNum">      81 </span>            :     db::mutate&lt;TagPack...&gt;(
+<span class="lineNum">      82 </span>            :         make_not_null(&amp;box),
+<span class="lineNum">      83 </span>            :         [&amp;l_max](const gsl::not_null&lt;db::item_type&lt;TagPack&gt;*&gt;... derivatives,
+<span class="lineNum">      84 </span>            :                  const db::item_type&lt;
+<span class="lineNum">      85 </span>            :                      typename TagPack::derivative_of&gt;&amp;... arguments) noexcept {
+<span class="lineNum">      86 </span>            :           Spectral::Swsh::angular_derivatives&lt;
+<span class="lineNum">      87 </span>            :               tmpl::list&lt;typename TagPack::derivative_kind...&gt;&gt;(
+<span class="lineNum">      88 </span>            :               l_max, 1, make_not_null(&amp;get(*derivatives))...,
+<span class="lineNum">      89 </span>            :               get(arguments)...);
+<span class="lineNum">      90 </span>            :         },
+<span class="lineNum">      91 </span>            :         db::get&lt;typename TagPack::derivative_of&gt;(box)...);
+<span class="lineNum">      92 </span>            :   }
+<span class="lineNum">      93 </span>            : };
+<span class="lineNum">      94 </span>            : }  // namespace Actions
+<span class="lineNum">      95 </span>            : }  // namespace Cce
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

@@ -1,0 +1,309 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - Evolution/Systems/CurvedScalarWave/Characteristics.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../index.html">top level</a> - <a href="index.html">Evolution/Systems/CurvedScalarWave</a> - Characteristics.cpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">4</td>
+            <td class="headerCovTableEntry">10</td>
+            <td class="headerCovTableEntryLo">40.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #include &quot;Evolution/Systems/CurvedScalarWave/Characteristics.hpp&quot;
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;algorithm&gt;
+<span class="lineNum">       7 </span>            : #include &lt;array&gt;
+<span class="lineNum">       8 </span>            : #include &lt;limits&gt;
+<span class="lineNum">       9 </span>            : 
+<span class="lineNum">      10 </span>            : #include &quot;DataStructures/DataVector.hpp&quot;
+<span class="lineNum">      11 </span>            : #include &quot;DataStructures/Tensor/EagerMath/DotProduct.hpp&quot;
+<span class="lineNum">      12 </span>            : #include &quot;Evolution/Systems/CurvedScalarWave/Tags.hpp&quot;
+<span class="lineNum">      13 </span>            : #include &quot;PointwiseFunctions/GeneralRelativity/IndexManipulation.hpp&quot;
+<span class="lineNum">      14 </span>            : #include &quot;Utilities/GenerateInstantiations.hpp&quot;
+<span class="lineNum">      15 </span>            : #include &quot;Utilities/Gsl.hpp&quot;
+<span class="lineNum">      16 </span>            : #include &quot;Utilities/MakeWithValue.hpp&quot;
+<span class="lineNum">      17 </span>            : 
+<span class="lineNum">      18 </span><span class="lineCov">          1 : namespace CurvedScalarWave {</span>
+<span class="lineNum">      19 </span>            : template &lt;size_t SpatialDim&gt;
+<span class="lineNum">      20 </span><span class="lineNoCov">          0 : void characteristic_speeds(</span>
+<span class="lineNum">      21 </span>            :     const gsl::not_null&lt;std::array&lt;DataVector, 4&gt;*&gt; char_speeds,
+<span class="lineNum">      22 </span>            :     const Scalar&lt;DataVector&gt;&amp; gamma_1, const Scalar&lt;DataVector&gt;&amp; lapse,
+<span class="lineNum">      23 </span>            :     const tnsr::I&lt;DataVector, SpatialDim, Frame::Inertial&gt;&amp; shift,
+<span class="lineNum">      24 </span>            :     const tnsr::i&lt;DataVector, SpatialDim, Frame::Inertial&gt;&amp;
+<span class="lineNum">      25 </span>            :         unit_normal_one_form) noexcept {
+<span class="lineNum">      26 </span>            :   if (UNLIKELY(get_size((*char_speeds)[0]) != get_size(get(gamma_1)))) {
+<span class="lineNum">      27 </span>            :     *char_speeds = make_with_value&lt;std::array&lt;DataVector, 4&gt;&gt;(
+<span class="lineNum">      28 </span>            :         get(gamma_1), std::numeric_limits&lt;double&gt;::signaling_NaN());
+<span class="lineNum">      29 </span>            :   }
+<span class="lineNum">      30 </span>            :   const auto shift_dot_normal = get(dot_product(shift, unit_normal_one_form));
+<span class="lineNum">      31 </span>            :   (*char_speeds)[0] = -(1. + get(gamma_1)) * shift_dot_normal;  // v(VPsi)
+<span class="lineNum">      32 </span>            :   (*char_speeds)[1] = -shift_dot_normal;                        // v(VZero)
+<span class="lineNum">      33 </span>            :   (*char_speeds)[2] = -shift_dot_normal + get(lapse);           // v(VPlus)
+<span class="lineNum">      34 </span>            :   (*char_speeds)[3] = -shift_dot_normal - get(lapse);           // v(VMinus)
+<span class="lineNum">      35 </span>            : }
+<span class="lineNum">      36 </span>            : 
+<span class="lineNum">      37 </span>            : template &lt;size_t SpatialDim&gt;
+<span class="lineNum">      38 </span><span class="lineCov">          1 : std::array&lt;DataVector, 4&gt; characteristic_speeds(</span>
+<span class="lineNum">      39 </span>            :     const Scalar&lt;DataVector&gt;&amp; gamma_1, const Scalar&lt;DataVector&gt;&amp; lapse,
+<span class="lineNum">      40 </span>            :     const tnsr::I&lt;DataVector, SpatialDim, Frame::Inertial&gt;&amp; shift,
+<span class="lineNum">      41 </span>            :     const tnsr::i&lt;DataVector, SpatialDim, Frame::Inertial&gt;&amp;
+<span class="lineNum">      42 </span>            :         unit_normal_one_form) noexcept {
+<span class="lineNum">      43 </span>            :   auto char_speeds = make_with_value&lt;std::array&lt;DataVector, 4&gt;&gt;(
+<span class="lineNum">      44 </span>            :       get&lt;0&gt;(unit_normal_one_form),
+<span class="lineNum">      45 </span>            :       std::numeric_limits&lt;double&gt;::signaling_NaN());
+<span class="lineNum">      46 </span>            :   characteristic_speeds(make_not_null(&amp;char_speeds), gamma_1, lapse, shift,
+<span class="lineNum">      47 </span>            :                         unit_normal_one_form);
+<span class="lineNum">      48 </span>            :   return char_speeds;
+<span class="lineNum">      49 </span>            : }
+<span class="lineNum">      50 </span>            : 
+<span class="lineNum">      51 </span>            : template &lt;size_t SpatialDim&gt;
+<span class="lineNum">      52 </span><span class="lineNoCov">          0 : void characteristic_fields(</span>
+<span class="lineNum">      53 </span>            :     const gsl::not_null&lt;Variables&lt;tmpl::list&lt;
+<span class="lineNum">      54 </span>            :         Tags::VPsi, Tags::VZero&lt;SpatialDim&gt;, Tags::VPlus, Tags::VMinus&gt;&gt;*&gt;
+<span class="lineNum">      55 </span>            :         char_fields,
+<span class="lineNum">      56 </span>            :     const Scalar&lt;DataVector&gt;&amp; gamma_2,
+<span class="lineNum">      57 </span>            :     const tnsr::II&lt;DataVector, SpatialDim, Frame::Inertial&gt;&amp;
+<span class="lineNum">      58 </span>            :         inverse_spatial_metric,
+<span class="lineNum">      59 </span>            :     const Scalar&lt;DataVector&gt;&amp; psi, const Scalar&lt;DataVector&gt;&amp; pi,
+<span class="lineNum">      60 </span>            :     const tnsr::i&lt;DataVector, SpatialDim, Frame::Inertial&gt;&amp; phi,
+<span class="lineNum">      61 </span>            :     const tnsr::i&lt;DataVector, SpatialDim, Frame::Inertial&gt;&amp;
+<span class="lineNum">      62 </span>            :         unit_normal_one_form) noexcept {
+<span class="lineNum">      63 </span>            :   if (UNLIKELY(get_size(get(get&lt;Tags::VPsi&gt;(*char_fields))) !=
+<span class="lineNum">      64 </span>            :                get_size(get(gamma_2)))) {
+<span class="lineNum">      65 </span>            :     *char_fields =
+<span class="lineNum">      66 </span>            :         Variables&lt;tmpl::list&lt;Tags::VPsi, Tags::VZero&lt;SpatialDim&gt;, Tags::VPlus,
+<span class="lineNum">      67 </span>            :                              Tags::VMinus&gt;&gt;(get_size(get(gamma_2)));
+<span class="lineNum">      68 </span>            :   }
+<span class="lineNum">      69 </span>            :   const auto phi_dot_normal = dot_product(
+<span class="lineNum">      70 </span>            :       raise_or_lower_index(unit_normal_one_form, inverse_spatial_metric), phi);
+<span class="lineNum">      71 </span>            : 
+<span class="lineNum">      72 </span>            :   // Eq.(34) of Holst+ (2004) for VZero
+<span class="lineNum">      73 </span>            :   for (size_t i = 0; i &lt; SpatialDim; ++i) {
+<span class="lineNum">      74 </span>            :     get&lt;Tags::VZero&lt;SpatialDim&gt;&gt;(*char_fields).get(i) =
+<span class="lineNum">      75 </span>            :         phi.get(i) - unit_normal_one_form.get(i) * get(phi_dot_normal);
+<span class="lineNum">      76 </span>            :   }
+<span class="lineNum">      77 </span>            : 
+<span class="lineNum">      78 </span>            :   // Eq.(33) of Holst+ (2004) for VPsi
+<span class="lineNum">      79 </span>            :   get&lt;Tags::VPsi&gt;(*char_fields) = psi;
+<span class="lineNum">      80 </span>            : 
+<span class="lineNum">      81 </span>            :   // Eq.(35) of Holst+ (2004) for VPlus and VMinus
+<span class="lineNum">      82 </span>            :   get(get&lt;Tags::VPlus&gt;(*char_fields)) =
+<span class="lineNum">      83 </span>            :       get(pi) + get(phi_dot_normal) - get(gamma_2) * get(psi);
+<span class="lineNum">      84 </span>            :   get(get&lt;Tags::VMinus&gt;(*char_fields)) =
+<span class="lineNum">      85 </span>            :       get(pi) - get(phi_dot_normal) - get(gamma_2) * get(psi);
+<span class="lineNum">      86 </span>            : }
+<span class="lineNum">      87 </span>            : 
+<span class="lineNum">      88 </span>            : template &lt;size_t SpatialDim&gt;
+<span class="lineNum">      89 </span>            : Variables&lt;
+<span class="lineNum">      90 </span>            :     tmpl::list&lt;Tags::VPsi, Tags::VZero&lt;SpatialDim&gt;, Tags::VPlus, Tags::VMinus&gt;&gt;
+<span class="lineNum">      91 </span><span class="lineCov">          1 : characteristic_fields(</span>
+<span class="lineNum">      92 </span>            :     const Scalar&lt;DataVector&gt;&amp; gamma_2,
+<span class="lineNum">      93 </span>            :     const tnsr::II&lt;DataVector, SpatialDim, Frame::Inertial&gt;&amp;
+<span class="lineNum">      94 </span>            :         inverse_spatial_metric,
+<span class="lineNum">      95 </span>            :     const Scalar&lt;DataVector&gt;&amp; psi, const Scalar&lt;DataVector&gt;&amp; pi,
+<span class="lineNum">      96 </span>            :     const tnsr::i&lt;DataVector, SpatialDim, Frame::Inertial&gt;&amp; phi,
+<span class="lineNum">      97 </span>            :     const tnsr::i&lt;DataVector, SpatialDim, Frame::Inertial&gt;&amp;
+<span class="lineNum">      98 </span>            :         unit_normal_one_form) noexcept {
+<span class="lineNum">      99 </span>            :   auto char_fields =
+<span class="lineNum">     100 </span>            :       make_with_value&lt;Variables&lt;tmpl::list&lt;Tags::VPsi, Tags::VZero&lt;SpatialDim&gt;,
+<span class="lineNum">     101 </span>            :                                            Tags::VPlus, Tags::VMinus&gt;&gt;&gt;(
+<span class="lineNum">     102 </span>            :           get(gamma_2), std::numeric_limits&lt;double&gt;::signaling_NaN());
+<span class="lineNum">     103 </span>            :   characteristic_fields(make_not_null(&amp;char_fields), gamma_2,
+<span class="lineNum">     104 </span>            :                         inverse_spatial_metric, psi, pi, phi,
+<span class="lineNum">     105 </span>            :                         unit_normal_one_form);
+<span class="lineNum">     106 </span>            :   return char_fields;
+<span class="lineNum">     107 </span>            : }
+<span class="lineNum">     108 </span>            : 
+<span class="lineNum">     109 </span>            : template &lt;size_t SpatialDim&gt;
+<span class="lineNum">     110 </span><span class="lineNoCov">          0 : void evolved_fields_from_characteristic_fields(</span>
+<span class="lineNum">     111 </span>            :     const gsl::not_null&lt;Variables&lt;tmpl::list&lt;Psi, Pi, Phi&lt;SpatialDim&gt;&gt;&gt;*&gt;
+<span class="lineNum">     112 </span>            :         evolved_fields,
+<span class="lineNum">     113 </span>            :     const Scalar&lt;DataVector&gt;&amp; gamma_2, const Scalar&lt;DataVector&gt;&amp; v_psi,
+<span class="lineNum">     114 </span>            :     const tnsr::i&lt;DataVector, SpatialDim, Frame::Inertial&gt;&amp; v_zero,
+<span class="lineNum">     115 </span>            :     const Scalar&lt;DataVector&gt;&amp; v_plus, const Scalar&lt;DataVector&gt;&amp; v_minus,
+<span class="lineNum">     116 </span>            :     const tnsr::i&lt;DataVector, SpatialDim, Frame::Inertial&gt;&amp;
+<span class="lineNum">     117 </span>            :         unit_normal_one_form) noexcept {
+<span class="lineNum">     118 </span>            :   if (UNLIKELY(get_size(get(get&lt;Psi&gt;(*evolved_fields))) !=
+<span class="lineNum">     119 </span>            :                get_size(get(gamma_2)))) {
+<span class="lineNum">     120 </span>            :     *evolved_fields =
+<span class="lineNum">     121 </span>            :         Variables&lt;tmpl::list&lt;Psi, Pi, Phi&lt;SpatialDim&gt;&gt;&gt;(get_size(get(gamma_2)));
+<span class="lineNum">     122 </span>            :   }
+<span class="lineNum">     123 </span>            :   // Eq.(36) of Holst+ (2005) for Psi
+<span class="lineNum">     124 </span>            :   get&lt;Psi&gt;(*evolved_fields) = v_psi;
+<span class="lineNum">     125 </span>            : 
+<span class="lineNum">     126 </span>            :   // Eq.(37) - (38) of Holst+ (2004) for Pi and Phi
+<span class="lineNum">     127 </span>            :   get&lt;Pi&gt;(*evolved_fields).get() =
+<span class="lineNum">     128 </span>            :       0.5 * (get(v_plus) + get(v_minus)) + get(gamma_2) * get(v_psi);
+<span class="lineNum">     129 </span>            :   for (size_t i = 0; i &lt; SpatialDim; ++i) {
+<span class="lineNum">     130 </span>            :     get&lt;Phi&lt;SpatialDim&gt;&gt;(*evolved_fields).get(i) =
+<span class="lineNum">     131 </span>            :         0.5 * (get(v_plus) - get(v_minus)) * unit_normal_one_form.get(i) +
+<span class="lineNum">     132 </span>            :         v_zero.get(i);
+<span class="lineNum">     133 </span>            :   }
+<span class="lineNum">     134 </span>            : }
+<span class="lineNum">     135 </span>            : 
+<span class="lineNum">     136 </span>            : template &lt;size_t SpatialDim&gt;
+<span class="lineNum">     137 </span>            : Variables&lt;tmpl::list&lt;Psi, Pi, Phi&lt;SpatialDim&gt;&gt;&gt;
+<span class="lineNum">     138 </span><span class="lineCov">          1 : evolved_fields_from_characteristic_fields(</span>
+<span class="lineNum">     139 </span>            :     const Scalar&lt;DataVector&gt;&amp; gamma_2, const Scalar&lt;DataVector&gt;&amp; v_psi,
+<span class="lineNum">     140 </span>            :     const tnsr::i&lt;DataVector, SpatialDim, Frame::Inertial&gt;&amp; v_zero,
+<span class="lineNum">     141 </span>            :     const Scalar&lt;DataVector&gt;&amp; v_plus, const Scalar&lt;DataVector&gt;&amp; v_minus,
+<span class="lineNum">     142 </span>            :     const tnsr::i&lt;DataVector, SpatialDim, Frame::Inertial&gt;&amp;
+<span class="lineNum">     143 </span>            :         unit_normal_one_form) noexcept {
+<span class="lineNum">     144 </span>            :   auto evolved_fields =
+<span class="lineNum">     145 </span>            :       make_with_value&lt;Variables&lt;tmpl::list&lt;Psi, Pi, Phi&lt;SpatialDim&gt;&gt;&gt;&gt;(
+<span class="lineNum">     146 </span>            :           get(gamma_2), std::numeric_limits&lt;double&gt;::signaling_NaN());
+<span class="lineNum">     147 </span>            :   evolved_fields_from_characteristic_fields(make_not_null(&amp;evolved_fields),
+<span class="lineNum">     148 </span>            :                                             gamma_2, v_psi, v_zero, v_plus,
+<span class="lineNum">     149 </span>            :                                             v_minus, unit_normal_one_form);
+<span class="lineNum">     150 </span>            :   return evolved_fields;
+<span class="lineNum">     151 </span>            : }
+<span class="lineNum">     152 </span>            : 
+<span class="lineNum">     153 </span>            : template &lt;size_t SpatialDim&gt;
+<span class="lineNum">     154 </span>            : double ComputeLargestCharacteristicSpeed&lt;SpatialDim&gt;::apply(
+<span class="lineNum">     155 </span>            :     const std::array&lt;DataVector, 4&gt;&amp; char_speeds) noexcept {
+<span class="lineNum">     156 </span>            :   std::array&lt;double, 4&gt; max_speeds{
+<span class="lineNum">     157 </span>            :       {max(abs(char_speeds[0])), max(abs(char_speeds[1])),
+<span class="lineNum">     158 </span>            :        max(abs(char_speeds[2])), max(abs(char_speeds[3]))}};
+<span class="lineNum">     159 </span>            :   return *std::max_element(max_speeds.begin(), max_speeds.end());
+<span class="lineNum">     160 </span>            : }
+<span class="lineNum">     161 </span>            : }  // namespace CurvedScalarWave
+<span class="lineNum">     162 </span>            : 
+<span class="lineNum">     163 </span><span class="lineNoCov">          0 : #define DIM(data) BOOST_PP_TUPLE_ELEM(0, data)</span>
+<span class="lineNum">     164 </span>            : 
+<span class="lineNum">     165 </span><span class="lineNoCov">          0 : #define INSTANTIATE(_, data)                                                  \</span>
+<span class="lineNum">     166 </span>            :   template void CurvedScalarWave::characteristic_speeds(                      \
+<span class="lineNum">     167 </span>            :       const gsl::not_null&lt;std::array&lt;DataVector, 4&gt;*&gt; char_speeds,            \
+<span class="lineNum">     168 </span>            :       const Scalar&lt;DataVector&gt;&amp; gamma_1, const Scalar&lt;DataVector&gt;&amp; lapse,     \
+<span class="lineNum">     169 </span>            :       const tnsr::I&lt;DataVector, DIM(data), Frame::Inertial&gt;&amp; shift,           \
+<span class="lineNum">     170 </span>            :       const tnsr::i&lt;DataVector, DIM(data), Frame::Inertial&gt;&amp;                  \
+<span class="lineNum">     171 </span>            :           unit_normal_one_form) noexcept;                                     \
+<span class="lineNum">     172 </span>            :   template std::array&lt;DataVector, 4&gt; CurvedScalarWave::characteristic_speeds( \
+<span class="lineNum">     173 </span>            :       const Scalar&lt;DataVector&gt;&amp; gamma_1, const Scalar&lt;DataVector&gt;&amp; lapse,     \
+<span class="lineNum">     174 </span>            :       const tnsr::I&lt;DataVector, DIM(data), Frame::Inertial&gt;&amp; shift,           \
+<span class="lineNum">     175 </span>            :       const tnsr::i&lt;DataVector, DIM(data), Frame::Inertial&gt;&amp;                  \
+<span class="lineNum">     176 </span>            :           unit_normal_one_form) noexcept;                                     \
+<span class="lineNum">     177 </span>            :   template struct CurvedScalarWave::CharacteristicSpeedsCompute&lt;DIM(data)&gt;;   \
+<span class="lineNum">     178 </span>            :   template void CurvedScalarWave::characteristic_fields(                      \
+<span class="lineNum">     179 </span>            :       const gsl::not_null&lt;Variables&lt;tmpl::list&lt;                               \
+<span class="lineNum">     180 </span>            :           CurvedScalarWave::Tags::VPsi,                                       \
+<span class="lineNum">     181 </span>            :           CurvedScalarWave::Tags::VZero&lt;DIM(data)&gt;,                           \
+<span class="lineNum">     182 </span>            :           CurvedScalarWave::Tags::VPlus, CurvedScalarWave::Tags::VMinus&gt;&gt;*&gt;   \
+<span class="lineNum">     183 </span>            :           char_fields,                                                        \
+<span class="lineNum">     184 </span>            :       const Scalar&lt;DataVector&gt;&amp; gamma_2,                                      \
+<span class="lineNum">     185 </span>            :       const tnsr::II&lt;DataVector, DIM(data), Frame::Inertial&gt;&amp;                 \
+<span class="lineNum">     186 </span>            :           inverse_spatial_metric,                                             \
+<span class="lineNum">     187 </span>            :       const Scalar&lt;DataVector&gt;&amp; psi, const Scalar&lt;DataVector&gt;&amp; pi,            \
+<span class="lineNum">     188 </span>            :       const tnsr::i&lt;DataVector, DIM(data), Frame::Inertial&gt;&amp; phi,             \
+<span class="lineNum">     189 </span>            :       const tnsr::i&lt;DataVector, DIM(data), Frame::Inertial&gt;&amp;                  \
+<span class="lineNum">     190 </span>            :           unit_normal_one_form) noexcept;                                     \
+<span class="lineNum">     191 </span>            :   template Variables&lt;tmpl::list&lt;                                              \
+<span class="lineNum">     192 </span>            :       CurvedScalarWave::Tags::VPsi, CurvedScalarWave::Tags::VZero&lt;DIM(data)&gt;, \
+<span class="lineNum">     193 </span>            :       CurvedScalarWave::Tags::VPlus, CurvedScalarWave::Tags::VMinus&gt;&gt;         \
+<span class="lineNum">     194 </span>            :   CurvedScalarWave::characteristic_fields(                                    \
+<span class="lineNum">     195 </span>            :       const Scalar&lt;DataVector&gt;&amp; gamma_2,                                      \
+<span class="lineNum">     196 </span>            :       const tnsr::II&lt;DataVector, DIM(data), Frame::Inertial&gt;&amp;                 \
+<span class="lineNum">     197 </span>            :           inverse_spatial_metric,                                             \
+<span class="lineNum">     198 </span>            :       const Scalar&lt;DataVector&gt;&amp; psi, const Scalar&lt;DataVector&gt;&amp; pi,            \
+<span class="lineNum">     199 </span>            :       const tnsr::i&lt;DataVector, DIM(data), Frame::Inertial&gt;&amp; phi,             \
+<span class="lineNum">     200 </span>            :       const tnsr::i&lt;DataVector, DIM(data), Frame::Inertial&gt;&amp;                  \
+<span class="lineNum">     201 </span>            :           unit_normal_one_form) noexcept;                                     \
+<span class="lineNum">     202 </span>            :   template struct CurvedScalarWave::CharacteristicFieldsCompute&lt;DIM(data)&gt;;   \
+<span class="lineNum">     203 </span>            :   template void CurvedScalarWave::evolved_fields_from_characteristic_fields(  \
+<span class="lineNum">     204 </span>            :       const gsl::not_null&lt;                                                    \
+<span class="lineNum">     205 </span>            :           Variables&lt;tmpl::list&lt;CurvedScalarWave::Psi, CurvedScalarWave::Pi,   \
+<span class="lineNum">     206 </span>            :                                CurvedScalarWave::Phi&lt;DIM(data)&gt;&gt;&gt;*&gt;           \
+<span class="lineNum">     207 </span>            :           evolved_fields,                                                     \
+<span class="lineNum">     208 </span>            :       const Scalar&lt;DataVector&gt;&amp; gamma_2, const Scalar&lt;DataVector&gt;&amp; v_psi,     \
+<span class="lineNum">     209 </span>            :       const tnsr::i&lt;DataVector, DIM(data), Frame::Inertial&gt;&amp; v_zero,          \
+<span class="lineNum">     210 </span>            :       const Scalar&lt;DataVector&gt;&amp; v_plus, const Scalar&lt;DataVector&gt;&amp; v_minus,    \
+<span class="lineNum">     211 </span>            :       const tnsr::i&lt;DataVector, DIM(data), Frame::Inertial&gt;&amp;                  \
+<span class="lineNum">     212 </span>            :           unit_normal_one_form) noexcept;                                     \
+<span class="lineNum">     213 </span>            :   template Variables&lt;tmpl::list&lt;CurvedScalarWave::Psi, CurvedScalarWave::Pi,  \
+<span class="lineNum">     214 </span>            :                                 CurvedScalarWave::Phi&lt;DIM(data)&gt;&gt;&gt;            \
+<span class="lineNum">     215 </span>            :   CurvedScalarWave::evolved_fields_from_characteristic_fields(                \
+<span class="lineNum">     216 </span>            :       const Scalar&lt;DataVector&gt;&amp; gamma_2, const Scalar&lt;DataVector&gt;&amp; v_psi,     \
+<span class="lineNum">     217 </span>            :       const tnsr::i&lt;DataVector, DIM(data), Frame::Inertial&gt;&amp; v_zero,          \
+<span class="lineNum">     218 </span>            :       const Scalar&lt;DataVector&gt;&amp; v_plus, const Scalar&lt;DataVector&gt;&amp; v_minus,    \
+<span class="lineNum">     219 </span>            :       const tnsr::i&lt;DataVector, DIM(data), Frame::Inertial&gt;&amp;                  \
+<span class="lineNum">     220 </span>            :           unit_normal_one_form) noexcept;                                     \
+<span class="lineNum">     221 </span>            :   template struct CurvedScalarWave::                                          \
+<span class="lineNum">     222 </span>            :       EvolvedFieldsFromCharacteristicFieldsCompute&lt;DIM(data)&gt;;                \
+<span class="lineNum">     223 </span>            :   template struct CurvedScalarWave::ComputeLargestCharacteristicSpeed&lt;DIM(    \
+<span class="lineNum">     224 </span>            :       data)&gt;;
+<span class="lineNum">     225 </span>            : 
+<span class="lineNum">     226 </span>            : GENERATE_INSTANTIATIONS(INSTANTIATE, (1, 2, 3))
+<span class="lineNum">     227 </span>            : 
+<span class="lineNum">     228 </span>            : #undef INSTANTIATE
+<span class="lineNum">     229 </span>            : #undef DIM
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

@@ -1,0 +1,225 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - Evolution/Systems/Cce/Components/WorldtubeBoundary.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../../index.html">top level</a> - <a href="index.html">Evolution/Systems/Cce/Components</a> - WorldtubeBoundary.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">2</td>
+            <td class="headerCovTableEntry">23</td>
+            <td class="headerCovTableEntryLo">8.7 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #pragma once
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &quot;Evolution/Systems/Cce/Actions/InitializeWorldtubeBoundary.hpp&quot;
+<span class="lineNum">       7 </span>            : #include &quot;Evolution/Systems/Cce/BoundaryData.hpp&quot;
+<span class="lineNum">       8 </span>            : #include &quot;Parallel/Actions/TerminatePhase.hpp&quot;
+<span class="lineNum">       9 </span>            : #include &quot;Parallel/ConstGlobalCache.hpp&quot;
+<span class="lineNum">      10 </span>            : #include &quot;Parallel/Info.hpp&quot;
+<span class="lineNum">      11 </span>            : #include &quot;Parallel/Invoke.hpp&quot;
+<span class="lineNum">      12 </span>            : #include &quot;ParallelAlgorithms/Initialization/Actions/RemoveOptionsAndTerminatePhase.hpp&quot;
+<span class="lineNum">      13 </span>            : 
+<span class="lineNum">      14 </span>            : namespace Cce {
+<span class="lineNum">      15 </span>            : 
+<span class="lineNum">      16 </span>            : /*!
+<span class="lineNum">      17 </span>            :  * \brief Component that supplies CCE worldtube boundary data.
+<span class="lineNum">      18 </span>            :  *
+<span class="lineNum">      19 </span>            :  * \details The \ref DataBoxGroup associated with the worldtube boundary
+<span class="lineNum">      20 </span>            :  * component contains a data manager (e.g. `WorldtubeDataManager`) linked to
+<span class="lineNum">      21 </span>            :  * an H5 file. The data manager handles buffering and interpolating to desired
+<span class="lineNum">      22 </span>            :  * target time points when requested via the simple action
+<span class="lineNum">      23 </span>            :  * `BoundaryComputeAndSendToEvolution`, at which point it will send the required
+<span class="lineNum">      24 </span>            :  * collection of boundary quantities to the identified 'CharacteristicEvolution'
+<span class="lineNum">      25 </span>            :  * component. It is assumed that the simple action
+<span class="lineNum">      26 </span>            :  * `BoundaryComputeAndSendToEvolution` will only be called during the
+<span class="lineNum">      27 </span>            :  * `Evolve` phase.
+<span class="lineNum">      28 </span>            :  *
+<span class="lineNum">      29 </span>            :  * Uses const global tags:
+<span class="lineNum">      30 </span>            :  * - `Tags::LMax`
+<span class="lineNum">      31 </span>            :  *
+<span class="lineNum">      32 </span>            :  * `Metavariables` must contain:
+<span class="lineNum">      33 </span>            :  * - the `enum` `Phase` with at least `Initialization` and `Evolve` phases.
+<span class="lineNum">      34 </span>            :  * - a type alias `cce_boundary_communication_tags` for the set of tags to send
+<span class="lineNum">      35 </span>            :  * from the worldtube to the evolution component. This will typically be
+<span class="lineNum">      36 </span>            :  * `Cce::Tags::characteristic_worldtube_boundary_tags&lt;Tags::BoundaryValue&gt;`.
+<span class="lineNum">      37 </span>            :  */
+<span class="lineNum">      38 </span>            : template &lt;class Metavariables&gt;
+<span class="lineNum">      39 </span><span class="lineCov">          1 : struct H5WorldtubeBoundary {</span>
+<span class="lineNum">      40 </span><span class="lineNoCov">          0 :   using chare_type = Parallel::Algorithms::Singleton;</span>
+<span class="lineNum">      41 </span><span class="lineNoCov">          0 :   using metavariables = Metavariables;</span>
+<span class="lineNum">      42 </span><span class="lineNoCov">          0 :   using initialize_action_list =</span>
+<span class="lineNum">      43 </span>            :       tmpl::list&lt;Actions::InitializeH5WorldtubeBoundary,
+<span class="lineNum">      44 </span>            :                  Initialization::Actions::RemoveOptionsAndTerminatePhase&gt;;
+<span class="lineNum">      45 </span><span class="lineNoCov">          0 :   using initialization_tags =</span>
+<span class="lineNum">      46 </span>            :       Parallel::get_initialization_tags&lt;initialize_action_list&gt;;
+<span class="lineNum">      47 </span>            : 
+<span class="lineNum">      48 </span><span class="lineNoCov">          0 :   using worldtube_boundary_computation_steps = tmpl::list&lt;&gt;;</span>
+<span class="lineNum">      49 </span>            : 
+<span class="lineNum">      50 </span><span class="lineNoCov">          0 :   using phase_dependent_action_list =</span>
+<span class="lineNum">      51 </span>            :       tmpl::list&lt;Parallel::PhaseActions&lt;typename Metavariables::Phase,
+<span class="lineNum">      52 </span>            :                                         Metavariables::Phase::Initialization,
+<span class="lineNum">      53 </span>            :                                         initialize_action_list&gt;,
+<span class="lineNum">      54 </span>            :                  Parallel::PhaseActions&lt;typename Metavariables::Phase,
+<span class="lineNum">      55 </span>            :                                         Metavariables::Phase::Evolve,
+<span class="lineNum">      56 </span>            :                                         worldtube_boundary_computation_steps&gt;&gt;;
+<span class="lineNum">      57 </span>            : 
+<span class="lineNum">      58 </span><span class="lineNoCov">          0 :   using const_global_cache_tag_list =</span>
+<span class="lineNum">      59 </span>            :       Parallel::detail::get_const_global_cache_tags_from_pdal&lt;
+<span class="lineNum">      60 </span>            :           phase_dependent_action_list&gt;;
+<span class="lineNum">      61 </span>            : 
+<span class="lineNum">      62 </span><span class="lineNoCov">          0 :   using options = tmpl::list&lt;&gt;;</span>
+<span class="lineNum">      63 </span>            : 
+<span class="lineNum">      64 </span><span class="lineNoCov">          0 :   static void initialize(Parallel::CProxy_ConstGlobalCache&lt;</span>
+<span class="lineNum">      65 </span>            :                          Metavariables&gt;&amp; /*global_cache*/) noexcept {}
+<span class="lineNum">      66 </span>            : 
+<span class="lineNum">      67 </span><span class="lineNoCov">          0 :   static void execute_next_phase(</span>
+<span class="lineNum">      68 </span>            :       const typename Metavariables::Phase next_phase,
+<span class="lineNum">      69 </span>            :       const Parallel::CProxy_ConstGlobalCache&lt;Metavariables&gt;&amp;
+<span class="lineNum">      70 </span>            :           global_cache) noexcept {
+<span class="lineNum">      71 </span>            :     auto&amp; local_cache = *(global_cache.ckLocalBranch());
+<span class="lineNum">      72 </span>            :     if (next_phase == Metavariables::Phase::Evolve) {
+<span class="lineNum">      73 </span>            :       Parallel::get_parallel_component&lt;H5WorldtubeBoundary&gt;(local_cache)
+<span class="lineNum">      74 </span>            :           .perform_algorithm();
+<span class="lineNum">      75 </span>            :     }
+<span class="lineNum">      76 </span>            :   }
+<span class="lineNum">      77 </span>            : };
+<span class="lineNum">      78 </span>            : 
+<span class="lineNum">      79 </span>            : /*!
+<span class="lineNum">      80 </span>            :  * \brief Component that supplies CCE worldtube boundary data sourced from a
+<span class="lineNum">      81 </span>            :  * running GH system.
+<span class="lineNum">      82 </span>            :  *
+<span class="lineNum">      83 </span>            :  * \details The \ref DataBoxGroup associated with the worldtube boundary
+<span class="lineNum">      84 </span>            :  * component contains an interface manager (derived from
+<span class="lineNum">      85 </span>            :  * `Cce::GhWorldtubeInterfaceManager`) that stores and provides the data
+<span class="lineNum">      86 </span>            :  * received from the GH system. The data manager handles buffering
+<span class="lineNum">      87 </span>            :  * and interpolating to desired target time points when requested via the simple
+<span class="lineNum">      88 </span>            :  * action `Cce::Actions::BoundaryComputeAndSendToEvolution`, at which point it
+<span class="lineNum">      89 </span>            :  * will send the required collection of boundary quantities to the identified
+<span class="lineNum">      90 </span>            :  * `CharacteristicEvolution` component. It is assumed that the simple action
+<span class="lineNum">      91 </span>            :  * `Cce::Actions::BoundaryComputeAndSendToEvolution` will only be called during
+<span class="lineNum">      92 </span>            :  * the `Evolve` phase.
+<span class="lineNum">      93 </span>            :  *
+<span class="lineNum">      94 </span>            :  * Uses const global tags:
+<span class="lineNum">      95 </span>            :  * - `InitializationTags::LMax`
+<span class="lineNum">      96 </span>            :  * - `InitializationTags::ExtractionRadius`
+<span class="lineNum">      97 </span>            :  *
+<span class="lineNum">      98 </span>            :  * `Metavariables` must contain:
+<span class="lineNum">      99 </span>            :  * - the `enum` `Phase` with at least `Initialization` and `Evolve` phases.
+<span class="lineNum">     100 </span>            :  * - a type alias `cce_boundary_communication_tags` for the set of tags to send
+<span class="lineNum">     101 </span>            :  * from the worldtube to the evolution component. This will typically be
+<span class="lineNum">     102 </span>            :  * `Cce::Tags::characteristic_worldtube_boundary_tags&lt;Tags::BoundaryValue&gt;`.
+<span class="lineNum">     103 </span>            :  */
+<span class="lineNum">     104 </span>            : template &lt;class Metavariables&gt;
+<span class="lineNum">     105 </span><span class="lineCov">          1 : struct GhWorldtubeBoundary {</span>
+<span class="lineNum">     106 </span><span class="lineNoCov">          0 :   using chare_type = Parallel::Algorithms::Singleton;</span>
+<span class="lineNum">     107 </span><span class="lineNoCov">          0 :   using metavariables = Metavariables;</span>
+<span class="lineNum">     108 </span><span class="lineNoCov">          0 :   using initialize_action_list =</span>
+<span class="lineNum">     109 </span>            :       tmpl::list&lt;Actions::InitializeGhWorldtubeBoundary,
+<span class="lineNum">     110 </span>            :                  Initialization::Actions::RemoveOptionsAndTerminatePhase&gt;;
+<span class="lineNum">     111 </span><span class="lineNoCov">          0 :   using initialization_tags =</span>
+<span class="lineNum">     112 </span>            :       Parallel::get_initialization_tags&lt;initialize_action_list&gt;;
+<span class="lineNum">     113 </span>            : 
+<span class="lineNum">     114 </span><span class="lineNoCov">          0 :   using worldtube_boundary_computation_steps = tmpl::list&lt;&gt;;</span>
+<span class="lineNum">     115 </span>            : 
+<span class="lineNum">     116 </span><span class="lineNoCov">          0 :   using phase_dependent_action_list =</span>
+<span class="lineNum">     117 </span>            :       tmpl::list&lt;Parallel::PhaseActions&lt;typename Metavariables::Phase,
+<span class="lineNum">     118 </span>            :                                         Metavariables::Phase::Initialization,
+<span class="lineNum">     119 </span>            :                                         initialize_action_list&gt;,
+<span class="lineNum">     120 </span>            :                  Parallel::PhaseActions&lt;typename Metavariables::Phase,
+<span class="lineNum">     121 </span>            :                                         Metavariables::Phase::Evolve,
+<span class="lineNum">     122 </span>            :                                         worldtube_boundary_computation_steps&gt;&gt;;
+<span class="lineNum">     123 </span>            : 
+<span class="lineNum">     124 </span><span class="lineNoCov">          0 :   using const_global_cache_tag_list =</span>
+<span class="lineNum">     125 </span>            :       Parallel::detail::get_const_global_cache_tags_from_pdal&lt;
+<span class="lineNum">     126 </span>            :           phase_dependent_action_list&gt;;
+<span class="lineNum">     127 </span>            : 
+<span class="lineNum">     128 </span><span class="lineNoCov">          0 :   using options = tmpl::list&lt;&gt;;</span>
+<span class="lineNum">     129 </span>            : 
+<span class="lineNum">     130 </span><span class="lineNoCov">          0 :   static void initialize(Parallel::CProxy_ConstGlobalCache&lt;</span>
+<span class="lineNum">     131 </span>            :                          Metavariables&gt;&amp; /*global_cache*/) noexcept {}
+<span class="lineNum">     132 </span>            : 
+<span class="lineNum">     133 </span><span class="lineNoCov">          0 :   static void execute_next_phase(</span>
+<span class="lineNum">     134 </span>            :       const typename Metavariables::Phase next_phase,
+<span class="lineNum">     135 </span>            :       const Parallel::CProxy_ConstGlobalCache&lt;Metavariables&gt;&amp;
+<span class="lineNum">     136 </span>            :           global_cache) noexcept {
+<span class="lineNum">     137 </span>            :     auto&amp; local_cache = *(global_cache.ckLocalBranch());
+<span class="lineNum">     138 </span>            :     if (next_phase == Metavariables::Phase::Evolve) {
+<span class="lineNum">     139 </span>            :       Parallel::get_parallel_component&lt;H5WorldtubeBoundary&gt;(local_cache)
+<span class="lineNum">     140 </span>            :           .start_phase(next_phase);
+<span class="lineNum">     141 </span>            :     }
+<span class="lineNum">     142 </span>            :   }
+<span class="lineNum">     143 </span>            : };
+<span class="lineNum">     144 </span>            : 
+<span class="lineNum">     145 </span>            : }  // namespace Cce
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

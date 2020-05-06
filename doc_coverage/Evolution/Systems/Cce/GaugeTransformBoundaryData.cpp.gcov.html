@@ -1,0 +1,776 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - Evolution/Systems/Cce/GaugeTransformBoundaryData.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../index.html">top level</a> - <a href="index.html">Evolution/Systems/Cce</a> - GaugeTransformBoundaryData.cpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #include &quot;Evolution/Systems/Cce/GaugeTransformBoundaryData.hpp&quot;
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &quot;DataStructures/DataBox/Prefixes.hpp&quot;
+<span class="lineNum">       7 </span>            : #include &quot;DataStructures/SpinWeighted.hpp&quot;
+<span class="lineNum">       8 </span>            : #include &quot;DataStructures/Tags.hpp&quot;
+<span class="lineNum">       9 </span>            : #include &quot;DataStructures/Variables.hpp&quot;
+<span class="lineNum">      10 </span>            : #include &quot;Evolution/Systems/Cce/Tags.hpp&quot;
+<span class="lineNum">      11 </span>            : #include &quot;NumericalAlgorithms/Spectral/SwshCollocation.hpp&quot;
+<span class="lineNum">      12 </span>            : #include &quot;NumericalAlgorithms/Spectral/SwshDerivatives.hpp&quot;
+<span class="lineNum">      13 </span>            : #include &quot;NumericalAlgorithms/Spectral/SwshInterpolation.hpp&quot;
+<span class="lineNum">      14 </span>            : 
+<span class="lineNum">      15 </span>            : /// \cond
+<span class="lineNum">      16 </span>            : 
+<span class="lineNum">      17 </span>            : namespace Cce {
+<span class="lineNum">      18 </span>            : 
+<span class="lineNum">      19 </span>            : void GaugeAdjustedBoundaryValue&lt;Tags::BondiR&gt;::apply(
+<span class="lineNum">      20 </span>            :     const gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;*&gt;
+<span class="lineNum">      21 </span>            :         evolution_gauge_r,
+<span class="lineNum">      22 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; cauchy_gauge_r,
+<span class="lineNum">      23 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; omega,
+<span class="lineNum">      24 </span>            :     const Spectral::Swsh::SwshInterpolator&amp; interpolator) noexcept {
+<span class="lineNum">      25 </span>            :   interpolator.interpolate(make_not_null(&amp;get(*evolution_gauge_r)),
+<span class="lineNum">      26 </span>            :                            get(cauchy_gauge_r));
+<span class="lineNum">      27 </span>            :   get(*evolution_gauge_r) = get(*evolution_gauge_r) * get(omega);
+<span class="lineNum">      28 </span>            : }
+<span class="lineNum">      29 </span>            : 
+<span class="lineNum">      30 </span>            : void GaugeAdjustedBoundaryValue&lt;Tags::DuRDividedByR&gt;::apply(
+<span class="lineNum">      31 </span>            :     const gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;*&gt;
+<span class="lineNum">      32 </span>            :         evolution_gauge_du_r_divided_by_r,
+<span class="lineNum">      33 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp;
+<span class="lineNum">      34 </span>            :         cauchy_gauge_du_r_divided_by_r,
+<span class="lineNum">      35 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 1&gt;&gt;&amp; bondi_u_at_scri,
+<span class="lineNum">      36 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; evolution_gauge_r,
+<span class="lineNum">      37 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; omega,
+<span class="lineNum">      38 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; du_omega,
+<span class="lineNum">      39 </span>            :     const Spectral::Swsh::SwshInterpolator&amp; interpolator,
+<span class="lineNum">      40 </span>            :     const size_t l_max) noexcept {
+<span class="lineNum">      41 </span>            :   interpolator.interpolate(
+<span class="lineNum">      42 </span>            :       make_not_null(&amp;get(*evolution_gauge_du_r_divided_by_r)),
+<span class="lineNum">      43 </span>            :       get(cauchy_gauge_du_r_divided_by_r));
+<span class="lineNum">      44 </span>            : 
+<span class="lineNum">      45 </span>            :   // Allocation
+<span class="lineNum">      46 </span>            :   const SpinWeighted&lt;ComplexDataVector, 0&gt; r_buffer =
+<span class="lineNum">      47 </span>            :       get(evolution_gauge_r) / get(omega);
+<span class="lineNum">      48 </span>            :   const auto eth_r =
+<span class="lineNum">      49 </span>            :       Spectral::Swsh::angular_derivative&lt;Spectral::Swsh::Tags::Eth&gt;(l_max, 1,
+<span class="lineNum">      50 </span>            :                                                                     r_buffer);
+<span class="lineNum">      51 </span>            :   get(*evolution_gauge_du_r_divided_by_r) +=
+<span class="lineNum">      52 </span>            :       0.5 *
+<span class="lineNum">      53 </span>            :           (get(bondi_u_at_scri) * conj(eth_r) +
+<span class="lineNum">      54 </span>            :            conj(get(bondi_u_at_scri)) * eth_r) /
+<span class="lineNum">      55 </span>            :           r_buffer +
+<span class="lineNum">      56 </span>            :       get(du_omega) / get(omega);
+<span class="lineNum">      57 </span>            : }
+<span class="lineNum">      58 </span>            : 
+<span class="lineNum">      59 </span>            : void GaugeAdjustedBoundaryValue&lt;Tags::BondiJ&gt;::apply(
+<span class="lineNum">      60 </span>            :     const gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;*&gt;
+<span class="lineNum">      61 </span>            :         evolution_gauge_j,
+<span class="lineNum">      62 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;&amp; cauchy_gauge_j,
+<span class="lineNum">      63 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;&amp; gauge_c,
+<span class="lineNum">      64 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; gauge_d,
+<span class="lineNum">      65 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; omega,
+<span class="lineNum">      66 </span>            :     const Spectral::Swsh::SwshInterpolator&amp; interpolator) noexcept {
+<span class="lineNum">      67 </span>            :   interpolator.interpolate(make_not_null(&amp;get(*evolution_gauge_j)),
+<span class="lineNum">      68 </span>            :                            get(cauchy_gauge_j));
+<span class="lineNum">      69 </span>            : 
+<span class="lineNum">      70 </span>            :   get(*evolution_gauge_j).data() =
+<span class="lineNum">      71 </span>            :       0.25 *
+<span class="lineNum">      72 </span>            :       (square(conj(get(gauge_d).data())) * get(*evolution_gauge_j).data() +
+<span class="lineNum">      73 </span>            :        square(get(gauge_c).data()) * conj(get(*evolution_gauge_j).data()) +
+<span class="lineNum">      74 </span>            :        2.0 * get(gauge_c).data() * conj(get(gauge_d).data()) *
+<span class="lineNum">      75 </span>            :            sqrt(1.0 + get(*evolution_gauge_j).data() *
+<span class="lineNum">      76 </span>            :                           conj(get(*evolution_gauge_j).data()))) /
+<span class="lineNum">      77 </span>            :       square(get(omega).data());
+<span class="lineNum">      78 </span>            : }
+<span class="lineNum">      79 </span>            : 
+<span class="lineNum">      80 </span>            : void GaugeAdjustedBoundaryValue&lt;Tags::Dr&lt;Tags::BondiJ&gt;&gt;::apply(
+<span class="lineNum">      81 </span>            :     const gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;*&gt;
+<span class="lineNum">      82 </span>            :         evolution_gauge_dr_j,
+<span class="lineNum">      83 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;&amp; cauchy_gauge_dr_j,
+<span class="lineNum">      84 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;&amp; cauchy_gauge_j,
+<span class="lineNum">      85 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;&amp; gauge_c,
+<span class="lineNum">      86 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; gauge_d,
+<span class="lineNum">      87 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; omega,
+<span class="lineNum">      88 </span>            :     const Spectral::Swsh::SwshInterpolator&amp; interpolator,
+<span class="lineNum">      89 </span>            :     const size_t l_max) noexcept {
+<span class="lineNum">      90 </span>            :   interpolator.interpolate(make_not_null(&amp;get(*evolution_gauge_dr_j)),
+<span class="lineNum">      91 </span>            :                            get(cauchy_gauge_dr_j));
+<span class="lineNum">      92 </span>            : 
+<span class="lineNum">      93 </span>            :   SpinWeighted&lt;ComplexDataVector, 2&gt; interpolated_j{
+<span class="lineNum">      94 </span>            :       Spectral::Swsh::number_of_swsh_collocation_points(l_max)};
+<span class="lineNum">      95 </span>            :   interpolator.interpolate(make_not_null(&amp;interpolated_j), get(cauchy_gauge_j));
+<span class="lineNum">      96 </span>            :   get(*evolution_gauge_dr_j).data() =
+<span class="lineNum">      97 </span>            :       (0.25 * square(conj(get(gauge_d).data())) *
+<span class="lineNum">      98 </span>            :            get(*evolution_gauge_dr_j).data() +
+<span class="lineNum">      99 </span>            :        0.25 * square(get(gauge_c).data()) *
+<span class="lineNum">     100 </span>            :            conj(get(*evolution_gauge_dr_j).data()) +
+<span class="lineNum">     101 </span>            :        0.25 * get(gauge_c).data() * conj(get(gauge_d).data()) *
+<span class="lineNum">     102 </span>            :            (get(*evolution_gauge_dr_j).data() * conj(interpolated_j.data()) +
+<span class="lineNum">     103 </span>            :             conj(get(*evolution_gauge_dr_j).data()) * interpolated_j.data()) /
+<span class="lineNum">     104 </span>            :            sqrt(1.0 + interpolated_j.data() * conj(interpolated_j.data()))) /
+<span class="lineNum">     105 </span>            :       pow&lt;3&gt;(get(omega).data());
+<span class="lineNum">     106 </span>            : }
+<span class="lineNum">     107 </span>            : 
+<span class="lineNum">     108 </span>            : void GaugeAdjustedBoundaryValue&lt;Tags::BondiBeta&gt;::apply(
+<span class="lineNum">     109 </span>            :     const gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;*&gt;
+<span class="lineNum">     110 </span>            :         evolution_gauge_beta,
+<span class="lineNum">     111 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; cauchy_gauge_beta,
+<span class="lineNum">     112 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; omega,
+<span class="lineNum">     113 </span>            :     const Spectral::Swsh::SwshInterpolator&amp; interpolator) noexcept {
+<span class="lineNum">     114 </span>            :   interpolator.interpolate(make_not_null(&amp;get(*evolution_gauge_beta)),
+<span class="lineNum">     115 </span>            :                            get(cauchy_gauge_beta));
+<span class="lineNum">     116 </span>            :   get(*evolution_gauge_beta).data() -= 0.5 * log(get(omega).data());
+<span class="lineNum">     117 </span>            : }
+<span class="lineNum">     118 </span>            : 
+<span class="lineNum">     119 </span>            : void GaugeAdjustedBoundaryValue&lt;Tags::BondiQ&gt;::apply_impl(
+<span class="lineNum">     120 </span>            :     const gsl::not_null&lt;SpinWeighted&lt;ComplexDataVector, 1&gt;*&gt; evolution_gauge_q,
+<span class="lineNum">     121 </span>            :     const SpinWeighted&lt;ComplexDataVector, 1&gt;&amp; cauchy_gauge_dr_u,
+<span class="lineNum">     122 </span>            :     const SpinWeighted&lt;ComplexDataVector, 2&gt;&amp; volume_j,
+<span class="lineNum">     123 </span>            :     const SpinWeighted&lt;ComplexDataVector, 2&gt;&amp; volume_dy_j,
+<span class="lineNum">     124 </span>            :     const SpinWeighted&lt;ComplexDataVector, 0&gt;&amp; evolution_gauge_r,
+<span class="lineNum">     125 </span>            :     const SpinWeighted&lt;ComplexDataVector, 0&gt;&amp; evolution_gauge_beta,
+<span class="lineNum">     126 </span>            :     const SpinWeighted&lt;ComplexDataVector, 2&gt;&amp; gauge_c,
+<span class="lineNum">     127 </span>            :     const SpinWeighted&lt;ComplexDataVector, 0&gt;&amp; gauge_d,
+<span class="lineNum">     128 </span>            :     const SpinWeighted&lt;ComplexDataVector, 0&gt;&amp; omega,
+<span class="lineNum">     129 </span>            :     const SpinWeighted&lt;ComplexDataVector, 1&gt;&amp; eth_omega,
+<span class="lineNum">     130 </span>            :     const Spectral::Swsh::SwshInterpolator&amp; interpolator,
+<span class="lineNum">     131 </span>            :     const size_t l_max) noexcept {
+<span class="lineNum">     132 </span>            :   interpolator.interpolate(evolution_gauge_q, cauchy_gauge_dr_u);
+<span class="lineNum">     133 </span>            : 
+<span class="lineNum">     134 </span>            :   const SpinWeighted&lt;ComplexDataVector, 2&gt; evolution_gauge_j;
+<span class="lineNum">     135 </span>            :   make_const_view(make_not_null(&amp;evolution_gauge_j), volume_j, 0,
+<span class="lineNum">     136 </span>            :                   Spectral::Swsh::number_of_swsh_collocation_points(l_max));
+<span class="lineNum">     137 </span>            : 
+<span class="lineNum">     138 </span>            :   const SpinWeighted&lt;ComplexDataVector, 2&gt; evolution_gauge_dy_j;
+<span class="lineNum">     139 </span>            :   make_const_view(make_not_null(&amp;evolution_gauge_dy_j), volume_dy_j, 0,
+<span class="lineNum">     140 </span>            :                   Spectral::Swsh::number_of_swsh_collocation_points(l_max));
+<span class="lineNum">     141 </span>            : 
+<span class="lineNum">     142 </span>            :   // Allocation
+<span class="lineNum">     143 </span>            :   // optimization note: this allocation can be eliminated in favor of more
+<span class="lineNum">     144 </span>            :   // make_const_view s at the cost of more tightly constraining the order of
+<span class="lineNum">     145 </span>            :   // operations between this gauge transformation function and the volume
+<span class="lineNum">     146 </span>            :   // computations
+<span class="lineNum">     147 </span>            :   SpinWeighted&lt;ComplexDataVector, 0&gt; evolution_gauge_k;
+<span class="lineNum">     148 </span>            :   evolution_gauge_k.data() =
+<span class="lineNum">     149 </span>            :       sqrt(1.0 + evolution_gauge_j.data() * conj(evolution_gauge_j.data()));
+<span class="lineNum">     150 </span>            : 
+<span class="lineNum">     151 </span>            :   // we reuse the storage for the `evolution_gauge_q`. After the interpolation
+<span class="lineNum">     152 </span>            :   // it is \partial_r U(\hat x), and after the below assignment it is
+<span class="lineNum">     153 </span>            :   // \partial_{\hat r} \hat U.
+<span class="lineNum">     154 </span>            :   // Note also that by necessity we use derivatives with respect to y, which are
+<span class="lineNum">     155 </span>            :   // related to derivatives with respect to r by
+<span class="lineNum">     156 </span>            :   // 2.0 / r \partial_y = \partial_r
+<span class="lineNum">     157 </span>            :   *evolution_gauge_q =
+<span class="lineNum">     158 </span>            :       0.5 / pow&lt;3&gt;(omega) *
+<span class="lineNum">     159 </span>            :           (conj(gauge_d) * *evolution_gauge_q -
+<span class="lineNum">     160 </span>            :            gauge_c * conj(*evolution_gauge_q)) -
+<span class="lineNum">     161 </span>            :       ((eth_omega * evolution_gauge_k - conj(eth_omega) * evolution_gauge_j) *
+<span class="lineNum">     162 </span>            :            (-1.0 + (evolution_gauge_dy_j * conj(evolution_gauge_dy_j) -
+<span class="lineNum">     163 </span>            :                     0.25 *
+<span class="lineNum">     164 </span>            :                         square(evolution_gauge_j * conj(evolution_gauge_dy_j) +
+<span class="lineNum">     165 </span>            :                                evolution_gauge_dy_j * conj(evolution_gauge_j)) /
+<span class="lineNum">     166 </span>            :                         square(evolution_gauge_k))) +
+<span class="lineNum">     167 </span>            :        2.0 * (-conj(eth_omega) * evolution_gauge_dy_j +
+<span class="lineNum">     168 </span>            :               0.5 * eth_omega / evolution_gauge_k *
+<span class="lineNum">     169 </span>            :                   (evolution_gauge_j * conj(evolution_gauge_dy_j) +
+<span class="lineNum">     170 </span>            :                    conj(evolution_gauge_j) * evolution_gauge_dy_j))) *
+<span class="lineNum">     171 </span>            :           exp(2.0 * evolution_gauge_beta) / (square(evolution_gauge_r) * omega);
+<span class="lineNum">     172 </span>            : 
+<span class="lineNum">     173 </span>            :   *evolution_gauge_q = square(evolution_gauge_r) *
+<span class="lineNum">     174 </span>            :                        exp(-2.0 * evolution_gauge_beta) *
+<span class="lineNum">     175 </span>            :                        (evolution_gauge_j * conj(*evolution_gauge_q) +
+<span class="lineNum">     176 </span>            :                         evolution_gauge_k * *evolution_gauge_q);
+<span class="lineNum">     177 </span>            : }
+<span class="lineNum">     178 </span>            : 
+<span class="lineNum">     179 </span>            : void GaugeAdjustedBoundaryValue&lt;Tags::BondiU&gt;::apply(
+<span class="lineNum">     180 </span>            :     const gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 1&gt;&gt;*&gt;
+<span class="lineNum">     181 </span>            :         evolution_gauge_u,
+<span class="lineNum">     182 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 1&gt;&gt;&amp; cauchy_gauge_u,
+<span class="lineNum">     183 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;&amp; volume_j,
+<span class="lineNum">     184 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; evolution_gauge_r,
+<span class="lineNum">     185 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; evolution_gauge_beta,
+<span class="lineNum">     186 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;&amp; gauge_c,
+<span class="lineNum">     187 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; gauge_d,
+<span class="lineNum">     188 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; omega,
+<span class="lineNum">     189 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 1&gt;&gt;&amp; eth_omega,
+<span class="lineNum">     190 </span>            :     const Spectral::Swsh::SwshInterpolator&amp; interpolator,
+<span class="lineNum">     191 </span>            :     const size_t l_max) noexcept {
+<span class="lineNum">     192 </span>            :   interpolator.interpolate(make_not_null(&amp;get(*evolution_gauge_u)),
+<span class="lineNum">     193 </span>            :                            get(cauchy_gauge_u));
+<span class="lineNum">     194 </span>            : 
+<span class="lineNum">     195 </span>            :   const SpinWeighted&lt;ComplexDataVector, 2&gt; evolution_gauge_j;
+<span class="lineNum">     196 </span>            :   make_const_view(make_not_null(&amp;evolution_gauge_j), get(volume_j), 0,
+<span class="lineNum">     197 </span>            :                   Spectral::Swsh::number_of_swsh_collocation_points(l_max));
+<span class="lineNum">     198 </span>            : 
+<span class="lineNum">     199 </span>            :   get(*evolution_gauge_u) =
+<span class="lineNum">     200 </span>            :       0.5 / square(get(omega)) *
+<span class="lineNum">     201 </span>            :           (-get(gauge_c) * conj(get(*evolution_gauge_u)) +
+<span class="lineNum">     202 </span>            :            conj(get(gauge_d)) * get(*evolution_gauge_u)) +
+<span class="lineNum">     203 </span>            :       exp(2.0 * get(evolution_gauge_beta)) /
+<span class="lineNum">     204 </span>            :           (get(evolution_gauge_r) * get(omega)) *
+<span class="lineNum">     205 </span>            :           (conj(get(eth_omega)) * evolution_gauge_j -
+<span class="lineNum">     206 </span>            :            get(eth_omega) *
+<span class="lineNum">     207 </span>            :                sqrt(1.0 + evolution_gauge_j * conj(evolution_gauge_j)));
+<span class="lineNum">     208 </span>            : }
+<span class="lineNum">     209 </span>            : 
+<span class="lineNum">     210 </span>            : void GaugeAdjustedBoundaryValue&lt;Tags::BondiW&gt;::apply_impl(
+<span class="lineNum">     211 </span>            :     const gsl::not_null&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;*&gt; evolution_gauge_w,
+<span class="lineNum">     212 </span>            :     const SpinWeighted&lt;ComplexDataVector, 0&gt;&amp; cauchy_gauge_w,
+<span class="lineNum">     213 </span>            :     const SpinWeighted&lt;ComplexDataVector, 2&gt;&amp; volume_j,
+<span class="lineNum">     214 </span>            :     const SpinWeighted&lt;ComplexDataVector, 1&gt;&amp; evolution_gauge_u,
+<span class="lineNum">     215 </span>            :     const SpinWeighted&lt;ComplexDataVector, 0&gt;&amp; evolution_gauge_beta,
+<span class="lineNum">     216 </span>            :     const SpinWeighted&lt;ComplexDataVector, 1&gt;&amp; evolution_gauge_u_at_scri,
+<span class="lineNum">     217 </span>            :     const SpinWeighted&lt;ComplexDataVector, 0&gt;&amp; evolution_gauge_r,
+<span class="lineNum">     218 </span>            :     const SpinWeighted&lt;ComplexDataVector, 0&gt;&amp; omega,
+<span class="lineNum">     219 </span>            :     const SpinWeighted&lt;ComplexDataVector, 0&gt;&amp; du_omega,
+<span class="lineNum">     220 </span>            :     const SpinWeighted&lt;ComplexDataVector, 1&gt;&amp; eth_omega,
+<span class="lineNum">     221 </span>            :     const Spectral::Swsh::SwshInterpolator&amp; interpolator,
+<span class="lineNum">     222 </span>            :     const size_t l_max) noexcept {
+<span class="lineNum">     223 </span>            :   interpolator.interpolate(evolution_gauge_w, cauchy_gauge_w);
+<span class="lineNum">     224 </span>            : 
+<span class="lineNum">     225 </span>            :   const SpinWeighted&lt;ComplexDataVector, 2&gt; evolution_gauge_j;
+<span class="lineNum">     226 </span>            :   make_const_view(make_not_null(&amp;evolution_gauge_j), volume_j, 0,
+<span class="lineNum">     227 </span>            :                   Spectral::Swsh::number_of_swsh_collocation_points(l_max));
+<span class="lineNum">     228 </span>            : 
+<span class="lineNum">     229 </span>            :   // note that at this point in the computation `evolution_gauge_u` is \mathcal
+<span class="lineNum">     230 </span>            :   // U from the documentation, so
+<span class="lineNum">     231 </span>            :   // `evolution_gauge_u - evolution_gauge_u_at_scri`
+<span class="lineNum">     232 </span>            :   // is \mathcal U - \mathcal U^{(0)} = \hat U
+<span class="lineNum">     233 </span>            :   *evolution_gauge_w +=
+<span class="lineNum">     234 </span>            :       (omega - 1.0) / evolution_gauge_r - 2.0 * du_omega / omega -
+<span class="lineNum">     235 </span>            :       (conj(eth_omega) * (evolution_gauge_u - evolution_gauge_u_at_scri) +
+<span class="lineNum">     236 </span>            :        eth_omega * conj(evolution_gauge_u - evolution_gauge_u_at_scri)) /
+<span class="lineNum">     237 </span>            :           omega +
+<span class="lineNum">     238 </span>            :       0.5 * exp(2.0 * evolution_gauge_beta) /
+<span class="lineNum">     239 </span>            :           (square(omega) * evolution_gauge_r) *
+<span class="lineNum">     240 </span>            :           (square(conj(eth_omega)) * evolution_gauge_j +
+<span class="lineNum">     241 </span>            :            square(eth_omega) * conj(evolution_gauge_j) -
+<span class="lineNum">     242 </span>            :            2.0 * eth_omega * conj(eth_omega) *
+<span class="lineNum">     243 </span>            :                sqrt(1.0 + evolution_gauge_j * conj(evolution_gauge_j)));
+<span class="lineNum">     244 </span>            : }
+<span class="lineNum">     245 </span>            : 
+<span class="lineNum">     246 </span>            : void GaugeAdjustedBoundaryValue&lt;Tags::BondiH&gt;::apply_impl(
+<span class="lineNum">     247 </span>            :     const gsl::not_null&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;*&gt; evolution_gauge_h,
+<span class="lineNum">     248 </span>            :     const SpinWeighted&lt;ComplexDataVector, 2&gt;&amp; volume_j,
+<span class="lineNum">     249 </span>            :     const SpinWeighted&lt;ComplexDataVector, 2&gt;&amp; cauchy_gauge_du_j,
+<span class="lineNum">     250 </span>            :     const SpinWeighted&lt;ComplexDataVector, 2&gt;&amp; volume_dy_j,
+<span class="lineNum">     251 </span>            :     const SpinWeighted&lt;ComplexDataVector, 1&gt;&amp; evolution_gauge_u_at_scri,
+<span class="lineNum">     252 </span>            :     const SpinWeighted&lt;ComplexDataVector, 0&gt;&amp; evolution_gauge_r,
+<span class="lineNum">     253 </span>            :     const SpinWeighted&lt;ComplexDataVector, 2&gt;&amp; gauge_c,
+<span class="lineNum">     254 </span>            :     const SpinWeighted&lt;ComplexDataVector, 0&gt;&amp; gauge_d,
+<span class="lineNum">     255 </span>            :     const SpinWeighted&lt;ComplexDataVector, 0&gt;&amp; omega,
+<span class="lineNum">     256 </span>            :     const SpinWeighted&lt;ComplexDataVector, 0&gt;&amp; du_omega,
+<span class="lineNum">     257 </span>            :     const SpinWeighted&lt;ComplexDataVector, 1&gt;&amp; eth_omega,
+<span class="lineNum">     258 </span>            :     const SpinWeighted&lt;ComplexDataVector, 0&gt;&amp; evolution_gauge_du_r_divided_by_r,
+<span class="lineNum">     259 </span>            :     const Spectral::Swsh::SwshInterpolator&amp; interpolator,
+<span class="lineNum">     260 </span>            :     const size_t l_max) noexcept {
+<span class="lineNum">     261 </span>            :   // optimization note: this has several spin-weighted derivatives, they can
+<span class="lineNum">     262 </span>            :   // be aggregated
+<span class="lineNum">     263 </span>            : 
+<span class="lineNum">     264 </span>            :   const SpinWeighted&lt;ComplexDataVector, 2&gt; evolution_gauge_j;
+<span class="lineNum">     265 </span>            :   make_const_view(make_not_null(&amp;evolution_gauge_j), volume_j, 0,
+<span class="lineNum">     266 </span>            :                   Spectral::Swsh::number_of_swsh_collocation_points(l_max));
+<span class="lineNum">     267 </span>            : 
+<span class="lineNum">     268 </span>            :   const SpinWeighted&lt;ComplexDataVector, 2&gt; evolution_gauge_dy_j;
+<span class="lineNum">     269 </span>            :   make_const_view(make_not_null(&amp;evolution_gauge_dy_j), volume_dy_j, 0,
+<span class="lineNum">     270 </span>            :                   Spectral::Swsh::number_of_swsh_collocation_points(l_max));
+<span class="lineNum">     271 </span>            : 
+<span class="lineNum">     272 </span>            :   // optimization note: this allocation could potentially be moved to the
+<span class="lineNum">     273 </span>            :   // DataBox and this function would then have an additional pointer argument
+<span class="lineNum">     274 </span>            :   // for the buffer.
+<span class="lineNum">     275 </span>            :   Variables&lt;
+<span class="lineNum">     276 </span>            :       tmpl::list&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;0, ComplexDataVector&gt;,
+<span class="lineNum">     277 </span>            :                                       std::integral_constant&lt;int, 2&gt;&gt;,
+<span class="lineNum">     278 </span>            :                  ::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;1, ComplexDataVector&gt;,
+<span class="lineNum">     279 </span>            :                                       std::integral_constant&lt;int, 0&gt;&gt;,
+<span class="lineNum">     280 </span>            :                  ::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;2, ComplexDataVector&gt;,
+<span class="lineNum">     281 </span>            :                                       std::integral_constant&lt;int, 0&gt;&gt;,
+<span class="lineNum">     282 </span>            :                  ::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;3, ComplexDataVector&gt;,
+<span class="lineNum">     283 </span>            :                                       std::integral_constant&lt;int, 1&gt;&gt;,
+<span class="lineNum">     284 </span>            :                  ::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;4, ComplexDataVector&gt;,
+<span class="lineNum">     285 </span>            :                                       std::integral_constant&lt;int, 2&gt;&gt;,
+<span class="lineNum">     286 </span>            :                  ::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;5, ComplexDataVector&gt;,
+<span class="lineNum">     287 </span>            :                                       std::integral_constant&lt;int, 0&gt;&gt;,
+<span class="lineNum">     288 </span>            :                  ::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;6, ComplexDataVector&gt;,
+<span class="lineNum">     289 </span>            :                                       std::integral_constant&lt;int, 2&gt;&gt;,
+<span class="lineNum">     290 </span>            :                  ::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;7, ComplexDataVector&gt;,
+<span class="lineNum">     291 </span>            :                                       std::integral_constant&lt;int, 1&gt;&gt;,
+<span class="lineNum">     292 </span>            :                  ::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;8, ComplexDataVector&gt;,
+<span class="lineNum">     293 </span>            :                                       std::integral_constant&lt;int, 2&gt;&gt;,
+<span class="lineNum">     294 </span>            :                  ::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;9, ComplexDataVector&gt;,
+<span class="lineNum">     295 </span>            :                                       std::integral_constant&lt;int, 0&gt;&gt;,
+<span class="lineNum">     296 </span>            :                  ::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;10, ComplexDataVector&gt;,
+<span class="lineNum">     297 </span>            :                                       std::integral_constant&lt;int, 1&gt;&gt;&gt;&gt;
+<span class="lineNum">     298 </span>            :       computation_buffers{
+<span class="lineNum">     299 </span>            :           Spectral::Swsh::number_of_swsh_collocation_points(l_max)};
+<span class="lineNum">     300 </span>            : 
+<span class="lineNum">     301 </span>            :   auto&amp; interpolated_j =
+<span class="lineNum">     302 </span>            :       get(get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;0, ComplexDataVector&gt;,
+<span class="lineNum">     303 </span>            :                                    std::integral_constant&lt;int, 2&gt;&gt;&gt;(
+<span class="lineNum">     304 </span>            :           computation_buffers));
+<span class="lineNum">     305 </span>            :   interpolated_j =
+<span class="lineNum">     306 </span>            :       0.25 * (square(gauge_d) * evolution_gauge_j +
+<span class="lineNum">     307 </span>            :               square(gauge_c) * conj(evolution_gauge_j) -
+<span class="lineNum">     308 </span>            :               2.0 * gauge_c * gauge_d *
+<span class="lineNum">     309 </span>            :                   sqrt(1.0 + evolution_gauge_j * conj(evolution_gauge_j)));
+<span class="lineNum">     310 </span>            : 
+<span class="lineNum">     311 </span>            :   auto&amp; interpolated_k =
+<span class="lineNum">     312 </span>            :       get(get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;1, ComplexDataVector&gt;,
+<span class="lineNum">     313 </span>            :                                    std::integral_constant&lt;int, 0&gt;&gt;&gt;(
+<span class="lineNum">     314 </span>            :           computation_buffers));
+<span class="lineNum">     315 </span>            :   interpolated_k = sqrt(1.0 + interpolated_j * conj(interpolated_j));
+<span class="lineNum">     316 </span>            : 
+<span class="lineNum">     317 </span>            :   auto&amp; evolution_gauge_k =
+<span class="lineNum">     318 </span>            :       get(get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;2, ComplexDataVector&gt;,
+<span class="lineNum">     319 </span>            :                                    std::integral_constant&lt;int, 0&gt;&gt;&gt;(
+<span class="lineNum">     320 </span>            :           computation_buffers));
+<span class="lineNum">     321 </span>            :   evolution_gauge_k = sqrt(1.0 + evolution_gauge_j * conj(evolution_gauge_j));
+<span class="lineNum">     322 </span>            : 
+<span class="lineNum">     323 </span>            :   auto&amp; evolution_gauge_u_at_scri_bar_j =
+<span class="lineNum">     324 </span>            :       get(get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;3, ComplexDataVector&gt;,
+<span class="lineNum">     325 </span>            :                                    std::integral_constant&lt;int, 1&gt;&gt;&gt;(
+<span class="lineNum">     326 </span>            :           computation_buffers));
+<span class="lineNum">     327 </span>            :   evolution_gauge_u_at_scri_bar_j =
+<span class="lineNum">     328 </span>            :       conj(evolution_gauge_u_at_scri) * evolution_gauge_j;
+<span class="lineNum">     329 </span>            : 
+<span class="lineNum">     330 </span>            :   auto&amp; eth_evolution_gauge_u_at_scri_bar_j =
+<span class="lineNum">     331 </span>            :       get(get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;6, ComplexDataVector&gt;,
+<span class="lineNum">     332 </span>            :                                    std::integral_constant&lt;int, 2&gt;&gt;&gt;(
+<span class="lineNum">     333 </span>            :           computation_buffers));
+<span class="lineNum">     334 </span>            :   auto&amp; eth_evolution_gauge_r =
+<span class="lineNum">     335 </span>            :       get(get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;7, ComplexDataVector&gt;,
+<span class="lineNum">     336 </span>            :                                    std::integral_constant&lt;int, 1&gt;&gt;&gt;(
+<span class="lineNum">     337 </span>            :           computation_buffers));
+<span class="lineNum">     338 </span>            :   auto&amp; eth_evolution_gauge_u_at_scri =
+<span class="lineNum">     339 </span>            :       get(get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;8, ComplexDataVector&gt;,
+<span class="lineNum">     340 </span>            :                                    std::integral_constant&lt;int, 2&gt;&gt;&gt;(
+<span class="lineNum">     341 </span>            :           computation_buffers));
+<span class="lineNum">     342 </span>            :   auto&amp; ethbar_evolution_gauge_u_at_scri =
+<span class="lineNum">     343 </span>            :       get(get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;9, ComplexDataVector&gt;,
+<span class="lineNum">     344 </span>            :                                    std::integral_constant&lt;int, 0&gt;&gt;&gt;(
+<span class="lineNum">     345 </span>            :           computation_buffers));
+<span class="lineNum">     346 </span>            :   auto&amp; ethbar_evolution_gauge_j =
+<span class="lineNum">     347 </span>            :       get(get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;10, ComplexDataVector&gt;,
+<span class="lineNum">     348 </span>            :                                    std::integral_constant&lt;int, 1&gt;&gt;&gt;(
+<span class="lineNum">     349 </span>            :           computation_buffers));
+<span class="lineNum">     350 </span>            : 
+<span class="lineNum">     351 </span>            :   Spectral::Swsh::angular_derivatives&lt;
+<span class="lineNum">     352 </span>            :       tmpl::list&lt;Spectral::Swsh::Tags::Eth, Spectral::Swsh::Tags::Eth,
+<span class="lineNum">     353 </span>            :                  Spectral::Swsh::Tags::Eth, Spectral::Swsh::Tags::Ethbar,
+<span class="lineNum">     354 </span>            :                  Spectral::Swsh::Tags::Ethbar&gt;&gt;(
+<span class="lineNum">     355 </span>            :       l_max, 1, make_not_null(&amp;eth_evolution_gauge_u_at_scri_bar_j),
+<span class="lineNum">     356 </span>            :       make_not_null(&amp;eth_evolution_gauge_r),
+<span class="lineNum">     357 </span>            :       make_not_null(&amp;eth_evolution_gauge_u_at_scri),
+<span class="lineNum">     358 </span>            :       make_not_null(&amp;ethbar_evolution_gauge_u_at_scri),
+<span class="lineNum">     359 </span>            :       make_not_null(&amp;ethbar_evolution_gauge_j),
+<span class="lineNum">     360 </span>            :       evolution_gauge_u_at_scri_bar_j, evolution_gauge_r,
+<span class="lineNum">     361 </span>            :       evolution_gauge_u_at_scri, evolution_gauge_u_at_scri, evolution_gauge_j);
+<span class="lineNum">     362 </span>            : 
+<span class="lineNum">     363 </span>            :   auto&amp; evolution_gauge_u_at_scri_bar_eth_j =
+<span class="lineNum">     364 </span>            :       get(get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;4, ComplexDataVector&gt;,
+<span class="lineNum">     365 </span>            :                                    std::integral_constant&lt;int, 2&gt;&gt;&gt;(
+<span class="lineNum">     366 </span>            :           computation_buffers));
+<span class="lineNum">     367 </span>            :   // this is \bar{\mathcal U}^{(0)} \eth J, but we have to calculate it
+<span class="lineNum">     368 </span>            :   // using quantities of spin 2 or less.
+<span class="lineNum">     369 </span>            :   // note the conversion Jacobian for the angular derivative
+<span class="lineNum">     370 </span>            :   evolution_gauge_u_at_scri_bar_eth_j =
+<span class="lineNum">     371 </span>            :       eth_evolution_gauge_u_at_scri_bar_j -
+<span class="lineNum">     372 </span>            :       evolution_gauge_j * conj(ethbar_evolution_gauge_u_at_scri) -
+<span class="lineNum">     373 </span>            :       2.0 * conj(evolution_gauge_u_at_scri) * eth_evolution_gauge_r *
+<span class="lineNum">     374 </span>            :           (evolution_gauge_dy_j) / evolution_gauge_r;
+<span class="lineNum">     375 </span>            : 
+<span class="lineNum">     376 </span>            :   auto&amp; cauchy_du_omega =
+<span class="lineNum">     377 </span>            :       get(get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;5, ComplexDataVector&gt;,
+<span class="lineNum">     378 </span>            :                                    std::integral_constant&lt;int, 0&gt;&gt;&gt;(
+<span class="lineNum">     379 </span>            :           computation_buffers));
+<span class="lineNum">     380 </span>            :   cauchy_du_omega =
+<span class="lineNum">     381 </span>            :       du_omega - 0.5 * (evolution_gauge_u_at_scri * conj(eth_omega) +
+<span class="lineNum">     382 </span>            :                               conj(evolution_gauge_u_at_scri) * eth_omega);
+<span class="lineNum">     383 </span>            : 
+<span class="lineNum">     384 </span>            :   // Note that by necessity we use derivatives with respect to y, which are
+<span class="lineNum">     385 </span>            :   // related to derivatives with respect to r by
+<span class="lineNum">     386 </span>            :   // 2.0 / r \partial_y = \partial_r
+<span class="lineNum">     387 </span>            : 
+<span class="lineNum">     388 </span>            :   // Note also that when angular derivatives are taken numerically, they must be
+<span class="lineNum">     389 </span>            :   // corrected to the Bondi \eth with jacobians proportional to \eth R / R
+<span class="lineNum">     390 </span>            : 
+<span class="lineNum">     391 </span>            :   // `cauchy_du_omega` is \partial_u \hat \omega, determined by an angular
+<span class="lineNum">     392 </span>            :   // jacobian that depends on the \mathcal U^{(0)}.
+<span class="lineNum">     393 </span>            :   interpolator.interpolate(evolution_gauge_h, cauchy_gauge_du_j);
+<span class="lineNum">     394 </span>            :   *evolution_gauge_h =
+<span class="lineNum">     395 </span>            :       0.5 * (evolution_gauge_u_at_scri * ethbar_evolution_gauge_j -
+<span class="lineNum">     396 </span>            :              2.0 * evolution_gauge_u_at_scri * conj(eth_evolution_gauge_r) /
+<span class="lineNum">     397 </span>            :                  evolution_gauge_r * evolution_gauge_dy_j +
+<span class="lineNum">     398 </span>            :              evolution_gauge_u_at_scri_bar_eth_j) -
+<span class="lineNum">     399 </span>            :       2.0 * cauchy_du_omega / omega *
+<span class="lineNum">     400 </span>            :           (evolution_gauge_dy_j - evolution_gauge_j) -
+<span class="lineNum">     401 </span>            :       ethbar_evolution_gauge_u_at_scri * (evolution_gauge_j) +
+<span class="lineNum">     402 </span>            :       eth_evolution_gauge_u_at_scri * evolution_gauge_k +
+<span class="lineNum">     403 </span>            :       0.25 / square(omega) *
+<span class="lineNum">     404 </span>            :           (square(conj(gauge_d)) * *evolution_gauge_h +
+<span class="lineNum">     405 </span>            :            square(gauge_c) * conj(*evolution_gauge_h) +
+<span class="lineNum">     406 </span>            :            gauge_c * conj(gauge_d) *
+<span class="lineNum">     407 </span>            :                (*evolution_gauge_h * conj(interpolated_j) +
+<span class="lineNum">     408 </span>            :                 interpolated_j * conj(*evolution_gauge_h)) /
+<span class="lineNum">     409 </span>            :                interpolated_k) +
+<span class="lineNum">     410 </span>            :       2.0 * evolution_gauge_du_r_divided_by_r * (evolution_gauge_dy_j);
+<span class="lineNum">     411 </span>            : }
+<span class="lineNum">     412 </span>            : 
+<span class="lineNum">     413 </span>            : void GaugeUpdateTimeDerivatives::apply(
+<span class="lineNum">     414 </span>            :     const gsl::not_null&lt;tnsr::i&lt;DataVector, 3&gt;*&gt; cartesian_cauchy_du_x,
+<span class="lineNum">     415 </span>            :     const gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 1&gt;&gt;*&gt;
+<span class="lineNum">     416 </span>            :         evolution_gauge_u_at_scri,
+<span class="lineNum">     417 </span>            :     const gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 1&gt;&gt;*&gt; volume_u,
+<span class="lineNum">     418 </span>            :     const gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;*&gt; du_omega,
+<span class="lineNum">     419 </span>            :     const tnsr::i&lt;DataVector, 3&gt;&amp; cartesian_cauchy_coordinates,
+<span class="lineNum">     420 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; omega,
+<span class="lineNum">     421 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 1&gt;&gt;&amp; eth_omega,
+<span class="lineNum">     422 </span>            :     const size_t l_max) noexcept {
+<span class="lineNum">     423 </span>            :   const size_t number_of_angular_points =
+<span class="lineNum">     424 </span>            :       Spectral::Swsh::number_of_swsh_collocation_points(l_max);
+<span class="lineNum">     425 </span>            :   const size_t number_of_radial_points =
+<span class="lineNum">     426 </span>            :       get(*volume_u).size() / number_of_angular_points;
+<span class="lineNum">     427 </span>            : 
+<span class="lineNum">     428 </span>            :   const ComplexDataVector u_scri_view;
+<span class="lineNum">     429 </span>            :   make_const_view(make_not_null(&amp;u_scri_view), get(*volume_u).data(),
+<span class="lineNum">     430 </span>            :                   (number_of_radial_points - 1) * number_of_angular_points,
+<span class="lineNum">     431 </span>            :                   number_of_angular_points);
+<span class="lineNum">     432 </span>            : 
+<span class="lineNum">     433 </span>            :   get(*evolution_gauge_u_at_scri).data() = u_scri_view;
+<span class="lineNum">     434 </span>            : 
+<span class="lineNum">     435 </span>            :   for (size_t i = 0; i &lt; number_of_radial_points; ++i) {
+<span class="lineNum">     436 </span>            :     ComplexDataVector angular_view_u{
+<span class="lineNum">     437 </span>            :         get(*volume_u).data().data() +
+<span class="lineNum">     438 </span>            :             i * Spectral::Swsh::number_of_swsh_collocation_points(l_max),
+<span class="lineNum">     439 </span>            :         Spectral::Swsh::number_of_swsh_collocation_points(l_max)};
+<span class="lineNum">     440 </span>            :     angular_view_u -= get(*evolution_gauge_u_at_scri).data();
+<span class="lineNum">     441 </span>            :   }
+<span class="lineNum">     442 </span>            : 
+<span class="lineNum">     443 </span>            :   Variables&lt;
+<span class="lineNum">     444 </span>            :       tmpl::list&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;0, ComplexDataVector&gt;,
+<span class="lineNum">     445 </span>            :                                       std::integral_constant&lt;int, 0&gt;&gt;,
+<span class="lineNum">     446 </span>            :                  ::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;1, ComplexDataVector&gt;,
+<span class="lineNum">     447 </span>            :                                       std::integral_constant&lt;int, 0&gt;&gt;,
+<span class="lineNum">     448 </span>            :                  ::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;2, ComplexDataVector&gt;,
+<span class="lineNum">     449 </span>            :                                       std::integral_constant&lt;int, 0&gt;&gt;,
+<span class="lineNum">     450 </span>            :                  ::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;3, ComplexDataVector&gt;,
+<span class="lineNum">     451 </span>            :                                       std::integral_constant&lt;int, 1&gt;&gt;,
+<span class="lineNum">     452 </span>            :                  ::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;4, ComplexDataVector&gt;,
+<span class="lineNum">     453 </span>            :                                       std::integral_constant&lt;int, 1&gt;&gt;,
+<span class="lineNum">     454 </span>            :                  ::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;5, ComplexDataVector&gt;,
+<span class="lineNum">     455 </span>            :                                       std::integral_constant&lt;int, 1&gt;&gt;,
+<span class="lineNum">     456 </span>            :                  ::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;6, ComplexDataVector&gt;,
+<span class="lineNum">     457 </span>            :                                       std::integral_constant&lt;int, 2&gt;&gt;,
+<span class="lineNum">     458 </span>            :                  ::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;7, ComplexDataVector&gt;,
+<span class="lineNum">     459 </span>            :                                       std::integral_constant&lt;int, 0&gt;&gt;&gt;&gt;
+<span class="lineNum">     460 </span>            :       computation_buffers{number_of_angular_points};
+<span class="lineNum">     461 </span>            : 
+<span class="lineNum">     462 </span>            :   auto&amp; x =
+<span class="lineNum">     463 </span>            :       get(get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;0, ComplexDataVector&gt;,
+<span class="lineNum">     464 </span>            :                                    std::integral_constant&lt;int, 0&gt;&gt;&gt;(
+<span class="lineNum">     465 </span>            :           computation_buffers));
+<span class="lineNum">     466 </span>            :   auto&amp; y =
+<span class="lineNum">     467 </span>            :       get(get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;1, ComplexDataVector&gt;,
+<span class="lineNum">     468 </span>            :                                    std::integral_constant&lt;int, 0&gt;&gt;&gt;(
+<span class="lineNum">     469 </span>            :           computation_buffers));
+<span class="lineNum">     470 </span>            :   auto&amp; z =
+<span class="lineNum">     471 </span>            :       get(get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;2, ComplexDataVector&gt;,
+<span class="lineNum">     472 </span>            :                                    std::integral_constant&lt;int, 0&gt;&gt;&gt;(
+<span class="lineNum">     473 </span>            :           computation_buffers));
+<span class="lineNum">     474 </span>            :   // Switch to complex so we can take spin-weighted derivatives
+<span class="lineNum">     475 </span>            :   x.data() =
+<span class="lineNum">     476 </span>            :       std::complex&lt;double&gt;(1.0, 0.0) * get&lt;0&gt;(cartesian_cauchy_coordinates);
+<span class="lineNum">     477 </span>            :   y.data() =
+<span class="lineNum">     478 </span>            :       std::complex&lt;double&gt;(1.0, 0.0) * get&lt;1&gt;(cartesian_cauchy_coordinates);
+<span class="lineNum">     479 </span>            :   z.data() =
+<span class="lineNum">     480 </span>            :       std::complex&lt;double&gt;(1.0, 0.0) * get&lt;2&gt;(cartesian_cauchy_coordinates);
+<span class="lineNum">     481 </span>            : 
+<span class="lineNum">     482 </span>            :   auto&amp; eth_x =
+<span class="lineNum">     483 </span>            :       get(get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;3, ComplexDataVector&gt;,
+<span class="lineNum">     484 </span>            :                                    std::integral_constant&lt;int, 1&gt;&gt;&gt;(
+<span class="lineNum">     485 </span>            :           computation_buffers));
+<span class="lineNum">     486 </span>            :   auto&amp; eth_y =
+<span class="lineNum">     487 </span>            :       get(get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;4, ComplexDataVector&gt;,
+<span class="lineNum">     488 </span>            :                                    std::integral_constant&lt;int, 1&gt;&gt;&gt;(
+<span class="lineNum">     489 </span>            :           computation_buffers));
+<span class="lineNum">     490 </span>            :   auto&amp; eth_z =
+<span class="lineNum">     491 </span>            :       get(get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;5, ComplexDataVector&gt;,
+<span class="lineNum">     492 </span>            :                                    std::integral_constant&lt;int, 1&gt;&gt;&gt;(
+<span class="lineNum">     493 </span>            :           computation_buffers));
+<span class="lineNum">     494 </span>            :   auto&amp; eth_evolution_gauge_u_at_scri =
+<span class="lineNum">     495 </span>            :       get(get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;6, ComplexDataVector&gt;,
+<span class="lineNum">     496 </span>            :                                    std::integral_constant&lt;int, 2&gt;&gt;&gt;(
+<span class="lineNum">     497 </span>            :           computation_buffers));
+<span class="lineNum">     498 </span>            : 
+<span class="lineNum">     499 </span>            :   auto&amp; ethbar_evolution_gauge_u_at_scri =
+<span class="lineNum">     500 </span>            :       get(get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;7, ComplexDataVector&gt;,
+<span class="lineNum">     501 </span>            :                                    std::integral_constant&lt;int, 0&gt;&gt;&gt;(
+<span class="lineNum">     502 </span>            :           computation_buffers));
+<span class="lineNum">     503 </span>            :   Spectral::Swsh::angular_derivatives&lt;
+<span class="lineNum">     504 </span>            :       tmpl::list&lt;Spectral::Swsh::Tags::Eth, Spectral::Swsh::Tags::Eth,
+<span class="lineNum">     505 </span>            :                  Spectral::Swsh::Tags::Eth, Spectral::Swsh::Tags::Eth,
+<span class="lineNum">     506 </span>            :                  Spectral::Swsh::Tags::Ethbar&gt;&gt;(
+<span class="lineNum">     507 </span>            :       l_max, 1, make_not_null(&amp;eth_x), make_not_null(&amp;eth_y),
+<span class="lineNum">     508 </span>            :       make_not_null(&amp;eth_z), make_not_null(&amp;eth_evolution_gauge_u_at_scri),
+<span class="lineNum">     509 </span>            :       make_not_null(&amp;ethbar_evolution_gauge_u_at_scri), x, y, z,
+<span class="lineNum">     510 </span>            :       get(*evolution_gauge_u_at_scri), get(*evolution_gauge_u_at_scri));
+<span class="lineNum">     511 </span>            :   get&lt;0&gt;(*cartesian_cauchy_du_x) =
+<span class="lineNum">     512 </span>            :       real(conj(get(*evolution_gauge_u_at_scri).data()) * eth_x.data());
+<span class="lineNum">     513 </span>            :   get&lt;1&gt;(*cartesian_cauchy_du_x) =
+<span class="lineNum">     514 </span>            :       real(conj(get(*evolution_gauge_u_at_scri).data()) * eth_y.data());
+<span class="lineNum">     515 </span>            :   get&lt;2&gt;(*cartesian_cauchy_du_x) =
+<span class="lineNum">     516 </span>            :       real(conj(get(*evolution_gauge_u_at_scri).data()) * eth_z.data());
+<span class="lineNum">     517 </span>            : 
+<span class="lineNum">     518 </span>            :   get(*du_omega) =
+<span class="lineNum">     519 </span>            :       0.25 *
+<span class="lineNum">     520 </span>            :           (ethbar_evolution_gauge_u_at_scri +
+<span class="lineNum">     521 </span>            :            conj(ethbar_evolution_gauge_u_at_scri)) *
+<span class="lineNum">     522 </span>            :           get(omega) +
+<span class="lineNum">     523 </span>            :       0.5 * (get(*evolution_gauge_u_at_scri) * conj(get(eth_omega)) +
+<span class="lineNum">     524 </span>            :              conj(get(*evolution_gauge_u_at_scri)) * get(eth_omega));
+<span class="lineNum">     525 </span>            : }
+<span class="lineNum">     526 </span>            : 
+<span class="lineNum">     527 </span>            : namespace detail {
+<span class="lineNum">     528 </span>            : void gauge_update_jacobian_from_coordinates_apply_impl(
+<span class="lineNum">     529 </span>            :     const gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;*&gt;
+<span class="lineNum">     530 </span>            :         gauge_factor_spin_2,
+<span class="lineNum">     531 </span>            :     const gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;*&gt;
+<span class="lineNum">     532 </span>            :         gauge_factor_spin_0,
+<span class="lineNum">     533 </span>            :     const gsl::not_null&lt;
+<span class="lineNum">     534 </span>            :         tnsr::i&lt;DataVector, 2, ::Frame::Spherical&lt;::Frame::Inertial&gt;&gt;*&gt;
+<span class="lineNum">     535 </span>            :         angular_source_coordinates,
+<span class="lineNum">     536 </span>            :     const tnsr::i&lt;DataVector, 3&gt;&amp; cartesian_source_coordinates,
+<span class="lineNum">     537 </span>            :     const size_t l_max) noexcept {
+<span class="lineNum">     538 </span>            :   const size_t number_of_angular_points =
+<span class="lineNum">     539 </span>            :       Spectral::Swsh::number_of_swsh_collocation_points(l_max);
+<span class="lineNum">     540 </span>            :   Variables&lt;
+<span class="lineNum">     541 </span>            :       tmpl::list&lt;::Tags::TempiJ&lt;0, 3&gt;,
+<span class="lineNum">     542 </span>            :                  ::Tags::TempiJ&lt;0, 2, ::Frame::Spherical&lt;::Frame::Inertial&gt;&gt;&gt;&gt;
+<span class="lineNum">     543 </span>            :       tensor_buffers{number_of_angular_points};
+<span class="lineNum">     544 </span>            :   auto&amp; angular_derivative_cartesian_source_coordinates =
+<span class="lineNum">     545 </span>            :       get&lt;::Tags::TempiJ&lt;0, 3&gt;&gt;(tensor_buffers);
+<span class="lineNum">     546 </span>            :   auto&amp; angular_derivative_angular_source_coordinates =
+<span class="lineNum">     547 </span>            :       get&lt;::Tags::TempiJ&lt;0, 2, ::Frame::Spherical&lt;::Frame::Inertial&gt;&gt;&gt;(
+<span class="lineNum">     548 </span>            :           tensor_buffers);
+<span class="lineNum">     549 </span>            : 
+<span class="lineNum">     550 </span>            :   Variables&lt;
+<span class="lineNum">     551 </span>            :       tmpl::list&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;0, ComplexDataVector&gt;,
+<span class="lineNum">     552 </span>            :                                       std::integral_constant&lt;int, 0&gt;&gt;,
+<span class="lineNum">     553 </span>            :                  ::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;1, ComplexDataVector&gt;,
+<span class="lineNum">     554 </span>            :                                       std::integral_constant&lt;int, 0&gt;&gt;,
+<span class="lineNum">     555 </span>            :                  ::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;2, ComplexDataVector&gt;,
+<span class="lineNum">     556 </span>            :                                       std::integral_constant&lt;int, 0&gt;&gt;,
+<span class="lineNum">     557 </span>            :                  ::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;3, ComplexDataVector&gt;,
+<span class="lineNum">     558 </span>            :                                       std::integral_constant&lt;int, 1&gt;&gt;,
+<span class="lineNum">     559 </span>            :                  ::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;4, ComplexDataVector&gt;,
+<span class="lineNum">     560 </span>            :                                       std::integral_constant&lt;int, 1&gt;&gt;,
+<span class="lineNum">     561 </span>            :                  ::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;5, ComplexDataVector&gt;,
+<span class="lineNum">     562 </span>            :                                       std::integral_constant&lt;int, 1&gt;&gt;&gt;&gt;
+<span class="lineNum">     563 </span>            :       computation_buffers{number_of_angular_points};
+<span class="lineNum">     564 </span>            : 
+<span class="lineNum">     565 </span>            :   auto&amp; x =
+<span class="lineNum">     566 </span>            :       get(get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;0, ComplexDataVector&gt;,
+<span class="lineNum">     567 </span>            :                                    std::integral_constant&lt;int, 0&gt;&gt;&gt;(
+<span class="lineNum">     568 </span>            :           computation_buffers));
+<span class="lineNum">     569 </span>            :   auto&amp; y =
+<span class="lineNum">     570 </span>            :       get(get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;1, ComplexDataVector&gt;,
+<span class="lineNum">     571 </span>            :                                    std::integral_constant&lt;int, 0&gt;&gt;&gt;(
+<span class="lineNum">     572 </span>            :           computation_buffers));
+<span class="lineNum">     573 </span>            :   auto&amp; z =
+<span class="lineNum">     574 </span>            :       get(get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;2, ComplexDataVector&gt;,
+<span class="lineNum">     575 </span>            :                                    std::integral_constant&lt;int, 0&gt;&gt;&gt;(
+<span class="lineNum">     576 </span>            :           computation_buffers));
+<span class="lineNum">     577 </span>            :   // Switch to complex so we can take spin-weighted derivatives
+<span class="lineNum">     578 </span>            :   x.data() =
+<span class="lineNum">     579 </span>            :       std::complex&lt;double&gt;(1.0, 0.0) * get&lt;0&gt;(cartesian_source_coordinates);
+<span class="lineNum">     580 </span>            :   y.data() =
+<span class="lineNum">     581 </span>            :       std::complex&lt;double&gt;(1.0, 0.0) * get&lt;1&gt;(cartesian_source_coordinates);
+<span class="lineNum">     582 </span>            :   z.data() =
+<span class="lineNum">     583 </span>            :       std::complex&lt;double&gt;(1.0, 0.0) * get&lt;2&gt;(cartesian_source_coordinates);
+<span class="lineNum">     584 </span>            : 
+<span class="lineNum">     585 </span>            :   auto&amp; eth_x =
+<span class="lineNum">     586 </span>            :       get(get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;3, ComplexDataVector&gt;,
+<span class="lineNum">     587 </span>            :                                    std::integral_constant&lt;int, 1&gt;&gt;&gt;(
+<span class="lineNum">     588 </span>            :           computation_buffers));
+<span class="lineNum">     589 </span>            :   auto&amp; eth_y =
+<span class="lineNum">     590 </span>            :       get(get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;4, ComplexDataVector&gt;,
+<span class="lineNum">     591 </span>            :                                    std::integral_constant&lt;int, 1&gt;&gt;&gt;(
+<span class="lineNum">     592 </span>            :           computation_buffers));
+<span class="lineNum">     593 </span>            :   auto&amp; eth_z =
+<span class="lineNum">     594 </span>            :       get(get&lt;::Tags::SpinWeighted&lt;::Tags::TempScalar&lt;5, ComplexDataVector&gt;,
+<span class="lineNum">     595 </span>            :                                    std::integral_constant&lt;int, 1&gt;&gt;&gt;(
+<span class="lineNum">     596 </span>            :           computation_buffers));
+<span class="lineNum">     597 </span>            :   Spectral::Swsh::angular_derivatives&lt;
+<span class="lineNum">     598 </span>            :       tmpl::list&lt;Spectral::Swsh::Tags::Eth, Spectral::Swsh::Tags::Eth,
+<span class="lineNum">     599 </span>            :                  Spectral::Swsh::Tags::Eth&gt;&gt;(l_max, 1, make_not_null(&amp;eth_x),
+<span class="lineNum">     600 </span>            :                                              make_not_null(&amp;eth_y),
+<span class="lineNum">     601 </span>            :                                              make_not_null(&amp;eth_z), x, y, z);
+<span class="lineNum">     602 </span>            :   get&lt;0, 0&gt;(angular_derivative_cartesian_source_coordinates) =
+<span class="lineNum">     603 </span>            :       -real(eth_x.data());
+<span class="lineNum">     604 </span>            :   get&lt;1, 0&gt;(angular_derivative_cartesian_source_coordinates) =
+<span class="lineNum">     605 </span>            :       -imag(eth_x.data());
+<span class="lineNum">     606 </span>            :   get&lt;0, 1&gt;(angular_derivative_cartesian_source_coordinates) =
+<span class="lineNum">     607 </span>            :       -real(eth_y.data());
+<span class="lineNum">     608 </span>            :   get&lt;1, 1&gt;(angular_derivative_cartesian_source_coordinates) =
+<span class="lineNum">     609 </span>            :       -imag(eth_y.data());
+<span class="lineNum">     610 </span>            :   get&lt;0, 2&gt;(angular_derivative_cartesian_source_coordinates) =
+<span class="lineNum">     611 </span>            :       -real(eth_z.data());
+<span class="lineNum">     612 </span>            :   get&lt;1, 2&gt;(angular_derivative_cartesian_source_coordinates) =
+<span class="lineNum">     613 </span>            :       -imag(eth_z.data());
+<span class="lineNum">     614 </span>            : 
+<span class="lineNum">     615 </span>            :   for (size_t i = 0; i &lt; 2; ++i) {
+<span class="lineNum">     616 </span>            :     angular_derivative_angular_source_coordinates.get(i, 0) =
+<span class="lineNum">     617 </span>            :         cos(get&lt;1&gt;(*angular_source_coordinates)) *
+<span class="lineNum">     618 </span>            :             cos(get&lt;0&gt;(*angular_source_coordinates)) *
+<span class="lineNum">     619 </span>            :             angular_derivative_cartesian_source_coordinates.get(i, 0) +
+<span class="lineNum">     620 </span>            :         cos(get&lt;0&gt;(*angular_source_coordinates)) *
+<span class="lineNum">     621 </span>            :             sin(get&lt;1&gt;(*angular_source_coordinates)) *
+<span class="lineNum">     622 </span>            :             angular_derivative_cartesian_source_coordinates.get(i, 1) -
+<span class="lineNum">     623 </span>            :         sin(get&lt;0&gt;(*angular_source_coordinates)) *
+<span class="lineNum">     624 </span>            :             angular_derivative_cartesian_source_coordinates.get(i, 2);
+<span class="lineNum">     625 </span>            :     angular_derivative_angular_source_coordinates.get(i, 1) =
+<span class="lineNum">     626 </span>            :         -sin(get&lt;1&gt;(*angular_source_coordinates)) *
+<span class="lineNum">     627 </span>            :             angular_derivative_cartesian_source_coordinates.get(i, 0) +
+<span class="lineNum">     628 </span>            :         cos(get&lt;1&gt;(*angular_source_coordinates)) *
+<span class="lineNum">     629 </span>            :             angular_derivative_cartesian_source_coordinates.get(i, 1);
+<span class="lineNum">     630 </span>            :   }
+<span class="lineNum">     631 </span>            : 
+<span class="lineNum">     632 </span>            :   // in the standard evaluation, this is \hat c
+<span class="lineNum">     633 </span>            :   get(*gauge_factor_spin_2).data() =
+<span class="lineNum">     634 </span>            :       std::complex&lt;double&gt;(1.0, 0.0) *
+<span class="lineNum">     635 </span>            :           (get&lt;0, 0&gt;(angular_derivative_angular_source_coordinates) -
+<span class="lineNum">     636 </span>            :            get&lt;1, 1&gt;(angular_derivative_angular_source_coordinates)) +
+<span class="lineNum">     637 </span>            :       std::complex&lt;double&gt;(0.0, 1.0) *
+<span class="lineNum">     638 </span>            :           (get&lt;1, 0&gt;(angular_derivative_angular_source_coordinates) +
+<span class="lineNum">     639 </span>            :            get&lt;0, 1&gt;(angular_derivative_angular_source_coordinates));
+<span class="lineNum">     640 </span>            :   // in the standard evaluation, this is \hat d
+<span class="lineNum">     641 </span>            :   get(*gauge_factor_spin_0).data() =
+<span class="lineNum">     642 </span>            :       std::complex&lt;double&gt;(1.0, 0.0) *
+<span class="lineNum">     643 </span>            :           (get&lt;0, 0&gt;(angular_derivative_angular_source_coordinates) +
+<span class="lineNum">     644 </span>            :            get&lt;1, 1&gt;(angular_derivative_angular_source_coordinates)) +
+<span class="lineNum">     645 </span>            :       std::complex&lt;double&gt;(0.0, 1.0) *
+<span class="lineNum">     646 </span>            :           (-get&lt;1, 0&gt;(angular_derivative_angular_source_coordinates) +
+<span class="lineNum">     647 </span>            :            get&lt;0, 1&gt;(angular_derivative_angular_source_coordinates));
+<span class="lineNum">     648 </span>            : }
+<span class="lineNum">     649 </span>            : }  // namespace detail
+<span class="lineNum">     650 </span>            : 
+<span class="lineNum">     651 </span>            : void GaugeUpdateOmega::apply(
+<span class="lineNum">     652 </span>            :     const gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;*&gt; omega,
+<span class="lineNum">     653 </span>            :     const gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 1&gt;&gt;*&gt; eth_omega,
+<span class="lineNum">     654 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;&amp; gauge_c,
+<span class="lineNum">     655 </span>            :     const Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;&amp; gauge_d,
+<span class="lineNum">     656 </span>            :     const size_t l_max) noexcept {
+<span class="lineNum">     657 </span>            :   get(*omega) = 0.5 * sqrt(get(gauge_d).data() * conj(get(gauge_d).data()) -
+<span class="lineNum">     658 </span>            :                            get(gauge_c).data() * conj(get(gauge_c).data()));
+<span class="lineNum">     659 </span>            : 
+<span class="lineNum">     660 </span>            :   Spectral::Swsh::angular_derivatives&lt;tmpl::list&lt;Spectral::Swsh::Tags::Eth&gt;&gt;(
+<span class="lineNum">     661 </span>            :       l_max, 1, make_not_null(&amp;get(*eth_omega)), get(*omega));
+<span class="lineNum">     662 </span>            : }
+<span class="lineNum">     663 </span>            : 
+<span class="lineNum">     664 </span>            : void InitializeGauge::apply(
+<span class="lineNum">     665 </span>            :     const gsl::not_null&lt;
+<span class="lineNum">     666 </span>            :         tnsr::i&lt;DataVector, 2, ::Frame::Spherical&lt;::Frame::Inertial&gt;&gt;*&gt;
+<span class="lineNum">     667 </span>            :         angular_cauchy_coordinates,
+<span class="lineNum">     668 </span>            :     const gsl::not_null&lt;tnsr::i&lt;DataVector, 3&gt;*&gt; cartesian_cauchy_coordinates,
+<span class="lineNum">     669 </span>            :     const gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 2&gt;&gt;*&gt; gauge_c,
+<span class="lineNum">     670 </span>            :     const gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;*&gt; gauge_d,
+<span class="lineNum">     671 </span>            :     const gsl::not_null&lt;Scalar&lt;SpinWeighted&lt;ComplexDataVector, 0&gt;&gt;*&gt; omega,
+<span class="lineNum">     672 </span>            :     const size_t l_max) noexcept {
+<span class="lineNum">     673 </span>            :   const auto&amp; collocation = Spectral::Swsh::cached_collocation_metadata&lt;
+<span class="lineNum">     674 </span>            :       Spectral::Swsh::ComplexRepresentation::Interleaved&gt;(l_max);
+<span class="lineNum">     675 </span>            :   for (const auto&amp; collocation_point : collocation) {
+<span class="lineNum">     676 </span>            :     get&lt;0&gt;(*angular_cauchy_coordinates)[collocation_point.offset] =
+<span class="lineNum">     677 </span>            :         collocation_point.theta;
+<span class="lineNum">     678 </span>            :     get&lt;1&gt;(*angular_cauchy_coordinates)[collocation_point.offset] =
+<span class="lineNum">     679 </span>            :         collocation_point.phi;
+<span class="lineNum">     680 </span>            :   }
+<span class="lineNum">     681 </span>            :   get&lt;0&gt;(*cartesian_cauchy_coordinates) =
+<span class="lineNum">     682 </span>            :       sin(get&lt;0&gt;(*angular_cauchy_coordinates)) *
+<span class="lineNum">     683 </span>            :       cos(get&lt;1&gt;(*angular_cauchy_coordinates));
+<span class="lineNum">     684 </span>            :   get&lt;1&gt;(*cartesian_cauchy_coordinates) =
+<span class="lineNum">     685 </span>            :       sin(get&lt;0&gt;(*angular_cauchy_coordinates)) *
+<span class="lineNum">     686 </span>            :       sin(get&lt;1&gt;(*angular_cauchy_coordinates));
+<span class="lineNum">     687 </span>            :   get&lt;2&gt;(*cartesian_cauchy_coordinates) =
+<span class="lineNum">     688 </span>            :       cos(get&lt;0&gt;(*angular_cauchy_coordinates));
+<span class="lineNum">     689 </span>            :   get(*omega).data() = 1.0;
+<span class="lineNum">     690 </span>            :   get(*gauge_c).data() = 0.0;
+<span class="lineNum">     691 </span>            :   get(*gauge_d).data() = 2.0;
+<span class="lineNum">     692 </span>            : }
+<span class="lineNum">     693 </span>            : 
+<span class="lineNum">     694 </span>            : }  // namespace Cce
+<span class="lineNum">     695 </span>            : 
+<span class="lineNum">     696 </span>            : /// \endcond
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

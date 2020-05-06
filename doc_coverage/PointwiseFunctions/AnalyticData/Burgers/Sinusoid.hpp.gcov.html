@@ -1,0 +1,199 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - PointwiseFunctions/AnalyticData/Burgers/Sinusoid.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../index.html">top level</a> - <a href="index.html">PointwiseFunctions/AnalyticData/Burgers</a> - Sinusoid.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntry">13</td>
+            <td class="headerCovTableEntryLo">7.7 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #pragma once
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &quot;DataStructures/DataBox/Prefixes.hpp&quot;  // IWYU pragma: keep
+<span class="lineNum">       7 </span>            : #include &quot;DataStructures/Tensor/TypeAliases.hpp&quot;
+<span class="lineNum">       8 </span>            : #include &quot;Evolution/Systems/Burgers/Tags.hpp&quot;  // IWYU pragma: keep
+<span class="lineNum">       9 </span>            : #include &quot;Options/Options.hpp&quot;
+<span class="lineNum">      10 </span>            : #include &quot;Utilities/TMPL.hpp&quot;
+<span class="lineNum">      11 </span>            : #include &quot;Utilities/TaggedTuple.hpp&quot;
+<span class="lineNum">      12 </span>            : 
+<span class="lineNum">      13 </span>            : /// \cond
+<span class="lineNum">      14 </span>            : class DataVector;
+<span class="lineNum">      15 </span>            : // IWYU pragma: no_forward_declare Tensor
+<span class="lineNum">      16 </span>            : namespace PUP {
+<span class="lineNum">      17 </span>            : class er;
+<span class="lineNum">      18 </span>            : }  // namespace PUP
+<span class="lineNum">      19 </span>            : /// \endcond
+<span class="lineNum">      20 </span>            : 
+<span class="lineNum">      21 </span>            : namespace Burgers {
+<span class="lineNum">      22 </span>            : namespace AnalyticData {
+<span class="lineNum">      23 </span>            : /*!
+<span class="lineNum">      24 </span>            :  * \brief Analytic data (with an &quot;exact&quot; solution known) that is periodic over
+<span class="lineNum">      25 </span>            :  * the interval \f$[0,2\pi]\f$.
+<span class="lineNum">      26 </span>            :  *
+<span class="lineNum">      27 </span>            :  * The initial data is given by:
+<span class="lineNum">      28 </span>            :  *
+<span class="lineNum">      29 </span>            :  * \f{align}{
+<span class="lineNum">      30 </span>            :  *   u(x, 0) = \sin(x)
+<span class="lineNum">      31 </span>            :  * \f}
+<span class="lineNum">      32 </span>            :  *
+<span class="lineNum">      33 </span>            :  * At future times the analytic solution can be found by solving the
+<span class="lineNum">      34 </span>            :  * transcendental equation \cite Harten19973
+<span class="lineNum">      35 </span>            :  *
+<span class="lineNum">      36 </span>            :  * \f{align}{
+<span class="lineNum">      37 </span>            :  *   \label{eq:transcendental burgers periodic}
+<span class="lineNum">      38 </span>            :  *   \mathcal{F}=\sin\left(x-\mathcal{F}t\right)
+<span class="lineNum">      39 </span>            :  * \f}
+<span class="lineNum">      40 </span>            :  *
+<span class="lineNum">      41 </span>            :  * on the interval \f$x\in(0,\pi)\f$. The solution from \f$x\in(\pi,2\pi)\f$ is
+<span class="lineNum">      42 </span>            :  * given by \f$\mathcal{F}(x, t)=-\mathcal{F}(2\pi-x,t)\f$. The transcendental
+<span class="lineNum">      43 </span>            :  * equation \f$(\ref{eq:transcendental burgers periodic})\f$ can be solved with
+<span class="lineNum">      44 </span>            :  * a Newton-Raphson iterative scheme. Since this can be quite sensitive to the
+<span class="lineNum">      45 </span>            :  * initial guess we implement this solution as analytic data. The python code
+<span class="lineNum">      46 </span>            :  * below can be used to compute the analytic solution if desired.
+<span class="lineNum">      47 </span>            :  *
+<span class="lineNum">      48 </span>            :  * At time \f$1\f$ the solution develops a discontinuity at \f$x=\pi\f$ followed
+<span class="lineNum">      49 </span>            :  * by the amplitude of the solution decaying over time.
+<span class="lineNum">      50 </span>            :  *
+<span class="lineNum">      51 </span>            :  * \note We have rescaled \f$x\f$ and \f$t\f$ by \f$\pi\f$ compared to
+<span class="lineNum">      52 </span>            :  * \cite Harten19973.
+<span class="lineNum">      53 </span>            :  *
+<span class="lineNum">      54 </span>            :  * \code{py}
+<span class="lineNum">      55 </span>            :    import numpy as np
+<span class="lineNum">      56 </span>            :    from scipy.optimize import newton
+<span class="lineNum">      57 </span>            : 
+<span class="lineNum">      58 </span>            :    # x_grid is a np.array of positions at which to evaluate the solution
+<span class="lineNum">      59 </span>            :    def burgers_periodic(x_grid, time):
+<span class="lineNum">      60 </span>            :        def opt_fun(F, x, t):
+<span class="lineNum">      61 </span>            :            return np.sin((x - F * t)) - F
+<span class="lineNum">      62 </span>            : 
+<span class="lineNum">      63 </span>            :        results = []
+<span class="lineNum">      64 </span>            :        for i in range(len(x_grid)):
+<span class="lineNum">      65 </span>            :            x = x_grid[i]
+<span class="lineNum">      66 </span>            :            greater_than_pi = False
+<span class="lineNum">      67 </span>            :            if x &gt; np.pi:
+<span class="lineNum">      68 </span>            :                x = x - np.pi
+<span class="lineNum">      69 </span>            :                x = -x
+<span class="lineNum">      70 </span>            :                x = x + np.pi
+<span class="lineNum">      71 </span>            :                greater_than_pi = True
+<span class="lineNum">      72 </span>            : 
+<span class="lineNum">      73 </span>            :            guess = 0.0
+<span class="lineNum">      74 </span>            :            if len(results) &gt; 0:
+<span class="lineNum">      75 </span>            :                if results[-1] &lt; 0.0:
+<span class="lineNum">      76 </span>            :                    guess = -results[-1]
+<span class="lineNum">      77 </span>            :                else:
+<span class="lineNum">      78 </span>            :                    guess = results[-1]
+<span class="lineNum">      79 </span>            :            res = newton(lambda F: opt_fun(F, x, time), x0=guess)
+<span class="lineNum">      80 </span>            : 
+<span class="lineNum">      81 </span>            :            if greater_than_pi:
+<span class="lineNum">      82 </span>            :                results.append(-res)
+<span class="lineNum">      83 </span>            :            else:
+<span class="lineNum">      84 </span>            :                results.append(res)
+<span class="lineNum">      85 </span>            : 
+<span class="lineNum">      86 </span>            :        return np.asarray(results)
+<span class="lineNum">      87 </span>            :  * \endcode
+<span class="lineNum">      88 </span>            :  */
+<span class="lineNum">      89 </span><span class="lineCov">          1 : class Sinusoid {</span>
+<span class="lineNum">      90 </span>            :  public:
+<span class="lineNum">      91 </span><span class="lineNoCov">          0 :   using options = tmpl::list&lt;&gt;;</span>
+<span class="lineNum">      92 </span><span class="lineNoCov">          0 :   static constexpr OptionString help{</span>
+<span class="lineNum">      93 </span>            :       &quot;A solution that is periodic over the interval [0,2pi]. The solution &quot;
+<span class="lineNum">      94 </span>            :       &quot;starts as a sinusoid: u(x,0) = sin(x) and develops a &quot;
+<span class="lineNum">      95 </span>            :       &quot;discontinuity at x=pi and t=1.&quot;};
+<span class="lineNum">      96 </span>            : 
+<span class="lineNum">      97 </span><span class="lineNoCov">          0 :   Sinusoid() = default;</span>
+<span class="lineNum">      98 </span><span class="lineNoCov">          0 :   Sinusoid(const Sinusoid&amp;) noexcept = default;</span>
+<span class="lineNum">      99 </span><span class="lineNoCov">          0 :   Sinusoid&amp; operator=(const Sinusoid&amp;) noexcept = default;</span>
+<span class="lineNum">     100 </span><span class="lineNoCov">          0 :   Sinusoid(Sinusoid&amp;&amp;) noexcept = default;</span>
+<span class="lineNum">     101 </span><span class="lineNoCov">          0 :   Sinusoid&amp; operator=(Sinusoid&amp;&amp;) noexcept = default;</span>
+<span class="lineNum">     102 </span><span class="lineNoCov">          0 :   ~Sinusoid() noexcept = default;</span>
+<span class="lineNum">     103 </span>            : 
+<span class="lineNum">     104 </span>            :   template &lt;typename T&gt;
+<span class="lineNum">     105 </span><span class="lineNoCov">          0 :   Scalar&lt;T&gt; u(const tnsr::I&lt;T, 1&gt;&amp; x) const noexcept;</span>
+<span class="lineNum">     106 </span>            : 
+<span class="lineNum">     107 </span><span class="lineNoCov">          0 :   tuples::TaggedTuple&lt;Tags::U&gt; variables(const tnsr::I&lt;DataVector, 1&gt;&amp; x,</span>
+<span class="lineNum">     108 </span>            :                                          tmpl::list&lt;Tags::U&gt; /*meta*/) const
+<span class="lineNum">     109 </span>            :       noexcept;
+<span class="lineNum">     110 </span>            : 
+<span class="lineNum">     111 </span>            :   // clang-tidy: no pass by reference
+<span class="lineNum">     112 </span><span class="lineNoCov">          0 :   void pup(PUP::er&amp; p) noexcept;  // NOLINT</span>
+<span class="lineNum">     113 </span>            : };
+<span class="lineNum">     114 </span>            : 
+<span class="lineNum">     115 </span>            : bool operator==(const Sinusoid&amp; /*lhs*/, const Sinusoid&amp; /*rhs*/) noexcept;
+<span class="lineNum">     116 </span>            : 
+<span class="lineNum">     117 </span>            : bool operator!=(const Sinusoid&amp; lhs, const Sinusoid&amp; rhs) noexcept;
+<span class="lineNum">     118 </span>            : }  // namespace AnalyticData
+<span class="lineNum">     119 </span>            : }  // namespace Burgers
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

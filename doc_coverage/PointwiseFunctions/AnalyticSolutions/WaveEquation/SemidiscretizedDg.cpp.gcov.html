@@ -1,0 +1,241 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - PointwiseFunctions/AnalyticSolutions/WaveEquation/SemidiscretizedDg.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../index.html">top level</a> - <a href="index.html">PointwiseFunctions/AnalyticSolutions/WaveEquation</a> - SemidiscretizedDg.cpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">5</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #include &quot;PointwiseFunctions/AnalyticSolutions/WaveEquation/SemidiscretizedDg.hpp&quot;
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;cmath&gt;
+<span class="lineNum">       7 </span>            : #include &lt;complex&gt;
+<span class="lineNum">       8 </span>            : #include &lt;cstddef&gt;
+<span class="lineNum">       9 </span>            : #include &lt;pup.h&gt;
+<span class="lineNum">      10 </span>            : #include &lt;utility&gt;
+<span class="lineNum">      11 </span>            : 
+<span class="lineNum">      12 </span>            : #include &quot;DataStructures/ComplexDataVector.hpp&quot;
+<span class="lineNum">      13 </span>            : #include &quot;DataStructures/DataVector.hpp&quot;
+<span class="lineNum">      14 </span>            : #include &quot;ErrorHandling/Error.hpp&quot;
+<span class="lineNum">      15 </span>            : #include &quot;Parallel/PupStlCpp11.hpp&quot;
+<span class="lineNum">      16 </span>            : #include &quot;Utilities/Gsl.hpp&quot;
+<span class="lineNum">      17 </span>            : #include &quot;Utilities/TMPL.hpp&quot;
+<span class="lineNum">      18 </span>            : #include &quot;Utilities/TaggedTuple.hpp&quot;
+<span class="lineNum">      19 </span>            : 
+<span class="lineNum">      20 </span>            : // IWYU pragma: no_forward_declare Tensor
+<span class="lineNum">      21 </span>            : 
+<span class="lineNum">      22 </span>            : namespace ScalarWave {
+<span class="lineNum">      23 </span>            : namespace Solutions {
+<span class="lineNum">      24 </span>            : SemidiscretizedDg::SemidiscretizedDg(
+<span class="lineNum">      25 </span>            :     const int harmonic, const std::array&lt;double, 4&gt;&amp; amplitudes) noexcept
+<span class="lineNum">      26 </span>            :     : harmonic_(harmonic), amplitudes_(amplitudes) {}
+<span class="lineNum">      27 </span>            : 
+<span class="lineNum">      28 </span><span class="lineNoCov">          0 : namespace {</span>
+<span class="lineNum">      29 </span>            : struct Mode {
+<span class="lineNum">      30 </span><span class="lineNoCov">          0 :   std::complex&lt;double&gt; frequency;</span>
+<span class="lineNum">      31 </span><span class="lineNoCov">          0 :   ComplexDataVector pi_coefficients{2};</span>
+<span class="lineNum">      32 </span><span class="lineNoCov">          0 :   ComplexDataVector phi_coefficients{2};</span>
+<span class="lineNum">      33 </span>            : };
+<span class="lineNum">      34 </span>            : 
+<span class="lineNum">      35 </span>            : std::array&lt;Mode, 4&gt; get_modes(const tnsr::I&lt;DataVector, 1&gt;&amp; x,
+<span class="lineNum">      36 </span>            :                               const int harmonic) noexcept {
+<span class="lineNum">      37 </span>            :   using namespace std::complex_literals;
+<span class="lineNum">      38 </span>            : 
+<span class="lineNum">      39 </span>            :   if (get&lt;0&gt;(x).size() != 2) {
+<span class="lineNum">      40 </span>            :     ERROR(&quot;SemidiscretizedDg solution only supports linear elements.&quot;);
+<span class="lineNum">      41 </span>            :   }
+<span class="lineNum">      42 </span>            : 
+<span class="lineNum">      43 </span>            :   const double element_length = get&lt;0&gt;(x)[1] - get&lt;0&gt;(x)[0];
+<span class="lineNum">      44 </span>            :   // Phase change across an element
+<span class="lineNum">      45 </span>            :   const double element_phase = harmonic * element_length;
+<span class="lineNum">      46 </span>            : 
+<span class="lineNum">      47 </span>            :   std::array&lt;Mode, 4&gt; result;
+<span class="lineNum">      48 </span>            :   {
+<span class="lineNum">      49 </span>            :     std::complex&lt;double&gt; one_plus_i_omega =
+<span class="lineNum">      50 </span>            :         sqrt(2.0 * exp(1.0i * element_phase) - 1.0);
+<span class="lineNum">      51 </span>            :     {
+<span class="lineNum">      52 </span>            :       Mode&amp; mode = result[0];
+<span class="lineNum">      53 </span>            :       // Same as
+<span class="lineNum">      54 </span>            :       //   mode.frequency = 1.0i * (1.0 - one_plus_i_omega) / element_length
+<span class="lineNum">      55 </span>            :       // but better behaved as one_plus_i_omega -&gt; 1
+<span class="lineNum">      56 </span>            :       mode.frequency = 4.0 * sin(element_phase) /
+<span class="lineNum">      57 </span>            :                        ((1.0 + exp(-1.0i * element_phase)) *
+<span class="lineNum">      58 </span>            :                         (1.0 + one_plus_i_omega) * element_length);
+<span class="lineNum">      59 </span>            :       mode.pi_coefficients[0] = sqrt(1.0 / one_plus_i_omega);
+<span class="lineNum">      60 </span>            :       mode.pi_coefficients[1] = 1.0 / mode.pi_coefficients[0];
+<span class="lineNum">      61 </span>            :       mode.phi_coefficients = -mode.pi_coefficients;
+<span class="lineNum">      62 </span>            :     }
+<span class="lineNum">      63 </span>            :     {
+<span class="lineNum">      64 </span>            :       Mode&amp; mode = result[1];
+<span class="lineNum">      65 </span>            :       mode.frequency = 1.0i * (1.0 + one_plus_i_omega) / element_length;
+<span class="lineNum">      66 </span>            :       mode.pi_coefficients[0] = sqrt(1.0 / one_plus_i_omega);
+<span class="lineNum">      67 </span>            :       mode.pi_coefficients[1] = -1.0 / mode.pi_coefficients[0];
+<span class="lineNum">      68 </span>            :       mode.phi_coefficients = -mode.pi_coefficients;
+<span class="lineNum">      69 </span>            :     }
+<span class="lineNum">      70 </span>            :   }
+<span class="lineNum">      71 </span>            :   {
+<span class="lineNum">      72 </span>            :     std::complex&lt;double&gt; one_plus_i_omega =
+<span class="lineNum">      73 </span>            :         sqrt(2.0 * exp(-1.0i * element_phase) - 1.0);
+<span class="lineNum">      74 </span>            :     {
+<span class="lineNum">      75 </span>            :       Mode&amp; mode = result[2];
+<span class="lineNum">      76 </span>            :       // Same as
+<span class="lineNum">      77 </span>            :       //   mode.frequency = 1.0i * (1.0 - one_plus_i_omega) / element_length
+<span class="lineNum">      78 </span>            :       // but better behaved as one_plus_i_omega -&gt; 1
+<span class="lineNum">      79 </span>            :       mode.frequency = -4.0 * sin(element_phase) /
+<span class="lineNum">      80 </span>            :                        ((1.0 + exp(1.0i * element_phase)) *
+<span class="lineNum">      81 </span>            :                         (1.0 + one_plus_i_omega) * element_length);
+<span class="lineNum">      82 </span>            :       mode.pi_coefficients[0] = sqrt(one_plus_i_omega);
+<span class="lineNum">      83 </span>            :       mode.pi_coefficients[1] = 1.0 / mode.pi_coefficients[0];
+<span class="lineNum">      84 </span>            :       mode.phi_coefficients = mode.pi_coefficients;
+<span class="lineNum">      85 </span>            :     }
+<span class="lineNum">      86 </span>            :     {
+<span class="lineNum">      87 </span>            :       Mode&amp; mode = result[3];
+<span class="lineNum">      88 </span>            :       mode.frequency = 1.0i * (1.0 + one_plus_i_omega) / element_length;
+<span class="lineNum">      89 </span>            :       mode.pi_coefficients[0] = sqrt(one_plus_i_omega);
+<span class="lineNum">      90 </span>            :       mode.pi_coefficients[1] = -1.0 / mode.pi_coefficients[0];
+<span class="lineNum">      91 </span>            :       mode.phi_coefficients = mode.pi_coefficients;
+<span class="lineNum">      92 </span>            :     }
+<span class="lineNum">      93 </span>            :   }
+<span class="lineNum">      94 </span>            :   return result;
+<span class="lineNum">      95 </span>            : }
+<span class="lineNum">      96 </span>            : }  // namespace
+<span class="lineNum">      97 </span>            : 
+<span class="lineNum">      98 </span>            : tuples::TaggedTuple&lt;ScalarWave::Pi&gt; SemidiscretizedDg::variables(
+<span class="lineNum">      99 </span>            :     const tnsr::I&lt;DataVector, 1&gt;&amp; x, double t,
+<span class="lineNum">     100 </span>            :     tmpl::list&lt;ScalarWave::Pi&gt; /*meta*/) const noexcept {
+<span class="lineNum">     101 </span>            :   using namespace std::complex_literals;
+<span class="lineNum">     102 </span>            : 
+<span class="lineNum">     103 </span>            :   const auto modes = get_modes(x, harmonic_);
+<span class="lineNum">     104 </span>            :   const double spatial_phase = harmonic_ * get&lt;0&gt;(x)[0];
+<span class="lineNum">     105 </span>            :   DataVector pi{0.0, 0.0};
+<span class="lineNum">     106 </span>            :   for (size_t i = 0; i &lt; 4; ++i) {
+<span class="lineNum">     107 </span>            :     const auto&amp; mode = gsl::at(modes, i);
+<span class="lineNum">     108 </span>            :     pi += gsl::at(amplitudes_, i) *
+<span class="lineNum">     109 </span>            :           real(exp(1.0i * (spatial_phase + mode.frequency * t)) *
+<span class="lineNum">     110 </span>            :                mode.pi_coefficients);
+<span class="lineNum">     111 </span>            :   }
+<span class="lineNum">     112 </span>            :   return {Scalar&lt;DataVector&gt;(std::move(pi))};
+<span class="lineNum">     113 </span>            : }
+<span class="lineNum">     114 </span>            : 
+<span class="lineNum">     115 </span>            : tuples::TaggedTuple&lt;ScalarWave::Phi&lt;1&gt;&gt; SemidiscretizedDg::variables(
+<span class="lineNum">     116 </span>            :     const tnsr::I&lt;DataVector, 1&gt;&amp; x, double t,
+<span class="lineNum">     117 </span>            :     tmpl::list&lt;ScalarWave::Phi&lt;1&gt;&gt; /*meta*/) const noexcept {
+<span class="lineNum">     118 </span>            :   using namespace std::complex_literals;
+<span class="lineNum">     119 </span>            : 
+<span class="lineNum">     120 </span>            :   const auto modes = get_modes(x, harmonic_);
+<span class="lineNum">     121 </span>            :   const double spatial_phase = harmonic_ * get&lt;0&gt;(x)[0];
+<span class="lineNum">     122 </span>            :   DataVector phi{0.0, 0.0};
+<span class="lineNum">     123 </span>            :   for (size_t i = 0; i &lt; 4; ++i) {
+<span class="lineNum">     124 </span>            :     const auto&amp; mode = gsl::at(modes, i);
+<span class="lineNum">     125 </span>            :     phi += gsl::at(amplitudes_, i) *
+<span class="lineNum">     126 </span>            :            real(exp(1.0i * (spatial_phase + mode.frequency * t)) *
+<span class="lineNum">     127 </span>            :                 mode.phi_coefficients);
+<span class="lineNum">     128 </span>            :   }
+<span class="lineNum">     129 </span>            :   return {tnsr::i&lt;DataVector, 1&gt;{{{std::move(phi)}}}};
+<span class="lineNum">     130 </span>            : }
+<span class="lineNum">     131 </span>            : 
+<span class="lineNum">     132 </span>            : tuples::TaggedTuple&lt;ScalarWave::Psi&gt; SemidiscretizedDg::variables(
+<span class="lineNum">     133 </span>            :     const tnsr::I&lt;DataVector, 1&gt;&amp; x, double t,
+<span class="lineNum">     134 </span>            :     tmpl::list&lt;ScalarWave::Psi&gt; /*meta*/) const noexcept {
+<span class="lineNum">     135 </span>            :   using namespace std::complex_literals;
+<span class="lineNum">     136 </span>            : 
+<span class="lineNum">     137 </span>            :   // There are two more modes that are just constant offsets of Psi,
+<span class="lineNum">     138 </span>            :   // but they are boring so we ignore them.
+<span class="lineNum">     139 </span>            :   const auto modes = get_modes(x, harmonic_);
+<span class="lineNum">     140 </span>            :   const double spatial_phase = harmonic_ * get&lt;0&gt;(x)[0];
+<span class="lineNum">     141 </span>            :   DataVector psi{0.0, 0.0};
+<span class="lineNum">     142 </span>            :   for (size_t i = 0; i &lt; 4; ++i) {
+<span class="lineNum">     143 </span>            :     const auto&amp; mode = gsl::at(modes, i);
+<span class="lineNum">     144 </span>            :     if (mode.frequency == 0.0) {
+<span class="lineNum">     145 </span>            :       psi -= gsl::at(amplitudes_, i) *
+<span class="lineNum">     146 </span>            :              real(t * exp(1.0i * spatial_phase) * mode.pi_coefficients);
+<span class="lineNum">     147 </span>            :     } else {
+<span class="lineNum">     148 </span>            :       psi -= gsl::at(amplitudes_, i) *
+<span class="lineNum">     149 </span>            :              real(exp(1.0i * (spatial_phase + mode.frequency * t)) /
+<span class="lineNum">     150 </span>            :                   (1.0i * mode.frequency) * mode.pi_coefficients);
+<span class="lineNum">     151 </span>            :     }
+<span class="lineNum">     152 </span>            :   }
+<span class="lineNum">     153 </span>            :   return {Scalar&lt;DataVector&gt;(std::move(psi))};
+<span class="lineNum">     154 </span>            : }
+<span class="lineNum">     155 </span>            : 
+<span class="lineNum">     156 </span>            : void SemidiscretizedDg::pup(PUP::er&amp; p) noexcept {
+<span class="lineNum">     157 </span>            :   p | harmonic_;
+<span class="lineNum">     158 </span>            :   p | amplitudes_;
+<span class="lineNum">     159 </span>            : }
+<span class="lineNum">     160 </span>            : }  // namespace Solutions
+<span class="lineNum">     161 </span>            : }  // namespace ScalarWave
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

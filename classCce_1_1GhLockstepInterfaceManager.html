@@ -1,0 +1,369 @@
+<!-- HTML header for doxygen 1.8.10-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=9"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="SXS Collaboration">
+    <meta name="generator" content="Doxygen 1.8.13"/>
+    <style>
+        /*!
+         * IE10 viewport hack for Surface/desktop Windows 8 bug
+         * Copyright 2014-2015 Twitter, Inc.
+         * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+         */
+        @-webkit-viewport { width: device-width; }
+        @-moz-viewport    { width: device-width; }
+        @-ms-viewport     { width: device-width; }
+        @-o-viewport      { width: device-width; }
+        @viewport         { width: device-width; }
+      </style>
+  <title>SpECTRE: Cce::GhLockstepInterfaceManager Class Reference</title>
+  <link href="tabs.css" rel="stylesheet" type="text/css"/>
+  <script type="text/javascript" src="jquery.js"></script>
+  <script type="text/javascript" src="dynsections.js"></script>
+  <link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+  <script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    extensions: ["tex2jax.js"],
+    jax: ["input/TeX","output/HTML-CSS"],
+});
+</script><script type="text/javascript" src="./MathJax.js"></script>
+  <link href="octicons.css" rel="stylesheet">
+  <link href="bootstrap.min.css" rel="stylesheet">
+  <link href="doxygen.css" rel="stylesheet" type="text/css" />
+  <script type="text/javascript" src="jquery.js"></script>
+  <script type="text/javascript" src="popper.min.js"></script>
+  <script type="text/javascript" src="bootstrap.min.js"></script>
+  <script type="text/javascript" src="spectre.js"></script>
+  </head>
+  <body>
+  <div id="top" class="navbar-fixed-top"><!-- do not remove this div, it is closed by doxygen! -->
+  <!-- BEGIN TITLEAREA -->
+  <div id="titlearea">
+  <script type="text/javascript">
+  var searchBox = new SearchBox("searchBox", "search",false,'Search');
+  </script>
+  <div id="main-nav">
+    <ul class="sm sm-dox" id="main-menu">
+      <li>
+      <a href="index.html">
+      SpECTRE &#160;
+        <span id="projectnumber">v0.0.0</span>
+      </a>
+      </li>
+      <li class="dropdown">
+        <a class="dropdown-toggle" data-toggle="dropdown" href="#" id="selected">
+          <span id="selected">
+            <i class="octicon octicon-book"></i><span>Documentation</span>
+          </span>
+          <span class="caret"></span>
+        </a>
+        <ul class="dropdown-menu">
+          <li style="min-width: 135px;">
+            <a href="index.html">
+            <i class="octicon octicon-book"></i><span>Introduction</span></a>
+          </li>
+          <li style="min-width: 135px;">
+            <a href="installation.html">
+              <i class="octicon octicon-desktop-download"></i><span>Installation</span>
+            </a>
+          </li>
+          <li style="min-width: 135px;">
+            <a href="tutorials.html">
+              <i class="octicon octicon-mortar-board"></i><span>User Tutorials</span>
+            </a>
+          </li>
+          <li style="min-width: 135px;">
+            <a href="dev_guide.html">
+              <i class="octicon octicon-gist-secret"></i><span>Dev Guide</span>
+            </a>
+          </li>
+          <li style="min-width: 135px;">
+            <a href="code_of_conduct.html">
+              <i class="octicon octicon-comment-discussion"></i><span>Code of Conduct</span>
+            </a>
+          </li>
+          <li style="min-width: 135px;">
+            <a href="contributing_to_spectre.html">
+              <i class="octicon octicon-git-pull-request"></i><span>Contributing Guide</span>
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="dropdown">
+        <a class="dropdown-toggle" data-toggle="dropdown" href="#" id="selected">
+          <span id="selected">
+            <i class="octicon octicon-code"></i>
+              <span>Code Reference</span>
+          </span>
+          <span class="caret"></span>
+        </a>
+        <ul class="dropdown-menu">
+          <li style="min-width: 130px;">
+            <a href="modules.html">
+              <i class="octicon octicon-code"></i>
+              <span>Topics</span>
+            </a>
+          </li>
+          <li style="min-width: 130px;">
+            <a href="namespaces.html">
+              <i class="octicon octicon-gist"></i>
+              <span>Namespaces</span>
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li>
+        <a href="files.html">
+          <i class="octicon octicon-file-directory"></i><span>Files</span>
+        </a>
+      </li>
+      <li>
+        <a href="citelist.html">
+          <i class="octicon octicon-file-text"></i><span>Bibliography</span>
+        </a>
+      </li>
+      <li>
+        <a href="https://github.com/sxs-collaboration/spectre" target="_blank">
+          <i class="octicon octicon-mark-github"></i><span>View on GitHub</span>
+        </a>
+      </li>
+      <!--The Search <li> is added by doxygen later-->
+    </ul>
+  </div><!-- main-nav -->
+  </div><!-- titlearea -->
+  <!-- window showing the filter options -->
+  <div id="MSearchSelectWindow"  style="position: fixed;"
+       onmouseover="return searchBox.OnSearchSelectShow()"
+       onmouseout="return searchBox.OnSearchSelectHide()"
+       onkeydown="return searchBox.OnSearchSelectKey(event)">
+  </div>
+  <!-- iframe showing the search results (closed by default) -->
+  <div id="MSearchResultsWindow"  style="position: fixed;">
+  <iframe src="javascript:void(0)" frameborder="0"
+          name="MSearchResults" id="MSearchResults">
+  </iframe>
+  </div>
+<!-- Generated by Doxygen 1.8.13 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "search",false,'Search');
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+$(function() {
+  initMenu('',true,false,'search.php','Search');
+  $(document).ready(function() { init_search(); });
+});
+</script>
+<div id="main-nav"></div>
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+</iframe>
+</div>
+
+<div id="nav-path" class="navpath">
+  <ul>
+<li class="navelem"><a class="el" href="namespaceCce.html">Cce</a></li><li class="navelem"><a class="el" href="classCce_1_1GhLockstepInterfaceManager.html">GhLockstepInterfaceManager</a></li>  </ul>
+</div>
+</div><!-- top -->
+<div class="header">
+  <div class="summary">
+<a href="#pub-types">Public Types</a> &#124;
+<a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pub-static-attribs">Static Public Attributes</a> &#124;
+<a href="classCce_1_1GhLockstepInterfaceManager-members.html">List of all members</a>  </div>
+  <div class="headertitle">
+<div class="title">Cce::GhLockstepInterfaceManager Class Reference</div>  </div>
+</div><!--header-->
+<div class="contents">
+
+<p>Simple implementation of a <code><a class="el" href="classCce_1_1GhWorldtubeInterfaceManager.html" title="Abstract base class for storage and retrieval of generalized harmonic quantities communicated from a ...">GhWorldtubeInterfaceManager</a></code> that only provides boundary data on matching <code><a class="el" href="classTimeStepId.html" title="A unique identifier for the temporal state of an integrated system. ">TimeStepId</a></code>s.  
+ <a href="classCce_1_1GhLockstepInterfaceManager.html#details">More...</a></p>
+
+<p><code>#include &lt;<a class="el" href="GhLockstepInterfaceManager_8hpp_source.html">GhLockstepInterfaceManager.hpp</a>&gt;</code></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
+Public Types</h2></td></tr>
+<tr class="memitem:a9d77bd232110f4e0ed498f596d28627f"><td class="memItemLeft" align="right" valign="top"><a id="a9d77bd232110f4e0ed498f596d28627f"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>options</b> = tmpl::list&lt;&gt;</td></tr>
+<tr class="separator:a9d77bd232110f4e0ed498f596d28627f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_types_classCce_1_1GhWorldtubeInterfaceManager"><td colspan="2" onclick="javascript:toggleInherit('pub_types_classCce_1_1GhWorldtubeInterfaceManager')"><img src="closed.png" alt="-"/>&#160;Public Types inherited from <a class="el" href="classCce_1_1GhWorldtubeInterfaceManager.html">Cce::GhWorldtubeInterfaceManager</a></td></tr>
+<tr class="memitem:a8ad7a4cd0182c63a68481c8bbde174f0 inherit pub_types_classCce_1_1GhWorldtubeInterfaceManager"><td class="memItemLeft" align="right" valign="top"><a id="a8ad7a4cd0182c63a68481c8bbde174f0"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>creatable_classes</b> = tmpl::list&lt; <a class="el" href="classCce_1_1GhLockstepInterfaceManager.html">GhLockstepInterfaceManager</a> &gt;</td></tr>
+<tr class="separator:a8ad7a4cd0182c63a68481c8bbde174f0 inherit pub_types_classCce_1_1GhWorldtubeInterfaceManager"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
+Public Member Functions</h2></td></tr>
+<tr class="memitem:ac6dc3cbcbb75b55c008cfd604be81520"><td class="memItemLeft" align="right" valign="top"><a id="ac6dc3cbcbb75b55c008cfd604be81520"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>GhLockstepInterfaceManager</b> (CkMigrateMessage *) noexcept</td></tr>
+<tr class="separator:ac6dc3cbcbb75b55c008cfd604be81520"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6048f391ffbc38eb49585caca4fb25ea"><td class="memItemLeft" align="right" valign="top"><a id="a6048f391ffbc38eb49585caca4fb25ea"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>WRAPPED_PUPable_decl_template</b> (<a class="el" href="classCce_1_1GhLockstepInterfaceManager.html">GhLockstepInterfaceManager</a>)</td></tr>
+<tr class="separator:a6048f391ffbc38eb49585caca4fb25ea"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a25c1ea066e86b3836b78ea80d941c9e8"><td class="memItemLeft" align="right" valign="top"><a id="a25c1ea066e86b3836b78ea80d941c9e8"></a>
+<a class="elRef" doxygen="/__w/spectre/spectre/docs/config/cppreference-doxygen-web.tag.xml:http://en.cppreference.com/w/" href="http://en.cppreference.com/w/cpp/memory/unique_ptr.html">std::unique_ptr</a>&lt; <a class="el" href="classCce_1_1GhWorldtubeInterfaceManager.html">GhWorldtubeInterfaceManager</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>get_clone</b> () const noexcept override</td></tr>
+<tr class="separator:a25c1ea066e86b3836b78ea80d941c9e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a797d6946acff4c70671d67680ae502cc"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCce_1_1GhLockstepInterfaceManager.html#a797d6946acff4c70671d67680ae502cc">insert_gh_data</a> (<a class="el" href="classTimeStepId.html">TimeStepId</a> time_id, tnsr::aa&lt; <a class="el" href="classDataVector.html">DataVector</a>, 3 &gt; spacetime_metric, tnsr::iaa&lt; <a class="el" href="classDataVector.html">DataVector</a>, 3 &gt; phi, tnsr::aa&lt; <a class="el" href="classDataVector.html">DataVector</a>, 3 &gt; pi, tnsr::aa&lt; <a class="el" href="classDataVector.html">DataVector</a>, 3 &gt; dt_spacetime_metric={}, tnsr::iaa&lt; <a class="el" href="classDataVector.html">DataVector</a>, 3 &gt; dt_phi={}, tnsr::aa&lt; <a class="el" href="classDataVector.html">DataVector</a>, 3 &gt; dt_pi={}) noexcept override</td></tr>
+<tr class="memdesc:a797d6946acff4c70671d67680ae502cc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Store a provided data set in a <code><a class="elRef" doxygen="/__w/spectre/spectre/docs/config/cppreference-doxygen-web.tag.xml:http://en.cppreference.com/w/" href="http://en.cppreference.com/w/cpp/container/deque.html">std::deque</a></code>.  <a href="#a797d6946acff4c70671d67680ae502cc">More...</a><br /></td></tr>
+<tr class="separator:a797d6946acff4c70671d67680ae502cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3a583d72ecf60d39dd69b0e6a5a0592a"><td class="memItemLeft" align="right" valign="top"><a id="a3a583d72ecf60d39dd69b0e6a5a0592a"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCce_1_1GhLockstepInterfaceManager.html#a3a583d72ecf60d39dd69b0e6a5a0592a">request_gh_data</a> (const <a class="el" href="classTimeStepId.html">TimeStepId</a> &amp;) noexcept override</td></tr>
+<tr class="memdesc:a3a583d72ecf60d39dd69b0e6a5a0592a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Requests are ignored by this implementation, so this is a no-op. <br /></td></tr>
+<tr class="separator:a3a583d72ecf60d39dd69b0e6a5a0592a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac02bd37c0aa5738813b5608fc24594a7"><td class="memItemLeft" align="right" valign="top"><a id="ac02bd37c0aa5738813b5608fc24594a7"></a>
+auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCce_1_1GhLockstepInterfaceManager.html#ac02bd37c0aa5738813b5608fc24594a7">retrieve_and_remove_first_ready_gh_data</a> () noexcept -&gt; boost::optional&lt; <a class="elRef" doxygen="/__w/spectre/spectre/docs/config/cppreference-doxygen-web.tag.xml:http://en.cppreference.com/w/" href="http://en.cppreference.com/w/cpp/utility/tuple.html">std::tuple</a>&lt; <a class="el" href="classTimeStepId.html">TimeStepId</a>, tnsr::aa&lt; <a class="el" href="classDataVector.html">DataVector</a>, 3 &gt;, tnsr::iaa&lt; <a class="el" href="classDataVector.html">DataVector</a>, 3 &gt;, tnsr::aa&lt; <a class="el" href="classDataVector.html">DataVector</a>, 3 &gt;&gt;&gt; override</td></tr>
+<tr class="memdesc:ac02bd37c0aa5738813b5608fc24594a7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return a <code>boost::optional&lt;<a class="elRef" doxygen="/__w/spectre/spectre/docs/config/cppreference-doxygen-web.tag.xml:http://en.cppreference.com/w/" href="http://en.cppreference.com/w/cpp/utility/tuple.html">std::tuple</a>&gt;</code> of the least recently submitted generalized harmonic boundary data if any exists and removes it from the internal <code><a class="elRef" doxygen="/__w/spectre/spectre/docs/config/cppreference-doxygen-web.tag.xml:http://en.cppreference.com/w/" href="http://en.cppreference.com/w/cpp/container/deque.html">std::deque</a></code>, otherwise returns <code>boost::none</code>. <br /></td></tr>
+<tr class="separator:ac02bd37c0aa5738813b5608fc24594a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2c3d861ffd3d301c18e854a70da8bf9a"><td class="memItemLeft" align="right" valign="top"><a id="a2c3d861ffd3d301c18e854a70da8bf9a"></a>
+size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCce_1_1GhLockstepInterfaceManager.html#a2c3d861ffd3d301c18e854a70da8bf9a">number_of_pending_requests</a> () const noexcept override</td></tr>
+<tr class="memdesc:a2c3d861ffd3d301c18e854a70da8bf9a"><td class="mdescLeft">&#160;</td><td class="mdescRight">This class ignores requests to ensure a one-way communication pattern, so the number of requests is always 0. <br /></td></tr>
+<tr class="separator:a2c3d861ffd3d301c18e854a70da8bf9a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a860d9d5f88beb7b11c8c4848b81b6eb3"><td class="memItemLeft" align="right" valign="top"><a id="a860d9d5f88beb7b11c8c4848b81b6eb3"></a>
+size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCce_1_1GhLockstepInterfaceManager.html#a860d9d5f88beb7b11c8c4848b81b6eb3">number_of_gh_times</a> () const noexcept override</td></tr>
+<tr class="memdesc:a860d9d5f88beb7b11c8c4848b81b6eb3"><td class="mdescLeft">&#160;</td><td class="mdescRight">The number of times at which data from a GH evolution have been stored and not yet retrieved. <br /></td></tr>
+<tr class="separator:a860d9d5f88beb7b11c8c4848b81b6eb3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab4d4a3a5dcccae9da3838a135e6fc886"><td class="memItemLeft" align="right" valign="top"><a id="ab4d4a3a5dcccae9da3838a135e6fc886"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCce_1_1GhLockstepInterfaceManager.html#ab4d4a3a5dcccae9da3838a135e6fc886">pup</a> (PUP::er &amp;p) noexcept override</td></tr>
+<tr class="memdesc:ab4d4a3a5dcccae9da3838a135e6fc886"><td class="mdescLeft">&#160;</td><td class="mdescRight">Serialization for Charm++. <br /></td></tr>
+<tr class="separator:ab4d4a3a5dcccae9da3838a135e6fc886"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_methods_classCce_1_1GhWorldtubeInterfaceManager"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classCce_1_1GhWorldtubeInterfaceManager')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classCce_1_1GhWorldtubeInterfaceManager.html">Cce::GhWorldtubeInterfaceManager</a></td></tr>
+<tr class="memitem:ab4f212666638afef83ddf9295f83497a inherit pub_methods_classCce_1_1GhWorldtubeInterfaceManager"><td class="memItemLeft" align="right" valign="top"><a id="ab4f212666638afef83ddf9295f83497a"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>WRAPPED_PUPable_abstract</b> (<a class="el" href="classCce_1_1GhWorldtubeInterfaceManager.html">GhWorldtubeInterfaceManager</a>)</td></tr>
+<tr class="separator:ab4f212666638afef83ddf9295f83497a inherit pub_methods_classCce_1_1GhWorldtubeInterfaceManager"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-attribs"></a>
+Static Public Attributes</h2></td></tr>
+<tr class="memitem:a6354d4bb48dc48a7c7bcb0562a6cfe98"><td class="memItemLeft" align="right" valign="top">static constexpr <a class="el" href="Options_8hpp.html#ac6df7d1b74fbddedd85b06a0087d93f6">OptionString</a>&#160;</td><td class="memItemRight" valign="bottom"><b>help</b></td></tr>
+<tr class="separator:a6354d4bb48dc48a7c7bcb0562a6cfe98"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Simple implementation of a <code><a class="el" href="classCce_1_1GhWorldtubeInterfaceManager.html" title="Abstract base class for storage and retrieval of generalized harmonic quantities communicated from a ...">GhWorldtubeInterfaceManager</a></code> that only provides boundary data on matching <code><a class="el" href="classTimeStepId.html" title="A unique identifier for the temporal state of an integrated system. ">TimeStepId</a></code>s. </p>
+<h3>Details</h3>
+<p>This version of the interface manager assumes that the CCE system and the generalized harmonic system that it communicates with evolve with an identical time stepper and on identical time step intervals (they evolve in 'lock step'). As a result, and to streamline communications, new data is always immediately 'ready' and requests are ignored to produce the behavior of just immediately gauge-transforming and sending the data to the CCE component as soon as it becomes available from the GH system.</p>
+<dl class="section warning"><dt>Warning</dt><dd>Using this interface manager when the GH components and the CCE evolution are not identically stepped is considered undefined behavior. The outcome will likely be that CCE will fail to evolve and the boundary data will be continually inserted into a rapidly expanding inbox. </dd></dl>
+</div><h2 class="groupheader">Member Function Documentation</h2>
+<a id="a797d6946acff4c70671d67680ae502cc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a797d6946acff4c70671d67680ae502cc">&#9670;&nbsp;</a></span>insert_gh_data()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void Cce::GhLockstepInterfaceManager::insert_gh_data </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classTimeStepId.html">TimeStepId</a>&#160;</td>
+          <td class="paramname"><em>time_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">tnsr::aa&lt; <a class="el" href="classDataVector.html">DataVector</a>, 3 &gt;&#160;</td>
+          <td class="paramname"><em>spacetime_metric</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">tnsr::iaa&lt; <a class="el" href="classDataVector.html">DataVector</a>, 3 &gt;&#160;</td>
+          <td class="paramname"><em>phi</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">tnsr::aa&lt; <a class="el" href="classDataVector.html">DataVector</a>, 3 &gt;&#160;</td>
+          <td class="paramname"><em>pi</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">tnsr::aa&lt; <a class="el" href="classDataVector.html">DataVector</a>, 3 &gt;&#160;</td>
+          <td class="paramname"><em>dt_spacetime_metric</em> = <code>{}</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">tnsr::iaa&lt; <a class="el" href="classDataVector.html">DataVector</a>, 3 &gt;&#160;</td>
+          <td class="paramname"><em>dt_phi</em> = <code>{}</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">tnsr::aa&lt; <a class="el" href="classDataVector.html">DataVector</a>, 3 &gt;&#160;</td>
+          <td class="paramname"><em>dt_pi</em> = <code>{}</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Store a provided data set in a <code><a class="elRef" doxygen="/__w/spectre/spectre/docs/config/cppreference-doxygen-web.tag.xml:http://en.cppreference.com/w/" href="http://en.cppreference.com/w/cpp/container/deque.html">std::deque</a></code>. </p>
+<h3>Details</h3>
+<p>The lock-step constraint ensures that only the generalized harmonic variables <code>spacetime_metric</code>, <code>phi</code>, and <code>pi</code> are used. The remaining variables are accepted to comply with the more general abstract interface. </p>
+
+<p>Implements <a class="el" href="classCce_1_1GhWorldtubeInterfaceManager.html">Cce::GhWorldtubeInterfaceManager</a>.</p>
+
+</div>
+</div>
+<h2 class="groupheader">Member Data Documentation</h2>
+<a id="a6354d4bb48dc48a7c7bcb0562a6cfe98"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6354d4bb48dc48a7c7bcb0562a6cfe98">&#9670;&nbsp;</a></span>help</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr <a class="el" href="Options_8hpp.html#ac6df7d1b74fbddedd85b06a0087d93f6">OptionString</a> Cce::GhLockstepInterfaceManager::help</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">{</div><div class="line">    <span class="stringliteral">&quot;Pass data between GH and CCE systems on matching timesteps only.&quot;</span>}</div></div><!-- fragment -->
+</div>
+</div>
+<hr/>The documentation for this class was generated from the following files:<ul>
+<li>src/Evolution/Systems/Cce/InterfaceManagers/<a class="el" href="GhLockstepInterfaceManager_8hpp_source.html">GhLockstepInterfaceManager.hpp</a></li>
+<li>src/Evolution/Systems/Cce/InterfaceManagers/GhLockstepInterfaceManager.cpp</li>
+</ul>
+</div><!-- contents -->
+<!-- HTML footer for doxygen 1.8.10-->
+<!-- start footer part -->
+<hr class="footer"/><address class="footer"><small>
+&copy; Copyright 2017 - 2020
+<a href="https://black-holes.org">SXS Collaboration</a>,
+<a href="LICENSE.txt" target="_blank">
+<span class="hidden-xs">Distributed under the</span>
+MIT License</a>
+</small></address>
+</body>
+</html>

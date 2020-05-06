@@ -1,0 +1,575 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - Domain/CoordinateMaps/TimeDependent/CubicScale.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../index.html">top level</a> - <a href="index.html">Domain/CoordinateMaps/TimeDependent</a> - CubicScale.cpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">2</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #include &quot;Domain/CoordinateMaps/TimeDependent/CubicScale.hpp&quot;
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;array&gt;
+<span class="lineNum">       7 </span>            : #include &lt;boost/none.hpp&gt;
+<span class="lineNum">       8 </span>            : #include &lt;boost/optional.hpp&gt;
+<span class="lineNum">       9 </span>            : #include &lt;cstddef&gt;
+<span class="lineNum">      10 </span>            : #include &lt;memory&gt;
+<span class="lineNum">      11 </span>            : #include &lt;ostream&gt;
+<span class="lineNum">      12 </span>            : #include &lt;pup.h&gt;
+<span class="lineNum">      13 </span>            : #include &lt;pup_stl.h&gt;
+<span class="lineNum">      14 </span>            : #include &lt;string&gt;
+<span class="lineNum">      15 </span>            : #include &lt;unordered_map&gt;
+<span class="lineNum">      16 </span>            : #include &lt;utility&gt;
+<span class="lineNum">      17 </span>            : 
+<span class="lineNum">      18 </span>            : #include &quot;DataStructures/DataVector.hpp&quot;
+<span class="lineNum">      19 </span>            : #include &quot;DataStructures/Tensor/Tensor.hpp&quot;
+<span class="lineNum">      20 </span>            : #include &quot;Domain/FunctionsOfTime/FunctionOfTime.hpp&quot;
+<span class="lineNum">      21 </span>            : #include &quot;ErrorHandling/Assert.hpp&quot;
+<span class="lineNum">      22 </span>            : #include &quot;ErrorHandling/Error.hpp&quot;
+<span class="lineNum">      23 </span>            : #include &quot;NumericalAlgorithms/RootFinding/NewtonRaphson.hpp&quot;
+<span class="lineNum">      24 </span>            : #include &quot;Utilities/ConstantExpressions.hpp&quot;
+<span class="lineNum">      25 </span>            : #include &quot;Utilities/DereferenceWrapper.hpp&quot;
+<span class="lineNum">      26 </span>            : #include &quot;Utilities/GenerateInstantiations.hpp&quot;
+<span class="lineNum">      27 </span>            : #include &quot;Utilities/Gsl.hpp&quot;
+<span class="lineNum">      28 </span>            : #include &quot;Utilities/MakeWithValue.hpp&quot;
+<span class="lineNum">      29 </span>            : #include &quot;Utilities/StdArrayHelpers.hpp&quot;
+<span class="lineNum">      30 </span>            : #include &quot;Utilities/StdHelpers.hpp&quot;
+<span class="lineNum">      31 </span>            : #include &quot;Utilities/TypeTraits/RemoveReferenceWrapper.hpp&quot;
+<span class="lineNum">      32 </span>            : 
+<span class="lineNum">      33 </span>            : namespace domain {
+<span class="lineNum">      34 </span>            : namespace CoordinateMaps {
+<span class="lineNum">      35 </span>            : namespace TimeDependent {
+<span class="lineNum">      36 </span>            : 
+<span class="lineNum">      37 </span>            : template &lt;size_t Dim&gt;
+<span class="lineNum">      38 </span>            : CubicScale&lt;Dim&gt;::CubicScale(const double outer_boundary,
+<span class="lineNum">      39 </span>            :                             std::string function_of_time_name_a,
+<span class="lineNum">      40 </span>            :                             std::string function_of_time_name_b) noexcept
+<span class="lineNum">      41 </span>            :     : f_of_t_a_(std::move(function_of_time_name_a)),
+<span class="lineNum">      42 </span>            :       f_of_t_b_(std::move(function_of_time_name_b)),
+<span class="lineNum">      43 </span>            :       functions_of_time_equal_(f_of_t_a_ == f_of_t_b_) {
+<span class="lineNum">      44 </span>            :   if (outer_boundary &lt;= 0.0) {
+<span class="lineNum">      45 </span>            :     ERROR(&quot;For invertability, we require outer_boundary to be positive, but is &quot;
+<span class="lineNum">      46 </span>            :           &lt;&lt; outer_boundary);
+<span class="lineNum">      47 </span>            :   }
+<span class="lineNum">      48 </span>            :   one_over_outer_boundary_ = 1.0 / outer_boundary;
+<span class="lineNum">      49 </span>            : }
+<span class="lineNum">      50 </span>            : 
+<span class="lineNum">      51 </span>            : template &lt;size_t Dim&gt;
+<span class="lineNum">      52 </span>            : template &lt;typename T&gt;
+<span class="lineNum">      53 </span>            : std::array&lt;tt::remove_cvref_wrap_t&lt;T&gt;, Dim&gt; CubicScale&lt;Dim&gt;::operator()(
+<span class="lineNum">      54 </span>            :     const std::array&lt;T, Dim&gt;&amp; source_coords, const double time,
+<span class="lineNum">      55 </span>            :     const std::unordered_map&lt;
+<span class="lineNum">      56 </span>            :         std::string, std::unique_ptr&lt;domain::FunctionsOfTime::FunctionOfTime&gt;&gt;&amp;
+<span class="lineNum">      57 </span>            :         functions_of_time) const noexcept {
+<span class="lineNum">      58 </span>            :   ASSERT(functions_of_time.find(f_of_t_a_) != functions_of_time.end(),
+<span class="lineNum">      59 </span>            :          &quot;Could not find function of time: '&quot;
+<span class="lineNum">      60 </span>            :              &lt;&lt; f_of_t_a_ &lt;&lt; &quot;' in functions of time. Known functions are &quot;
+<span class="lineNum">      61 </span>            :              &lt;&lt; keys_of(functions_of_time));
+<span class="lineNum">      62 </span>            :   ASSERT(functions_of_time.find(f_of_t_b_) != functions_of_time.end(),
+<span class="lineNum">      63 </span>            :          &quot;Could not find function of time: '&quot;
+<span class="lineNum">      64 </span>            :              &lt;&lt; f_of_t_b_ &lt;&lt; &quot;' in functions of time. Known functions are &quot;
+<span class="lineNum">      65 </span>            :              &lt;&lt; keys_of(functions_of_time));
+<span class="lineNum">      66 </span>            : 
+<span class="lineNum">      67 </span>            :   const double a_of_t = functions_of_time.at(f_of_t_a_)-&gt;func(time)[0][0];
+<span class="lineNum">      68 </span>            : 
+<span class="lineNum">      69 </span>            :   if (functions_of_time_equal_) {
+<span class="lineNum">      70 </span>            :     // optimization for linear radial scaling
+<span class="lineNum">      71 </span>            :     std::array&lt;tt::remove_cvref_wrap_t&lt;T&gt;, Dim&gt; result{};
+<span class="lineNum">      72 </span>            :     for (size_t i = 0; i &lt; Dim; ++i) {
+<span class="lineNum">      73 </span>            :       gsl::at(result, i) = a_of_t * gsl::at(source_coords, i);
+<span class="lineNum">      74 </span>            :     }
+<span class="lineNum">      75 </span>            :     return result;
+<span class="lineNum">      76 </span>            :   }
+<span class="lineNum">      77 </span>            : 
+<span class="lineNum">      78 </span>            :   const double b_of_t = functions_of_time.at(f_of_t_b_)-&gt;func(time)[0][0];
+<span class="lineNum">      79 </span>            : 
+<span class="lineNum">      80 </span>            :   tt::remove_cvref_wrap_t&lt;T&gt; rho_squared =
+<span class="lineNum">      81 </span>            :       square(dereference_wrapper(source_coords[0]));
+<span class="lineNum">      82 </span>            :   for (size_t i = 1; i &lt; Dim; ++i) {
+<span class="lineNum">      83 </span>            :     rho_squared += square(dereference_wrapper(gsl::at(source_coords, i)));
+<span class="lineNum">      84 </span>            :   }
+<span class="lineNum">      85 </span>            :   // Reuse rho^2 allocation
+<span class="lineNum">      86 </span>            :   rho_squared = a_of_t + (b_of_t - a_of_t) * square(one_over_outer_boundary_) *
+<span class="lineNum">      87 </span>            :                              rho_squared;
+<span class="lineNum">      88 </span>            : 
+<span class="lineNum">      89 </span>            :   std::array&lt;tt::remove_cvref_wrap_t&lt;T&gt;, Dim&gt; result{};
+<span class="lineNum">      90 </span>            :   for (size_t i = 0; i &lt; Dim - 1; ++i) {
+<span class="lineNum">      91 </span>            :     gsl::at(result, i) = gsl::at(source_coords, i) * rho_squared;
+<span class="lineNum">      92 </span>            :   }
+<span class="lineNum">      93 </span>            :   rho_squared = source_coords[Dim - 1] * rho_squared;
+<span class="lineNum">      94 </span>            :   result[Dim - 1] = std::move(rho_squared);
+<span class="lineNum">      95 </span>            :   return result;
+<span class="lineNum">      96 </span>            : }
+<span class="lineNum">      97 </span>            : 
+<span class="lineNum">      98 </span>            : template &lt;size_t Dim&gt;
+<span class="lineNum">      99 </span>            : template &lt;typename T&gt;
+<span class="lineNum">     100 </span>            : boost::optional&lt;std::array&lt;tt::remove_cvref_wrap_t&lt;T&gt;, Dim&gt;&gt;
+<span class="lineNum">     101 </span>            : CubicScale&lt;Dim&gt;::inverse(
+<span class="lineNum">     102 </span>            :     const std::array&lt;T, Dim&gt;&amp; target_coords, const double time,
+<span class="lineNum">     103 </span>            :     const std::unordered_map&lt;
+<span class="lineNum">     104 </span>            :         std::string, std::unique_ptr&lt;domain::FunctionsOfTime::FunctionOfTime&gt;&gt;&amp;
+<span class="lineNum">     105 </span>            :         functions_of_time) const noexcept {
+<span class="lineNum">     106 </span>            :   ASSERT(functions_of_time.find(f_of_t_a_) != functions_of_time.end(),
+<span class="lineNum">     107 </span>            :          &quot;Could not find function of time: '&quot;
+<span class="lineNum">     108 </span>            :              &lt;&lt; f_of_t_a_ &lt;&lt; &quot;' in functions of time. Known functions are &quot;
+<span class="lineNum">     109 </span>            :              &lt;&lt; keys_of(functions_of_time));
+<span class="lineNum">     110 </span>            :   ASSERT(functions_of_time.find(f_of_t_b_) != functions_of_time.end(),
+<span class="lineNum">     111 </span>            :          &quot;Could not find function of time: '&quot;
+<span class="lineNum">     112 </span>            :              &lt;&lt; f_of_t_b_ &lt;&lt; &quot;' in functions of time. Known functions are &quot;
+<span class="lineNum">     113 </span>            :              &lt;&lt; keys_of(functions_of_time));
+<span class="lineNum">     114 </span>            : 
+<span class="lineNum">     115 </span>            :   if (functions_of_time_equal_) {
+<span class="lineNum">     116 </span>            :     // optimization for linear radial scaling
+<span class="lineNum">     117 </span>            :     const double one_over_a_of_t =
+<span class="lineNum">     118 </span>            :         1.0 / functions_of_time.at(f_of_t_a_)-&gt;func(time)[0][0];
+<span class="lineNum">     119 </span>            : 
+<span class="lineNum">     120 </span>            :     // Construct boost::optional to have a default value of an empty array.
+<span class="lineNum">     121 </span>            :     // Doing just result{} would construct a boost::optional that doesn't hold a
+<span class="lineNum">     122 </span>            :     // value and so *result would throw an exception.
+<span class="lineNum">     123 </span>            :     boost::optional&lt;std::array&lt;tt::remove_cvref_wrap_t&lt;T&gt;, Dim&gt;&gt; result{
+<span class="lineNum">     124 </span>            :         std::array&lt;tt::remove_cvref_wrap_t&lt;T&gt;, Dim&gt;{}};
+<span class="lineNum">     125 </span>            :     for (size_t i = 0; i &lt; Dim; ++i) {
+<span class="lineNum">     126 </span>            :       gsl::at(*result, i) = one_over_a_of_t * gsl::at(target_coords, i);
+<span class="lineNum">     127 </span>            :     }
+<span class="lineNum">     128 </span>            :     return result;
+<span class="lineNum">     129 </span>            :   }
+<span class="lineNum">     130 </span>            : 
+<span class="lineNum">     131 </span>            :   // the source coordinates \xi^{\hat{i}} are found by solving for the roots of
+<span class="lineNum">     132 </span>            :   // (b-a)/R^2*\rho^3 + a*\rho - r = 0,
+<span class="lineNum">     133 </span>            :   // where a and b are the FunctionsOfTime, R is the outer_boundary, and r is
+<span class="lineNum">     134 </span>            :   // the mapped/target coordinates radius.
+<span class="lineNum">     135 </span>            :   const double a_of_t = functions_of_time.at(f_of_t_a_)-&gt;func(time)[0][0];
+<span class="lineNum">     136 </span>            :   const double b_of_t = functions_of_time.at(f_of_t_b_)-&gt;func(time)[0][0];
+<span class="lineNum">     137 </span>            : 
+<span class="lineNum">     138 </span>            :   // these checks ensure that the function is monotonically increasing
+<span class="lineNum">     139 </span>            :   // and that there is one real root in the domain of \rho, [0,R]
+<span class="lineNum">     140 </span>            :   if (a_of_t &lt;= 0.0) {
+<span class="lineNum">     141 </span>            :     ERROR(&quot;We require expansion_a &gt; 0 for invertibility, however expansion_a = &quot;
+<span class="lineNum">     142 </span>            :           &lt;&lt; a_of_t &lt;&lt; &quot;.&quot;);
+<span class="lineNum">     143 </span>            :   }
+<span class="lineNum">     144 </span>            :   if (b_of_t &lt; 2.0 / 3.0 * a_of_t or b_of_t &lt;= 0.0) {
+<span class="lineNum">     145 </span>            :     ERROR(&quot;The map is invertible only if 0 &lt; expansion_b &lt; expansion_a*2/3, &quot;
+<span class="lineNum">     146 </span>            :           &lt;&lt; &quot; but expansion_b = &quot; &lt;&lt; b_of_t &lt;&lt; &quot; and expansion_a = &quot; &lt;&lt; a_of_t
+<span class="lineNum">     147 </span>            :           &lt;&lt; &quot;.&quot;);
+<span class="lineNum">     148 </span>            :   }
+<span class="lineNum">     149 </span>            : 
+<span class="lineNum">     150 </span>            :   // To invert the map we work in the dimensionless radius,
+<span class="lineNum">     151 </span>            :   // r / R_{outer_boundary}.
+<span class="lineNum">     152 </span>            :   tt::remove_cvref_wrap_t&lt;T&gt; target_dimensionless_radius =
+<span class="lineNum">     153 </span>            :       magnitude(target_coords) * one_over_outer_boundary_;
+<span class="lineNum">     154 </span>            : 
+<span class="lineNum">     155 </span>            :   if (UNLIKELY(target_dimensionless_radius == 0.0)) {
+<span class="lineNum">     156 </span>            :     return {make_array&lt;Dim&gt;(0.0)};
+<span class="lineNum">     157 </span>            :   }
+<span class="lineNum">     158 </span>            : 
+<span class="lineNum">     159 </span>            :   // Check if x_bar is outside of the range of the map.
+<span class="lineNum">     160 </span>            :   // We need a slight buffer because computing (r/R) is not equal to (r * (1/R))
+<span class="lineNum">     161 </span>            :   // at roundoff and thus to make sure we include the boundary we need to
+<span class="lineNum">     162 </span>            :   // support epsilon above b(t).
+<span class="lineNum">     163 </span>            :   if (UNLIKELY(target_dimensionless_radius &gt;
+<span class="lineNum">     164 </span>            :                b_of_t * (1.0 + 2.0 * std::numeric_limits&lt;double&gt;::epsilon()))) {
+<span class="lineNum">     165 </span>            :     return boost::none;
+<span class="lineNum">     166 </span>            :   }
+<span class="lineNum">     167 </span>            : 
+<span class="lineNum">     168 </span>            :   // For an initial guess, we provide a linearly approximated solution for
+<span class="lineNum">     169 </span>            :   // q, which is just r / (R b).
+<span class="lineNum">     170 </span>            :   const tt::remove_cvref_wrap_t&lt;T&gt; initial_guess =
+<span class="lineNum">     171 </span>            :       target_dimensionless_radius / b_of_t;
+<span class="lineNum">     172 </span>            :   const double cubic_coef_a = (b_of_t - a_of_t);
+<span class="lineNum">     173 </span>            : 
+<span class="lineNum">     174 </span>            :   // Solve the modified equation:
+<span class="lineNum">     175 </span>            :   // q * ( (b-a) q^2 + a) - r / R = 0,
+<span class="lineNum">     176 </span>            :   // where q = rho / R, and rho is the source radius
+<span class="lineNum">     177 </span>            :   const auto cubic_and_deriv =
+<span class="lineNum">     178 </span>            :       [&amp;cubic_coef_a, &amp;a_of_t, &amp;target_dimensionless_radius](
+<span class="lineNum">     179 </span>            :           const double source_dimensionless_radius) noexcept {
+<span class="lineNum">     180 </span>            :         return std::make_pair(
+<span class="lineNum">     181 </span>            :             source_dimensionless_radius *
+<span class="lineNum">     182 </span>            :                     (cubic_coef_a * square(source_dimensionless_radius) +
+<span class="lineNum">     183 </span>            :                      a_of_t) -
+<span class="lineNum">     184 </span>            :                 target_dimensionless_radius,
+<span class="lineNum">     185 </span>            : 
+<span class="lineNum">     186 </span>            :             3.0 * cubic_coef_a * square(source_dimensionless_radius) + a_of_t);
+<span class="lineNum">     187 </span>            :       };
+<span class="lineNum">     188 </span>            : 
+<span class="lineNum">     189 </span>            :   // The original implementation of this inverse function used a cubic
+<span class="lineNum">     190 </span>            :   // equation solver. However, given that the problem of finding the inverse
+<span class="lineNum">     191 </span>            :   // in this case is well constrained -- using a Newton-Raphson root find with
+<span class="lineNum">     192 </span>            :   // a linearly approximated guess is almost twice as fast.
+<span class="lineNum">     193 </span>            :   // Using google benchmark,
+<span class="lineNum">     194 </span>            :   // the CubicEquation solver: ~ 480 ns
+<span class="lineNum">     195 </span>            :   // boost implemented Newton-Raphson: ~ 280 ns
+<span class="lineNum">     196 </span>            :   // minimal Newton-Raphson from Numerical Recipes: ~ 255 ns
+<span class="lineNum">     197 </span>            :   // Despite the minimal Newton-Raphson being more efficient than the boost
+<span class="lineNum">     198 </span>            :   // version, here we utilize the boost implementation, as it includes
+<span class="lineNum">     199 </span>            :   // additional checks for zero derivative, checks on bounds, and can implement
+<span class="lineNum">     200 </span>            :   // bisection if necessary.
+<span class="lineNum">     201 </span>            :   const double scale_factor =
+<span class="lineNum">     202 </span>            :       RootFinder::newton_raphson(cubic_and_deriv, initial_guess, 0.0, 1.0, 14) /
+<span class="lineNum">     203 </span>            :       target_dimensionless_radius;
+<span class="lineNum">     204 </span>            : 
+<span class="lineNum">     205 </span>            :   std::array&lt;tt::remove_cvref_wrap_t&lt;T&gt;, Dim&gt; result{};
+<span class="lineNum">     206 </span>            :   for (size_t i = 0; i &lt; Dim; ++i) {
+<span class="lineNum">     207 </span>            :     gsl::at(result, i) = scale_factor * gsl::at(target_coords, i);
+<span class="lineNum">     208 </span>            :   }
+<span class="lineNum">     209 </span>            :   return {std::move(result)};
+<span class="lineNum">     210 </span>            : }
+<span class="lineNum">     211 </span>            : 
+<span class="lineNum">     212 </span>            : template &lt;size_t Dim&gt;
+<span class="lineNum">     213 </span>            : template &lt;typename T&gt;
+<span class="lineNum">     214 </span>            : std::array&lt;tt::remove_cvref_wrap_t&lt;T&gt;, Dim&gt; CubicScale&lt;Dim&gt;::frame_velocity(
+<span class="lineNum">     215 </span>            :     const std::array&lt;T, Dim&gt;&amp; source_coords, const double time,
+<span class="lineNum">     216 </span>            :     const std::unordered_map&lt;
+<span class="lineNum">     217 </span>            :         std::string, std::unique_ptr&lt;domain::FunctionsOfTime::FunctionOfTime&gt;&gt;&amp;
+<span class="lineNum">     218 </span>            :         functions_of_time) const noexcept {
+<span class="lineNum">     219 </span>            :   ASSERT(functions_of_time.find(f_of_t_a_) != functions_of_time.end(),
+<span class="lineNum">     220 </span>            :          &quot;Could not find function of time: '&quot;
+<span class="lineNum">     221 </span>            :              &lt;&lt; f_of_t_a_ &lt;&lt; &quot;' in functions of time. Known functions are &quot;
+<span class="lineNum">     222 </span>            :              &lt;&lt; keys_of(functions_of_time));
+<span class="lineNum">     223 </span>            :   ASSERT(functions_of_time.find(f_of_t_b_) != functions_of_time.end(),
+<span class="lineNum">     224 </span>            :          &quot;Could not find function of time: '&quot;
+<span class="lineNum">     225 </span>            :              &lt;&lt; f_of_t_b_ &lt;&lt; &quot;' in functions of time. Known functions are &quot;
+<span class="lineNum">     226 </span>            :              &lt;&lt; keys_of(functions_of_time));
+<span class="lineNum">     227 </span>            : 
+<span class="lineNum">     228 </span>            :   const double dt_a_of_t =
+<span class="lineNum">     229 </span>            :       functions_of_time.at(f_of_t_a_)-&gt;func_and_deriv(time)[1][0];
+<span class="lineNum">     230 </span>            : 
+<span class="lineNum">     231 </span>            :   if (functions_of_time_equal_) {
+<span class="lineNum">     232 </span>            :     // optimization for linear radial scaling
+<span class="lineNum">     233 </span>            :     std::array&lt;tt::remove_cvref_wrap_t&lt;T&gt;, Dim&gt; result{};
+<span class="lineNum">     234 </span>            :     for (size_t i = 0; i &lt; Dim; ++i) {
+<span class="lineNum">     235 </span>            :       gsl::at(result, i) = dt_a_of_t * gsl::at(source_coords, i);
+<span class="lineNum">     236 </span>            :     }
+<span class="lineNum">     237 </span>            :     return result;
+<span class="lineNum">     238 </span>            :   }
+<span class="lineNum">     239 </span>            : 
+<span class="lineNum">     240 </span>            :   const double dt_b_of_t =
+<span class="lineNum">     241 </span>            :       functions_of_time.at(f_of_t_b_)-&gt;func_and_deriv(time)[1][0];
+<span class="lineNum">     242 </span>            : 
+<span class="lineNum">     243 </span>            :   tt::remove_cvref_wrap_t&lt;T&gt; rho_squared =
+<span class="lineNum">     244 </span>            :       square(dereference_wrapper(source_coords[0]));
+<span class="lineNum">     245 </span>            :   for (size_t i = 1; i &lt; Dim; ++i) {
+<span class="lineNum">     246 </span>            :     rho_squared += square(dereference_wrapper(gsl::at(source_coords, i)));
+<span class="lineNum">     247 </span>            :   }
+<span class="lineNum">     248 </span>            :   // Reuse rho^2 allocation
+<span class="lineNum">     249 </span>            :   rho_squared = dt_a_of_t + (dt_b_of_t - dt_a_of_t) *
+<span class="lineNum">     250 </span>            :                                 square(one_over_outer_boundary_) * rho_squared;
+<span class="lineNum">     251 </span>            : 
+<span class="lineNum">     252 </span>            :   std::array&lt;tt::remove_cvref_wrap_t&lt;T&gt;, Dim&gt; result{};
+<span class="lineNum">     253 </span>            :   for (size_t i = 0; i &lt; Dim - 1; ++i) {
+<span class="lineNum">     254 </span>            :     gsl::at(result, i) = gsl::at(source_coords, i) * rho_squared;
+<span class="lineNum">     255 </span>            :   }
+<span class="lineNum">     256 </span>            :   rho_squared = source_coords[Dim - 1] * rho_squared;
+<span class="lineNum">     257 </span>            :   result[Dim - 1] = std::move(rho_squared);
+<span class="lineNum">     258 </span>            :   return result;
+<span class="lineNum">     259 </span>            : }
+<span class="lineNum">     260 </span>            : 
+<span class="lineNum">     261 </span>            : template &lt;size_t Dim&gt;
+<span class="lineNum">     262 </span>            : template &lt;typename T&gt;
+<span class="lineNum">     263 </span>            : tnsr::Ij&lt;tt::remove_cvref_wrap_t&lt;T&gt;, Dim, Frame::NoFrame&gt;
+<span class="lineNum">     264 </span>            : CubicScale&lt;Dim&gt;::jacobian(
+<span class="lineNum">     265 </span>            :     const std::array&lt;T, Dim&gt;&amp; source_coords, const double time,
+<span class="lineNum">     266 </span>            :     const std::unordered_map&lt;
+<span class="lineNum">     267 </span>            :         std::string, std::unique_ptr&lt;domain::FunctionsOfTime::FunctionOfTime&gt;&gt;&amp;
+<span class="lineNum">     268 </span>            :         functions_of_time) const noexcept {
+<span class="lineNum">     269 </span>            :   ASSERT(functions_of_time.find(f_of_t_a_) != functions_of_time.end(),
+<span class="lineNum">     270 </span>            :          &quot;Could not find function of time: '&quot;
+<span class="lineNum">     271 </span>            :              &lt;&lt; f_of_t_a_ &lt;&lt; &quot;' in functions of time. Known functions are &quot;
+<span class="lineNum">     272 </span>            :              &lt;&lt; keys_of(functions_of_time));
+<span class="lineNum">     273 </span>            :   ASSERT(functions_of_time.find(f_of_t_b_) != functions_of_time.end(),
+<span class="lineNum">     274 </span>            :          &quot;Could not find function of time: '&quot;
+<span class="lineNum">     275 </span>            :              &lt;&lt; f_of_t_b_ &lt;&lt; &quot;' in functions of time. Known functions are &quot;
+<span class="lineNum">     276 </span>            :              &lt;&lt; keys_of(functions_of_time));
+<span class="lineNum">     277 </span>            : 
+<span class="lineNum">     278 </span>            :   const double a_of_t = functions_of_time.at(f_of_t_a_)-&gt;func(time)[0][0];
+<span class="lineNum">     279 </span>            : 
+<span class="lineNum">     280 </span>            :   if (functions_of_time_equal_) {
+<span class="lineNum">     281 </span>            :     // optimization for linear radial scaling
+<span class="lineNum">     282 </span>            :     auto jac{make_with_value&lt;
+<span class="lineNum">     283 </span>            :         tnsr::Ij&lt;tt::remove_cvref_wrap_t&lt;T&gt;, Dim, Frame::NoFrame&gt;&gt;(
+<span class="lineNum">     284 </span>            :         dereference_wrapper(source_coords[0]), 0.0)};
+<span class="lineNum">     285 </span>            :     for (size_t i = 0; i &lt; Dim; ++i) {
+<span class="lineNum">     286 </span>            :       jac.get(i, i) = a_of_t;
+<span class="lineNum">     287 </span>            :     }
+<span class="lineNum">     288 </span>            :     return jac;
+<span class="lineNum">     289 </span>            :   }
+<span class="lineNum">     290 </span>            : 
+<span class="lineNum">     291 </span>            :   const double b_of_t = functions_of_time.at(f_of_t_b_)-&gt;func(time)[0][0];
+<span class="lineNum">     292 </span>            : 
+<span class="lineNum">     293 </span>            :   tt::remove_cvref_wrap_t&lt;T&gt; rho_squared =
+<span class="lineNum">     294 </span>            :       square(dereference_wrapper(source_coords[0]));
+<span class="lineNum">     295 </span>            :   for (size_t i = 1; i &lt; Dim; ++i) {
+<span class="lineNum">     296 </span>            :     rho_squared += square(dereference_wrapper(gsl::at(source_coords, i)));
+<span class="lineNum">     297 </span>            :   }
+<span class="lineNum">     298 </span>            :   const double rho_squared_coeff =
+<span class="lineNum">     299 </span>            :       (b_of_t - a_of_t) * square(one_over_outer_boundary_);
+<span class="lineNum">     300 </span>            :   // Reuse rho^2 allocation
+<span class="lineNum">     301 </span>            :   rho_squared = a_of_t + rho_squared_coeff * rho_squared;
+<span class="lineNum">     302 </span>            : 
+<span class="lineNum">     303 </span>            :   const double coeff =
+<span class="lineNum">     304 </span>            :       2.0 * (b_of_t - a_of_t) * square(one_over_outer_boundary_);
+<span class="lineNum">     305 </span>            : 
+<span class="lineNum">     306 </span>            :   tnsr::Ij&lt;tt::remove_cvref_wrap_t&lt;T&gt;, Dim, Frame::NoFrame&gt; jac{};
+<span class="lineNum">     307 </span>            :   for (size_t i = 0; i &lt; Dim; ++i) {
+<span class="lineNum">     308 </span>            :     for (size_t j = 0; j &lt; Dim; ++j) {
+<span class="lineNum">     309 </span>            :       if (i == j) {
+<span class="lineNum">     310 </span>            :         jac.get(i, j) = rho_squared + gsl::at(source_coords, i) *
+<span class="lineNum">     311 </span>            :                                           gsl::at(source_coords, j) * coeff;
+<span class="lineNum">     312 </span>            :       } else {
+<span class="lineNum">     313 </span>            :         jac.get(i, j) =
+<span class="lineNum">     314 </span>            :             gsl::at(source_coords, i) * gsl::at(source_coords, j) * coeff;
+<span class="lineNum">     315 </span>            :       }
+<span class="lineNum">     316 </span>            :     }
+<span class="lineNum">     317 </span>            :   }
+<span class="lineNum">     318 </span>            : 
+<span class="lineNum">     319 </span>            :   return jac;
+<span class="lineNum">     320 </span>            : }
+<span class="lineNum">     321 </span>            : 
+<span class="lineNum">     322 </span>            : template &lt;size_t Dim&gt;
+<span class="lineNum">     323 </span>            : template &lt;typename T&gt;
+<span class="lineNum">     324 </span>            : tnsr::Ij&lt;tt::remove_cvref_wrap_t&lt;T&gt;, Dim, Frame::NoFrame&gt;
+<span class="lineNum">     325 </span>            : CubicScale&lt;Dim&gt;::inv_jacobian(
+<span class="lineNum">     326 </span>            :     const std::array&lt;T, Dim&gt;&amp; source_coords, const double time,
+<span class="lineNum">     327 </span>            :     const std::unordered_map&lt;
+<span class="lineNum">     328 </span>            :         std::string, std::unique_ptr&lt;domain::FunctionsOfTime::FunctionOfTime&gt;&gt;&amp;
+<span class="lineNum">     329 </span>            :         functions_of_time) const noexcept {
+<span class="lineNum">     330 </span>            :   ASSERT(functions_of_time.find(f_of_t_a_) != functions_of_time.end(),
+<span class="lineNum">     331 </span>            :          &quot;Could not find function of time: '&quot;
+<span class="lineNum">     332 </span>            :              &lt;&lt; f_of_t_a_ &lt;&lt; &quot;' in functions of time. Known functions are &quot;
+<span class="lineNum">     333 </span>            :              &lt;&lt; keys_of(functions_of_time));
+<span class="lineNum">     334 </span>            :   ASSERT(functions_of_time.find(f_of_t_b_) != functions_of_time.end(),
+<span class="lineNum">     335 </span>            :          &quot;Could not find function of time: '&quot;
+<span class="lineNum">     336 </span>            :              &lt;&lt; f_of_t_b_ &lt;&lt; &quot;' in functions of time. Known functions are &quot;
+<span class="lineNum">     337 </span>            :              &lt;&lt; keys_of(functions_of_time));
+<span class="lineNum">     338 </span>            : 
+<span class="lineNum">     339 </span>            :   const double a_of_t = functions_of_time.at(f_of_t_a_)-&gt;func(time)[0][0];
+<span class="lineNum">     340 </span>            : 
+<span class="lineNum">     341 </span>            :   if (functions_of_time_equal_) {
+<span class="lineNum">     342 </span>            :     // optimization for linear radial scaling
+<span class="lineNum">     343 </span>            :     auto inv_jac{make_with_value&lt;
+<span class="lineNum">     344 </span>            :         tnsr::Ij&lt;tt::remove_cvref_wrap_t&lt;T&gt;, Dim, Frame::NoFrame&gt;&gt;(
+<span class="lineNum">     345 </span>            :         dereference_wrapper(source_coords[0]), 0.0)};
+<span class="lineNum">     346 </span>            :     const double one_over_a = 1.0 / a_of_t;
+<span class="lineNum">     347 </span>            :     for (size_t i = 0; i &lt; Dim; ++i) {
+<span class="lineNum">     348 </span>            :       inv_jac.get(i, i) = one_over_a;
+<span class="lineNum">     349 </span>            :     }
+<span class="lineNum">     350 </span>            :     return inv_jac;
+<span class="lineNum">     351 </span>            :   }
+<span class="lineNum">     352 </span>            : 
+<span class="lineNum">     353 </span>            :   const double b_of_t = functions_of_time.at(f_of_t_b_)-&gt;func(time)[0][0];
+<span class="lineNum">     354 </span>            : 
+<span class="lineNum">     355 </span>            :   tt::remove_cvref_wrap_t&lt;T&gt; rho_squared =
+<span class="lineNum">     356 </span>            :       square(dereference_wrapper(source_coords[0]));
+<span class="lineNum">     357 </span>            :   for (size_t i = 1; i &lt; Dim; ++i) {
+<span class="lineNum">     358 </span>            :     rho_squared += square(dereference_wrapper(gsl::at(source_coords, i)));
+<span class="lineNum">     359 </span>            :   }
+<span class="lineNum">     360 </span>            :   tnsr::Ij&lt;tt::remove_cvref_wrap_t&lt;T&gt;, Dim, Frame::NoFrame&gt; inv_jac{};
+<span class="lineNum">     361 </span>            :   get&lt;0, 0&gt;(inv_jac) =
+<span class="lineNum">     362 </span>            :       1.0 / (a_of_t + (b_of_t - a_of_t) * square(one_over_outer_boundary_) *
+<span class="lineNum">     363 </span>            :                           rho_squared);
+<span class="lineNum">     364 </span>            :   for (size_t i = 1; i &lt; Dim; ++i) {
+<span class="lineNum">     365 </span>            :     inv_jac.get(i, i) = get&lt;0, 0&gt;(inv_jac);
+<span class="lineNum">     366 </span>            :   }
+<span class="lineNum">     367 </span>            : 
+<span class="lineNum">     368 </span>            :   // Factor out `double` computations to ensure minimal DataVector operations
+<span class="lineNum">     369 </span>            :   const double denom_constant_a = a_of_t / square(one_over_outer_boundary_);
+<span class="lineNum">     370 </span>            :   const double denom_constant_b = 3.0 * (b_of_t - a_of_t);
+<span class="lineNum">     371 </span>            :   const double numerator_constant = -2.0 * (b_of_t - a_of_t);
+<span class="lineNum">     372 </span>            :   if (Dim == 1) {
+<span class="lineNum">     373 </span>            :     get&lt;0, 0&gt;(inv_jac) *=
+<span class="lineNum">     374 </span>            :         (1.0 + numerator_constant /
+<span class="lineNum">     375 </span>            :                    (denom_constant_a + denom_constant_b * rho_squared) *
+<span class="lineNum">     376 </span>            :                    square(source_coords[0]));
+<span class="lineNum">     377 </span>            :   } else {
+<span class="lineNum">     378 </span>            :     // Reuse rho^2 allocation
+<span class="lineNum">     379 </span>            :     rho_squared = numerator_constant /
+<span class="lineNum">     380 </span>            :                   (denom_constant_a + denom_constant_b * rho_squared) *
+<span class="lineNum">     381 </span>            :                   get&lt;0, 0&gt;(inv_jac);
+<span class="lineNum">     382 </span>            : 
+<span class="lineNum">     383 </span>            :     for (size_t i = 0; i &lt; Dim; ++i) {
+<span class="lineNum">     384 </span>            :       for (size_t j = 0; j &lt; Dim; ++j) {
+<span class="lineNum">     385 </span>            :         if (i == j) {
+<span class="lineNum">     386 </span>            :           inv_jac.get(i, j) += rho_squared * gsl::at(source_coords, i) *
+<span class="lineNum">     387 </span>            :                                gsl::at(source_coords, j);
+<span class="lineNum">     388 </span>            :         } else {
+<span class="lineNum">     389 </span>            :           inv_jac.get(i, j) = rho_squared * gsl::at(source_coords, i) *
+<span class="lineNum">     390 </span>            :                               gsl::at(source_coords, j);
+<span class="lineNum">     391 </span>            :         }
+<span class="lineNum">     392 </span>            :       }
+<span class="lineNum">     393 </span>            :     }
+<span class="lineNum">     394 </span>            :   }
+<span class="lineNum">     395 </span>            : 
+<span class="lineNum">     396 </span>            :   return inv_jac;
+<span class="lineNum">     397 </span>            : }
+<span class="lineNum">     398 </span>            : 
+<span class="lineNum">     399 </span>            : template &lt;size_t Dim&gt;
+<span class="lineNum">     400 </span>            : void CubicScale&lt;Dim&gt;::pup(PUP::er&amp; p) noexcept {
+<span class="lineNum">     401 </span>            :   p | f_of_t_a_;
+<span class="lineNum">     402 </span>            :   p | f_of_t_b_;
+<span class="lineNum">     403 </span>            :   p | one_over_outer_boundary_;
+<span class="lineNum">     404 </span>            :   p | functions_of_time_equal_;
+<span class="lineNum">     405 </span>            : }
+<span class="lineNum">     406 </span>            : 
+<span class="lineNum">     407 </span>            : template &lt;size_t Dim&gt;
+<span class="lineNum">     408 </span><span class="lineNoCov">          0 : bool operator==(const CubicScale&lt;Dim&gt;&amp; lhs,</span>
+<span class="lineNum">     409 </span>            :                 const CubicScale&lt;Dim&gt;&amp; rhs) noexcept {
+<span class="lineNum">     410 </span>            :   return lhs.f_of_t_a_ == rhs.f_of_t_a_ and lhs.f_of_t_b_ == rhs.f_of_t_b_ and
+<span class="lineNum">     411 </span>            :          lhs.one_over_outer_boundary_ == rhs.one_over_outer_boundary_ and
+<span class="lineNum">     412 </span>            :          lhs.functions_of_time_equal_ == rhs.functions_of_time_equal_;
+<span class="lineNum">     413 </span>            : }
+<span class="lineNum">     414 </span>            : 
+<span class="lineNum">     415 </span>            : // Explicit instantiations
+<span class="lineNum">     416 </span>            : /// \cond
+<span class="lineNum">     417 </span>            : #define DIM(data) BOOST_PP_TUPLE_ELEM(0, data)
+<span class="lineNum">     418 </span>            : 
+<span class="lineNum">     419 </span>            : #define INSTANTIATE(_, data)                                                 \
+<span class="lineNum">     420 </span>            :   template class CubicScale&lt;DIM(data)&gt;;                                      \
+<span class="lineNum">     421 </span>            :   template boost::optional&lt;                                                  \
+<span class="lineNum">     422 </span>            :       std::array&lt;tt::remove_cvref_wrap_t&lt;double&gt;, DIM(data)&gt;&gt;                \
+<span class="lineNum">     423 </span>            :   CubicScale&lt;DIM(data)&gt;::inverse(                                            \
+<span class="lineNum">     424 </span>            :       const std::array&lt;double, DIM(data)&gt;&amp; target_coords, const double time, \
+<span class="lineNum">     425 </span>            :       const std::unordered_map&lt;                                              \
+<span class="lineNum">     426 </span>            :           std::string,                                                       \
+<span class="lineNum">     427 </span>            :           std::unique_ptr&lt;domain::FunctionsOfTime::FunctionOfTime&gt;&gt;&amp;         \
+<span class="lineNum">     428 </span>            :           functions_of_time) const noexcept;                                 \
+<span class="lineNum">     429 </span>            :   template boost::optional&lt;std::array&lt;                                       \
+<span class="lineNum">     430 </span>            :       tt::remove_cvref_wrap_t&lt;std::reference_wrapper&lt;const double&gt;&gt;,         \
+<span class="lineNum">     431 </span>            :       DIM(data)&gt;&gt;                                                            \
+<span class="lineNum">     432 </span>            :   CubicScale&lt;DIM(data)&gt;::inverse(                                            \
+<span class="lineNum">     433 </span>            :       const std::array&lt;std::reference_wrapper&lt;const double&gt;, DIM(data)&gt;&amp;     \
+<span class="lineNum">     434 </span>            :           target_coords,                                                     \
+<span class="lineNum">     435 </span>            :       const double time,                                                     \
+<span class="lineNum">     436 </span>            :       const std::unordered_map&lt;                                              \
+<span class="lineNum">     437 </span>            :           std::string,                                                       \
+<span class="lineNum">     438 </span>            :           std::unique_ptr&lt;domain::FunctionsOfTime::FunctionOfTime&gt;&gt;&amp;         \
+<span class="lineNum">     439 </span>            :           functions_of_time) const noexcept;                                 \
+<span class="lineNum">     440 </span>            :   template bool operator==(const CubicScale&lt;DIM(data)&gt;&amp;,                     \
+<span class="lineNum">     441 </span>            :                            const CubicScale&lt;DIM(data)&gt;&amp;) noexcept;
+<span class="lineNum">     442 </span>            : 
+<span class="lineNum">     443 </span>            : GENERATE_INSTANTIATIONS(INSTANTIATE, (1, 2, 3))
+<span class="lineNum">     444 </span>            : 
+<span class="lineNum">     445 </span>            : #undef INSTANTIATE
+<span class="lineNum">     446 </span>            : 
+<span class="lineNum">     447 </span>            : #define DTYPE(data) BOOST_PP_TUPLE_ELEM(1, data)
+<span class="lineNum">     448 </span>            : 
+<span class="lineNum">     449 </span>            : #define INSTANTIATE(_, data)                                           \
+<span class="lineNum">     450 </span>            :   template std::array&lt;tt::remove_cvref_wrap_t&lt;DTYPE(data)&gt;, DIM(data)&gt; \
+<span class="lineNum">     451 </span>            :   CubicScale&lt;DIM(data)&gt;::operator()(                                   \
+<span class="lineNum">     452 </span>            :       const std::array&lt;DTYPE(data), DIM(data)&gt;&amp; source_coords,         \
+<span class="lineNum">     453 </span>            :       const double time,                                               \
+<span class="lineNum">     454 </span>            :       const std::unordered_map&lt;                                        \
+<span class="lineNum">     455 </span>            :           std::string,                                                 \
+<span class="lineNum">     456 </span>            :           std::unique_ptr&lt;domain::FunctionsOfTime::FunctionOfTime&gt;&gt;&amp;   \
+<span class="lineNum">     457 </span>            :           functions_of_time) const noexcept;                           \
+<span class="lineNum">     458 </span>            :   template std::array&lt;tt::remove_cvref_wrap_t&lt;DTYPE(data)&gt;, DIM(data)&gt; \
+<span class="lineNum">     459 </span>            :   CubicScale&lt;DIM(data)&gt;::frame_velocity(                               \
+<span class="lineNum">     460 </span>            :       const std::array&lt;DTYPE(data), DIM(data)&gt;&amp; source_coords,         \
+<span class="lineNum">     461 </span>            :       const double time,                                               \
+<span class="lineNum">     462 </span>            :       const std::unordered_map&lt;                                        \
+<span class="lineNum">     463 </span>            :           std::string,                                                 \
+<span class="lineNum">     464 </span>            :           std::unique_ptr&lt;domain::FunctionsOfTime::FunctionOfTime&gt;&gt;&amp;   \
+<span class="lineNum">     465 </span>            :           functions_of_time) const noexcept;                           \
+<span class="lineNum">     466 </span>            :   template tnsr::Ij&lt;tt::remove_cvref_wrap_t&lt;DTYPE(data)&gt;, DIM(data),   \
+<span class="lineNum">     467 </span>            :                     Frame::NoFrame&gt;                                    \
+<span class="lineNum">     468 </span>            :   CubicScale&lt;DIM(data)&gt;::jacobian(                                     \
+<span class="lineNum">     469 </span>            :       const std::array&lt;DTYPE(data), DIM(data)&gt;&amp; source_coords,         \
+<span class="lineNum">     470 </span>            :       const double time,                                               \
+<span class="lineNum">     471 </span>            :       const std::unordered_map&lt;                                        \
+<span class="lineNum">     472 </span>            :           std::string,                                                 \
+<span class="lineNum">     473 </span>            :           std::unique_ptr&lt;domain::FunctionsOfTime::FunctionOfTime&gt;&gt;&amp;   \
+<span class="lineNum">     474 </span>            :           functions_of_time) const noexcept;                           \
+<span class="lineNum">     475 </span>            :   template tnsr::Ij&lt;tt::remove_cvref_wrap_t&lt;DTYPE(data)&gt;, DIM(data),   \
+<span class="lineNum">     476 </span>            :                     Frame::NoFrame&gt;                                    \
+<span class="lineNum">     477 </span>            :   CubicScale&lt;DIM(data)&gt;::inv_jacobian(                                 \
+<span class="lineNum">     478 </span>            :       const std::array&lt;DTYPE(data), DIM(data)&gt;&amp; source_coords,         \
+<span class="lineNum">     479 </span>            :       const double time,                                               \
+<span class="lineNum">     480 </span>            :       const std::unordered_map&lt;                                        \
+<span class="lineNum">     481 </span>            :           std::string,                                                 \
+<span class="lineNum">     482 </span>            :           std::unique_ptr&lt;domain::FunctionsOfTime::FunctionOfTime&gt;&gt;&amp;   \
+<span class="lineNum">     483 </span>            :           functions_of_time) const noexcept;
+<span class="lineNum">     484 </span>            : 
+<span class="lineNum">     485 </span>            : GENERATE_INSTANTIATIONS(INSTANTIATE, (1, 2, 3),
+<span class="lineNum">     486 </span>            :                         (double, DataVector,
+<span class="lineNum">     487 </span>            :                          std::reference_wrapper&lt;const double&gt;,
+<span class="lineNum">     488 </span>            :                          std::reference_wrapper&lt;const DataVector&gt;))
+<span class="lineNum">     489 </span>            : #undef DIM
+<span class="lineNum">     490 </span>            : #undef DTYPE
+<span class="lineNum">     491 </span>            : #undef INSTANTIATE
+<span class="lineNum">     492 </span>            : /// \endcond
+<span class="lineNum">     493 </span>            : }  // namespace TimeDependent
+<span class="lineNum">     494 </span>            : }  // namespace CoordinateMaps
+<span class="lineNum">     495 </span>            : }  // namespace domain
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

@@ -1,0 +1,450 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - NumericalAlgorithms/Spectral/SwshInterpolation.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">NumericalAlgorithms/Spectral</a> - SwshInterpolation.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">13</td>
+            <td class="headerCovTableEntry">37</td>
+            <td class="headerCovTableEntryLo">35.1 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #pragma once
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;complex&gt;
+<span class="lineNum">       7 </span>            : #include &lt;cstddef&gt;
+<span class="lineNum">       8 </span>            : #include &lt;vector&gt;
+<span class="lineNum">       9 </span>            : 
+<span class="lineNum">      10 </span>            : #include &quot;DataStructures/ComplexModalVector.hpp&quot;
+<span class="lineNum">      11 </span>            : #include &quot;DataStructures/DataVector.hpp&quot;
+<span class="lineNum">      12 </span>            : #include &quot;DataStructures/SpinWeighted.hpp&quot;
+<span class="lineNum">      13 </span>            : #include &quot;Utilities/Gsl.hpp&quot;
+<span class="lineNum">      14 </span>            : 
+<span class="lineNum">      15 </span>            : /// \cond
+<span class="lineNum">      16 </span>            : class ComplexDataVector;
+<span class="lineNum">      17 </span>            : /// \endcond
+<span class="lineNum">      18 </span>            : 
+<span class="lineNum">      19 </span>            : namespace Spectral {
+<span class="lineNum">      20 </span>            : namespace Swsh {
+<span class="lineNum">      21 </span>            : 
+<span class="lineNum">      22 </span>            : /// \ingroup SwshGroup
+<span class="lineNum">      23 </span>            : /// A utility for evaluating a particular spin-weighted spherical harmonic
+<span class="lineNum">      24 </span>            : /// function at arbitrary points.
+<span class="lineNum">      25 </span>            : ///
+<span class="lineNum">      26 </span>            : /// \warning This should NOT be used for interpolation; such an evaluation
+<span class="lineNum">      27 </span>            : /// strategy is hopelessly slow compared to Clenshaw recurrence strategies.
+<span class="lineNum">      28 </span>            : /// Instead use `SwshInterpolator`.
+<span class="lineNum">      29 </span><span class="lineCov">          1 : class SpinWeightedSphericalHarmonic {</span>
+<span class="lineNum">      30 </span>            :  public:
+<span class="lineNum">      31 </span>            :   // charm needs an empty constructor
+<span class="lineNum">      32 </span><span class="lineNoCov">          0 :   SpinWeightedSphericalHarmonic() = default;</span>
+<span class="lineNum">      33 </span>            : 
+<span class="lineNum">      34 </span><span class="lineNoCov">          0 :   SpinWeightedSphericalHarmonic(int spin, size_t l, int m) noexcept;</span>
+<span class="lineNum">      35 </span>            : 
+<span class="lineNum">      36 </span>            :   /*!
+<span class="lineNum">      37 </span>            :    *  Return by pointer the values of the spin-weighted spherical harmonic
+<span class="lineNum">      38 </span>            :    *  evaluated at `theta` and `phi`.
+<span class="lineNum">      39 </span>            :    *
+<span class="lineNum">      40 </span>            :    *  \details The additional values `sin_theta_over_2` and `cos_theta_over_2`,
+<span class="lineNum">      41 </span>            :    *  representing \f$\sin(\theta/2)\f$ and \f$\cos(\theta/2)\f$ are taken as
+<span class="lineNum">      42 </span>            :    *  required input to improve the speed of evaluation when called more than
+<span class="lineNum">      43 </span>            :    *  once.
+<span class="lineNum">      44 </span>            :    *
+<span class="lineNum">      45 </span>            :    *  The formula we evaluate (with various prefactors precomputed, cached, and
+<span class="lineNum">      46 </span>            :    *  optimized from the factorials) is \cite Goldberg1966uu
+<span class="lineNum">      47 </span>            :    *
+<span class="lineNum">      48 </span>            :    *  \f{align*}{
+<span class="lineNum">      49 </span>            :    *  {}_s Y_{l m} = (-1)^m \sqrt{\frac{(l + m)! (l-m)! (2l + 1)}
+<span class="lineNum">      50 </span>            :    *  {4 \pi (l + s)! (l - s)!}} \sin^{2 l}(\theta / 2)
+<span class="lineNum">      51 </span>            :    *   \sum_{r = 0}^{l - s} {l - s \choose r} {l + s \choose r + s - m}
+<span class="lineNum">      52 </span>            :    *  (-1)^{l - r - s} e^{i m \phi} \cot^{2 r + s - m}(\theta / 2).
+<span class="lineNum">      53 </span>            :    *  \f}
+<span class="lineNum">      54 </span>            :    */
+<span class="lineNum">      55 </span><span class="lineCov">          1 :   void evaluate(gsl::not_null&lt;ComplexDataVector*&gt; result,</span>
+<span class="lineNum">      56 </span>            :                 const DataVector&amp; theta, const DataVector&amp; phi,
+<span class="lineNum">      57 </span>            :                 const DataVector&amp; sin_theta_over_2,
+<span class="lineNum">      58 </span>            :                 const DataVector&amp; cos_theta_over_2) const noexcept;
+<span class="lineNum">      59 </span>            : 
+<span class="lineNum">      60 </span>            :   /// Return by value the spin-weighted spherical harmonic evaluated at `theta`
+<span class="lineNum">      61 </span>            :   /// and `phi`.
+<span class="lineNum">      62 </span>            :   ///
+<span class="lineNum">      63 </span>            :   /// \details The additional values `sin_theta_over_2` and `cos_theta_over_2`,
+<span class="lineNum">      64 </span>            :   /// representing \f$\sin(\theta/2)\f$ and \f$\cos(\theta/2)\f$ are taken as
+<span class="lineNum">      65 </span>            :   /// required input to improve the speed of evaluation when called more than
+<span class="lineNum">      66 </span>            :   /// once.
+<span class="lineNum">      67 </span><span class="lineCov">          1 :   ComplexDataVector evaluate(const DataVector&amp; theta, const DataVector&amp; phi,</span>
+<span class="lineNum">      68 </span>            :                              const DataVector&amp; sin_theta_over_2,
+<span class="lineNum">      69 </span>            :                              const DataVector&amp; cos_theta_over_2) const noexcept;
+<span class="lineNum">      70 </span>            : 
+<span class="lineNum">      71 </span>            :   /// Return by value the spin-weighted spherical harmonic evaluated at `theta`
+<span class="lineNum">      72 </span>            :   /// and `phi`.
+<span class="lineNum">      73 </span><span class="lineCov">          1 :   std::complex&lt;double&gt; evaluate(double theta, double phi) const noexcept;</span>
+<span class="lineNum">      74 </span>            : 
+<span class="lineNum">      75 </span>            :   /// Serialization for Charm++.
+<span class="lineNum">      76 </span><span class="lineCov">          1 :   void pup(PUP::er&amp; p) noexcept;  // NOLINT</span>
+<span class="lineNum">      77 </span>            : 
+<span class="lineNum">      78 </span>            :  private:
+<span class="lineNum">      79 </span><span class="lineNoCov">          0 :   int spin_ = 0;</span>
+<span class="lineNum">      80 </span><span class="lineNoCov">          0 :   size_t l_ = 0;</span>
+<span class="lineNum">      81 </span><span class="lineNoCov">          0 :   int m_ = 0;</span>
+<span class="lineNum">      82 </span><span class="lineNoCov">          0 :   double overall_prefactor_ = 0.0;</span>
+<span class="lineNum">      83 </span><span class="lineNoCov">          0 :   std::vector&lt;double&gt; r_prefactors_;</span>
+<span class="lineNum">      84 </span>            : };
+<span class="lineNum">      85 </span>            : 
+<span class="lineNum">      86 </span>            : /*!
+<span class="lineNum">      87 </span>            :  * \ingroup SwshGroup
+<span class="lineNum">      88 </span>            :  * \brief Performs interpolation for spin-weighted spherical harmonics by
+<span class="lineNum">      89 </span>            :  * taking advantage of the Clenshaw method of expanding recurrence relations.
+<span class="lineNum">      90 </span>            :  *
+<span class="lineNum">      91 </span>            :  * \details During construction, we cache several functions of the target
+<span class="lineNum">      92 </span>            :  * interpolation points that will be used during the Clenshaw evaluation.
+<span class="lineNum">      93 </span>            :  * A new `SwshInterpolator` object must be created for each new set of target
+<span class="lineNum">      94 </span>            :  * points, but the member function `SwshInterpolator::interpolate()` may be
+<span class="lineNum">      95 </span>            :  * called on several different coefficients or collocation sets, and of
+<span class="lineNum">      96 </span>            :  * different spin-weights.
+<span class="lineNum">      97 </span>            :  *
+<span class="lineNum">      98 </span>            :  * Recurrence constants
+<span class="lineNum">      99 </span>            :  * --------------------
+<span class="lineNum">     100 </span>            :  * This utility obtains the Clenshaw interpolation constants from a
+<span class="lineNum">     101 </span>            :  * `StaticCache`, so that 'universal' quantities can be calculated only once per
+<span class="lineNum">     102 </span>            :  * execution and re-used on each interpolation.
+<span class="lineNum">     103 </span>            :  *
+<span class="lineNum">     104 </span>            :  * We evaluate the recurrence coefficients \f$\alpha_l^{(a,b)}\f$ and
+<span class="lineNum">     105 </span>            :  * \f$\beta_l^{(a,b)}\f$, where \f$a = |s + m|\f$, \f$b = |s - m|\f$, and
+<span class="lineNum">     106 </span>            :  *
+<span class="lineNum">     107 </span>            :  * \f[
+<span class="lineNum">     108 </span>            :  * {}_sY_{l, m}(\theta, \phi) = \alpha_l^{(a,b)}(\theta) {}_s Y_{l-1, m}
+<span class="lineNum">     109 </span>            :  * +  \beta_l^{(a, b)} {}_s Y_{l - 2, m}(\theta, \phi)
+<span class="lineNum">     110 </span>            :  * \f]
+<span class="lineNum">     111 </span>            :  *
+<span class="lineNum">     112 </span>            :  * The core Clenshaw recurrence is in the\f$l\f$ modes of the
+<span class="lineNum">     113 </span>            :  * spin-weighted spherical harmonic. For a set of modes \f$a_l^{(a,b)}\f$ at
+<span class="lineNum">     114 </span>            :  * fixed \f$m\f$, the function value is evaluated by the recurrence:
+<span class="lineNum">     115 </span>            :  *
+<span class="lineNum">     116 </span>            :  * \f{align*}{
+<span class="lineNum">     117 </span>            :  * y^{(a, b)}_{l_\text{max} + 2} &amp;= y^{(a, b)}_{l_\text{max} + 1} = 0 \\
+<span class="lineNum">     118 </span>            :  * y^{(a, b)}_{l}(\theta) &amp;= \alpha_{l + 1}^{(a, b)} y^{(a, b)}_{l +
+<span class="lineNum">     119 </span>            :  * 1}(\theta)
+<span class="lineNum">     120 </span>            :  * + \beta_{l + 2}^{(a,b)} y^{(a, b)}_{l + 2}(\theta) + a_l^{(a, b)} \\
+<span class="lineNum">     121 </span>            :  * f_m(\theta, \phi) &amp;= \beta_{l_{\text{min}} + 2}
+<span class="lineNum">     122 </span>            :  * {}_s Y_{l_{\text{min}}, m}(\theta, \phi) y^{(a, b)}_2(\theta) +
+<span class="lineNum">     123 </span>            :  * {}_s Y_{l_{\text{min}} + 1, m}(\theta, \phi) y^{(a, b)}_1(\theta) +
+<span class="lineNum">     124 </span>            :  * a_0^{(a, b)} {}_s Y_{l_{\text{min}}, m}(\theta, \phi),
+<span class="lineNum">     125 </span>            :  * \f}
+<span class="lineNum">     126 </span>            :  *
+<span class="lineNum">     127 </span>            :  * where \f$l_{\text{min}} = \max(|m|, |s|)\f$ is the lowest nonvanishing
+<span class="lineNum">     128 </span>            :  * \f$l\f$ mode for a given \f$m\f$ and \f$s\f$.
+<span class="lineNum">     129 </span>            :  *
+<span class="lineNum">     130 </span>            :  * The coefficients to cache are inferred from a mechanical but lengthy
+<span class="lineNum">     131 </span>            :  * calculation involving the recurrence relation for the Jacobi polynomials.
+<span class="lineNum">     132 </span>            :  * The result is:
+<span class="lineNum">     133 </span>            :  *
+<span class="lineNum">     134 </span>            :  * \f{align*}{
+<span class="lineNum">     135 </span>            :  * \alpha_l^{(a, b)} &amp;= \frac{\sqrt{(2l + 1)(2l - 1)}}
+<span class="lineNum">     136 </span>            :  * {2\sqrt{(l + k)(l + k + a + b)(l + k + a)(l + k + b)}}
+<span class="lineNum">     137 </span>            :  * \left[2 l \cos(\theta) +
+<span class="lineNum">     138 </span>            :  * \frac{a^2 - b^2}{2 l - 2}\right] \\
+<span class="lineNum">     139 </span>            :  * \beta_l^{(a, b)} &amp; = - \sqrt{\frac{(2 l + 1)(l + k + a - 1)(l + k + b - 1)
+<span class="lineNum">     140 </span>            :  * (l + k - 1)(l + k + a + b - 1)}
+<span class="lineNum">     141 </span>            :  * {(2l - 3)(l + k)(l + k + a + b)(l + k + a)(l + k + b)}}
+<span class="lineNum">     142 </span>            :  * \frac{2 l}{2 l - 2},
+<span class="lineNum">     143 </span>            :  * \f}
+<span class="lineNum">     144 </span>            :  * where \f$k = - (a + b)/2\f$ (which is always integral due to the properties
+<span class="lineNum">     145 </span>            :  * of \f$a\f$ and \f$b\f$). Note that because the values of \f$\alpha\f$ and
+<span class="lineNum">     146 </span>            :  * \f$\beta\f$ in the recurrence relation are not needed for any value below
+<span class="lineNum">     147 </span>            :  * \f$l_{\text{min}} + 2\f$, so none of the values in the square-roots or
+<span class="lineNum">     148 </span>            :  * denominators take pathological values for any of the coefficients we require.
+<span class="lineNum">     149 </span>            :  *
+<span class="lineNum">     150 </span>            :  * The \f$\beta\f$ constants are filled in member variable `beta_constant`. The
+<span class="lineNum">     151 </span>            :  * \f$\alpha\f$ values are separately stored as the prefactor for the
+<span class="lineNum">     152 </span>            :  * \f$\cos(\theta)\f$ term and the constant term in `alpha_prefactor` and
+<span class="lineNum">     153 </span>            :  * `alpha_constant` member variables.
+<span class="lineNum">     154 </span>            :  *
+<span class="lineNum">     155 </span>            :  * In addition, it is efficient to cache recurrence coefficients necessary for
+<span class="lineNum">     156 </span>            :  * generating the first couple of spin-weighted spherical harmonic functions for
+<span class="lineNum">     157 </span>            :  * each \f$m\f$ used in the Clenshaw sum.
+<span class="lineNum">     158 </span>            :  *
+<span class="lineNum">     159 </span>            :  * The member variable `harmonic_at_l_min_prefactors` holds the prefactors for
+<span class="lineNum">     160 </span>            :  * directly evaluating the harmonics at \f$s &gt;= m\f$,
+<span class="lineNum">     161 </span>            :  *
+<span class="lineNum">     162 </span>            :  * \f{align*}{
+<span class="lineNum">     163 </span>            :  * {}_s Y_{|s| m}  = {}_s C_{m} e^{i m \phi} \sin^a(\theta/2) \cos^b(\theta/2),
+<span class="lineNum">     164 </span>            :  * \f}
+<span class="lineNum">     165 </span>            :  *
+<span class="lineNum">     166 </span>            :  * where \f${}_s C_m\f$ are the cached prefactors that take the values
+<span class="lineNum">     167 </span>            :  *
+<span class="lineNum">     168 </span>            :  * \f{align*}{
+<span class="lineNum">     169 </span>            :  * {}_s C_m = (-1)^{m + \lambda(m)} \sqrt{\frac{(2 |s| + 1) (|s| + k)!}
+<span class="lineNum">     170 </span>            :  * {4 \pi (|s| + k + a)! (|s| + k + b)!}}
+<span class="lineNum">     171 </span>            :  * \f}
+<span class="lineNum">     172 </span>            :  *
+<span class="lineNum">     173 </span>            :  * and
+<span class="lineNum">     174 </span>            :  *
+<span class="lineNum">     175 </span>            :  * \f{align*}{
+<span class="lineNum">     176 </span>            :  * \lambda(m) =
+<span class="lineNum">     177 </span>            :  * \left\{
+<span class="lineNum">     178 </span>            :  * \begin{array}{ll}
+<span class="lineNum">     179 </span>            :  * 0 &amp;\text{ for } s \ge -m\\
+<span class="lineNum">     180 </span>            :  * s + m &amp;\text{ for } s &lt; -m
+<span class="lineNum">     181 </span>            :  * \end{array} \right..
+<span class="lineNum">     182 </span>            :  * \f}
+<span class="lineNum">     183 </span>            :  *
+<span class="lineNum">     184 </span>            :  * The member variable `harmonic_m_recurrence_prefactors` holds the prefactors
+<span class="lineNum">     185 </span>            :  * necessary to evaluate the lowest harmonics for each \f$m\f$ from the next
+<span class="lineNum">     186 </span>            :  * lowest-in-magnitude \f$m\f$, allowing most leading harmonics to recursively
+<span class="lineNum">     187 </span>            :  * derived.
+<span class="lineNum">     188 </span>            :  *
+<span class="lineNum">     189 </span>            :  * \f{align*}{
+<span class="lineNum">     190 </span>            :  * {}_s Y_{|m|, m} = {}_s D_m  \sin(\theta / 2) \cos(\theta / 2)
+<span class="lineNum">     191 </span>            :  * \left\{
+<span class="lineNum">     192 </span>            :  * \begin{array}{ll}
+<span class="lineNum">     193 </span>            :  * e^{i \phi} {}_s Y_{|m| - 1, m - 1} &amp;\text{ for } m &gt; 0\\
+<span class="lineNum">     194 </span>            :  * e^{-i \phi} {}_s Y_{|m| - 1, m + 1} &amp;\text{ for } m &lt; 0
+<span class="lineNum">     195 </span>            :  * \end{array}\right.,
+<span class="lineNum">     196 </span>            :  * \f}
+<span class="lineNum">     197 </span>            :  *
+<span class="lineNum">     198 </span>            :  * where \f${}_s D_m\f$ are the cached prefactors that take the values
+<span class="lineNum">     199 </span>            :  *
+<span class="lineNum">     200 </span>            :  * \f{align*}{
+<span class="lineNum">     201 </span>            :  * {}_s D_m = -(-1)^{\Delta \lambda(m)} \sqrt{
+<span class="lineNum">     202 </span>            :  * \frac{(2 |m| + 1)(k + |m| + a + b - 1)(k + |m| + a + b)}
+<span class="lineNum">     203 </span>            :  * {(2 |m| - 1)(k + |m| + a)(k + |m| + b)}},
+<span class="lineNum">     204 </span>            :  * \f}
+<span class="lineNum">     205 </span>            :  * and \f$\Delta \lambda(m)\f$ is the difference in \f$\lambda(m)\f$ between
+<span class="lineNum">     206 </span>            :  * the harmonic on the left-hand side and right-hand side of the above
+<span class="lineNum">     207 </span>            :  * recurrence relation, that is \f$\lambda(m) - \lambda(m - 1)\f$ for positive
+<span class="lineNum">     208 </span>            :  * \f$m\f$ and \f$\lambda(m) - \lambda(m + 1)\f$ for negative \f$m\f$.
+<span class="lineNum">     209 </span>            :  *
+<span class="lineNum">     210 </span>            :  * Finally, the member variable
+<span class="lineNum">     211 </span>            :  * `harmonic_at_l_min_plus_one_recurrence_prefactors` holds the prefactors
+<span class="lineNum">     212 </span>            :  * necessary to evaluate parts of the recurrence relations from the lowest
+<span class="lineNum">     213 </span>            :  * \f$l\f$ for a given \f$m\f$ to the next-to-lowest \f$l\f$.
+<span class="lineNum">     214 </span>            :  *
+<span class="lineNum">     215 </span>            :  * \f{align*}{
+<span class="lineNum">     216 </span>            :  *   {}_s Y_{l_{\min} + 1, m} = {}_s E_m
+<span class="lineNum">     217 </span>            :  * \left[(a + 1) + (a + b + 2) \frac{(\cos(\theta) - 1)}{2}\right]
+<span class="lineNum">     218 </span>            :  * {}_s Y_{l_{\min}, m}.
+<span class="lineNum">     219 </span>            :  * \f}
+<span class="lineNum">     220 </span>            :  *
+<span class="lineNum">     221 </span>            :  * where \f${}_s E_m\f$ are the cached prefactors that take the values
+<span class="lineNum">     222 </span>            :  *
+<span class="lineNum">     223 </span>            :  * \f{align*}{
+<span class="lineNum">     224 </span>            :  * {}_s E_{m} = \sqrt{\frac{2 l_{\min} + 3}{ 2 l_{\min} + 1}}
+<span class="lineNum">     225 </span>            :  * \sqrt{\frac{(l_{\min} + k + 1)(l_{\min} + k + a + b + 1)}
+<span class="lineNum">     226 </span>            :  * {(l_{\min} + k + a + 1)(l_{\min} + k + b + 1)}}
+<span class="lineNum">     227 </span>            :  * \f}
+<span class="lineNum">     228 </span>            :  */
+<span class="lineNum">     229 </span><span class="lineCov">          1 : class SwshInterpolator {</span>
+<span class="lineNum">     230 </span>            :  public:
+<span class="lineNum">     231 </span>            :   // charm needs the empty constructor
+<span class="lineNum">     232 </span><span class="lineNoCov">          0 :   SwshInterpolator() = default;</span>
+<span class="lineNum">     233 </span>            : 
+<span class="lineNum">     234 </span><span class="lineNoCov">          0 :   SwshInterpolator(const SwshInterpolator&amp;) = default;</span>
+<span class="lineNum">     235 </span><span class="lineNoCov">          0 :   SwshInterpolator(SwshInterpolator&amp;&amp;) = default;</span>
+<span class="lineNum">     236 </span><span class="lineNoCov">          0 :   SwshInterpolator&amp; operator=(const SwshInterpolator&amp;) = default;</span>
+<span class="lineNum">     237 </span><span class="lineNoCov">          0 :   SwshInterpolator&amp; operator=(SwshInterpolator&amp;&amp;) = default;</span>
+<span class="lineNum">     238 </span><span class="lineNoCov">          0 :   ~SwshInterpolator() noexcept = default;</span>
+<span class="lineNum">     239 </span>            : 
+<span class="lineNum">     240 </span><span class="lineNoCov">          0 :   SwshInterpolator(const DataVector&amp; theta, const DataVector&amp; phi,</span>
+<span class="lineNum">     241 </span>            :                    size_t l_max) noexcept;
+<span class="lineNum">     242 </span>            : 
+<span class="lineNum">     243 </span>            :   /*!
+<span class="lineNum">     244 </span>            :    * \brief Perform the Clenshaw recurrence sum, returning by pointer
+<span class="lineNum">     245 </span>            :    * `interpolated` of interpolating the `goldberg_modes` at the collocation
+<span class="lineNum">     246 </span>            :    * points passed to the constructor.
+<span class="lineNum">     247 </span>            :    *
+<span class="lineNum">     248 </span>            :    * \details The core Clenshaw recurrence is in the\f$l\f$ modes of the
+<span class="lineNum">     249 </span>            :    * spin-weighted spherical harmonic. For a set of modes \f$a_l^{(a,b)}\f$ at
+<span class="lineNum">     250 </span>            :    * fixed \f$m\f$, the function value is evaluated by the recurrence:
+<span class="lineNum">     251 </span>            :    *
+<span class="lineNum">     252 </span>            :    * \f{align*}{
+<span class="lineNum">     253 </span>            :    * y^{(a, b)}_{l_\text{max} + 2} &amp;= y^{(a, b)}_{l_\text{max} + 1} = 0 \\
+<span class="lineNum">     254 </span>            :    * y^{(a, b)}_{l}(\theta) &amp;= \alpha_{l + 1}^{(a, b)} y^{(a, b)}_{l +
+<span class="lineNum">     255 </span>            :    * 1}(\theta)
+<span class="lineNum">     256 </span>            :    * + \beta_{l + 2}^{(a,b)} y^{(a, b)}_{l + 2}(\theta) + a_l^{(a, b)} \\
+<span class="lineNum">     257 </span>            :    * f_m(\theta, \phi) &amp;= \beta_{l_{\text{min}} + 2}
+<span class="lineNum">     258 </span>            :    * {}_s Y_{l_{\text{min}}, m}(\theta, \phi) y^{(a, b)}_2(\theta) +
+<span class="lineNum">     259 </span>            :    * {}_s Y_{l_{\text{min}} + 1, m}(\theta, \phi) y^{(a, b)}_1(\theta) +
+<span class="lineNum">     260 </span>            :    * a_0^{(a, b)} {}_s Y_{l_{\text{min}}, m}(\theta, \phi)
+<span class="lineNum">     261 </span>            :    * \f}
+<span class="lineNum">     262 </span>            :    *
+<span class="lineNum">     263 </span>            :    * The recurrence in \f$l\f$ accomplishes much of the work, but for full
+<span class="lineNum">     264 </span>            :    * efficiency, we also recursively evaluate the lowest handful of \f$l\f$s for
+<span class="lineNum">     265 </span>            :    * each \f$m\f$. The details of those additional recurrence tricks can be
+<span class="lineNum">     266 </span>            :    * found in the documentation for `ClenshawRecurrenceConstants`.
+<span class="lineNum">     267 </span>            :    */
+<span class="lineNum">     268 </span>            :   template &lt;int Spin&gt;
+<span class="lineNum">     269 </span><span class="lineCov">          1 :   void interpolate(</span>
+<span class="lineNum">     270 </span>            :       gsl::not_null&lt;SpinWeighted&lt;ComplexDataVector, Spin&gt;*&gt; interpolated,
+<span class="lineNum">     271 </span>            :       const SpinWeighted&lt;ComplexModalVector, Spin&gt;&amp; goldberg_modes) const
+<span class="lineNum">     272 </span>            :       noexcept;
+<span class="lineNum">     273 </span>            : 
+<span class="lineNum">     274 </span>            :   /*!
+<span class="lineNum">     275 </span>            :    * \brief Perform the Clenshaw recurrence sum, returning by pointer
+<span class="lineNum">     276 </span>            :    * `interpolated` of interpolating function represented by
+<span class="lineNum">     277 </span>            :    * `libsharp_collocation` at the target points passed to the constructor.
+<span class="lineNum">     278 </span>            :    *
+<span class="lineNum">     279 </span>            :    * \details The core Clenshaw recurrence is in the\f$l\f$ modes of the
+<span class="lineNum">     280 </span>            :    * spin-weighted spherical harmonic. For a set of modes \f$a_l^{(a,b)}\f$ at
+<span class="lineNum">     281 </span>            :    * fixed \f$m\f$, the function value is evaluated by the recurrence:
+<span class="lineNum">     282 </span>            :    *
+<span class="lineNum">     283 </span>            :    * \f{align*}{
+<span class="lineNum">     284 </span>            :    * y^{(a, b)}_{l_\text{max} + 2} &amp;= y^{(a, b)}_{l_\text{max} + 1} = 0 \\
+<span class="lineNum">     285 </span>            :    * y^{(a, b)}_{l}(\theta) &amp;= \alpha_{l + 1}^{(a, b)} y^{(a, b)}_{l +
+<span class="lineNum">     286 </span>            :    * 1}(\theta)
+<span class="lineNum">     287 </span>            :    * + \beta_{l + 2}^{(a,b)} y^{(a, b)}_{l + 2}(\theta) + a_l^{(a, b)} \\
+<span class="lineNum">     288 </span>            :    * f_m(\theta, \phi) &amp;= \beta_{l_{\text{min}} + 2}
+<span class="lineNum">     289 </span>            :    * {}_s Y_{l_{\text{min}}, m}(\theta, \phi) y^{(a, b)}_2(\theta) +
+<span class="lineNum">     290 </span>            :    * {}_s Y_{l_{\text{min}} + 1, m}(\theta, \phi) y^{(a, b)}_1(\theta) +
+<span class="lineNum">     291 </span>            :    * a_0^{(a, b)} {}_s Y_{l_{\text{min}}, m}(\theta, \phi)
+<span class="lineNum">     292 </span>            :    * \f}
+<span class="lineNum">     293 </span>            :    *
+<span class="lineNum">     294 </span>            :    * The recurrence in \f$l\f$ accomplishes much of the work, but for full
+<span class="lineNum">     295 </span>            :    * efficiency, we also recursively evaluate the lowest handful of \f$l\f$s for
+<span class="lineNum">     296 </span>            :    * each \f$m\f$. The details of those additional recurrence tricks can be
+<span class="lineNum">     297 </span>            :    * found in the documentation for `ClenshawRecurrenceConstants`.
+<span class="lineNum">     298 </span>            :    */
+<span class="lineNum">     299 </span>            :   template &lt;int Spin&gt;
+<span class="lineNum">     300 </span><span class="lineCov">          1 :   void interpolate(</span>
+<span class="lineNum">     301 </span>            :       gsl::not_null&lt;SpinWeighted&lt;ComplexDataVector, Spin&gt;*&gt; interpolated,
+<span class="lineNum">     302 </span>            :       const SpinWeighted&lt;ComplexDataVector, Spin&gt;&amp; libsharp_collocation) const
+<span class="lineNum">     303 </span>            :       noexcept;
+<span class="lineNum">     304 </span>            : 
+<span class="lineNum">     305 </span>            :   /// \brief Evaluate the SWSH function at the lowest \f$l\f$ value for a given
+<span class="lineNum">     306 </span>            :   /// \f$m\f$ at the target interpolation points.
+<span class="lineNum">     307 </span>            :   ///
+<span class="lineNum">     308 </span>            :   /// \details Included in the public interface for thorough testing, most use
+<span class="lineNum">     309 </span>            :   /// cases should just use the `SwshInterpolator::interpolate()` member
+<span class="lineNum">     310 </span>            :   /// function.
+<span class="lineNum">     311 </span>            :   template &lt;int Spin&gt;
+<span class="lineNum">     312 </span><span class="lineCov">          1 :   void direct_evaluation_swsh_at_l_min(</span>
+<span class="lineNum">     313 </span>            :       gsl::not_null&lt;SpinWeighted&lt;ComplexDataVector, Spin&gt;*&gt; harmonic,
+<span class="lineNum">     314 </span>            :       int m) const noexcept;
+<span class="lineNum">     315 </span>            : 
+<span class="lineNum">     316 </span>            :   /// \brief Evaluate the SWSH function at the next-to-lowest \f$l\f$ value for
+<span class="lineNum">     317 </span>            :   /// a given \f$m\f$ at the target interpolation points, given input harmonic
+<span class="lineNum">     318 </span>            :   /// values for the lowest \f$l\f$ value.
+<span class="lineNum">     319 </span>            :   ///
+<span class="lineNum">     320 </span>            :   /// \details Included in the public interface for thorough testing, most use
+<span class="lineNum">     321 </span>            :   /// cases should just use the `SwshInterpolator::interpolate()` member
+<span class="lineNum">     322 </span>            :   /// function.
+<span class="lineNum">     323 </span>            :   template &lt;int Spin&gt;
+<span class="lineNum">     324 </span><span class="lineCov">          1 :   void evaluate_swsh_at_l_min_plus_one(</span>
+<span class="lineNum">     325 </span>            :       gsl::not_null&lt;SpinWeighted&lt;ComplexDataVector, Spin&gt;*&gt; harmonic,
+<span class="lineNum">     326 </span>            :       const SpinWeighted&lt;ComplexDataVector, Spin&gt;&amp; harmonic_at_l_min,
+<span class="lineNum">     327 </span>            :       int m) const noexcept;
+<span class="lineNum">     328 </span>            : 
+<span class="lineNum">     329 </span>            :   /// \brief Evaluate the SWSH function at the lowest \f$l\f$ value for a given
+<span class="lineNum">     330 </span>            :   /// \f$m\f$ at the target interpolation points, given harmonic data at the
+<span class="lineNum">     331 </span>            :   /// next lower \f$m\f$ (by magnitude), passed in by the same pointer used for
+<span class="lineNum">     332 </span>            :   /// the return.
+<span class="lineNum">     333 </span>            :   ///
+<span class="lineNum">     334 </span>            :   /// \details Included in the public interface for thorough testing, most use
+<span class="lineNum">     335 </span>            :   /// cases should just use the `SwshInterpolator::interpolate()` member
+<span class="lineNum">     336 </span>            :   /// function.
+<span class="lineNum">     337 </span>            :   template &lt;int Spin&gt;
+<span class="lineNum">     338 </span><span class="lineCov">          1 :   void evaluate_swsh_m_recurrence_at_l_min(</span>
+<span class="lineNum">     339 </span>            :       gsl::not_null&lt;SpinWeighted&lt;ComplexDataVector, Spin&gt;*&gt; harmonic,
+<span class="lineNum">     340 </span>            :       int m) const noexcept;
+<span class="lineNum">     341 </span>            : 
+<span class="lineNum">     342 </span>            :   /// \brief Perform the core Clenshaw interpolation at fixed \f$m\f$,
+<span class="lineNum">     343 </span>            :   /// accumulating the result in `interpolation`.
+<span class="lineNum">     344 </span>            :   ///
+<span class="lineNum">     345 </span>            :   /// \details Included in the public interface for thorough testing, most use
+<span class="lineNum">     346 </span>            :   /// cases should just use the `interpolate` member function.
+<span class="lineNum">     347 </span>            :   template &lt;int Spin&gt;
+<span class="lineNum">     348 </span><span class="lineCov">          1 :   void clenshaw_sum(</span>
+<span class="lineNum">     349 </span>            :       gsl::not_null&lt;SpinWeighted&lt;ComplexDataVector, Spin&gt;*&gt; interpolation,
+<span class="lineNum">     350 </span>            :       const SpinWeighted&lt;ComplexDataVector, Spin&gt;&amp; l_min_harmonic,
+<span class="lineNum">     351 </span>            :       const SpinWeighted&lt;ComplexDataVector, Spin&gt;&amp; l_min_plus_one_harmonic,
+<span class="lineNum">     352 </span>            :       const SpinWeighted&lt;ComplexModalVector, Spin&gt;&amp; goldberg_modes, int m) const
+<span class="lineNum">     353 </span>            :       noexcept;
+<span class="lineNum">     354 </span>            : 
+<span class="lineNum">     355 </span>            :   /// Serialization for Charm++.
+<span class="lineNum">     356 </span><span class="lineCov">          1 :   void pup(PUP::er&amp; p) noexcept;  // NOLINT</span>
+<span class="lineNum">     357 </span>            : 
+<span class="lineNum">     358 </span>            :  private:
+<span class="lineNum">     359 </span><span class="lineNoCov">          0 :   size_t l_max_ = 0;</span>
+<span class="lineNum">     360 </span><span class="lineNoCov">          0 :   DataVector cos_theta_;</span>
+<span class="lineNum">     361 </span><span class="lineNoCov">          0 :   DataVector sin_theta_;</span>
+<span class="lineNum">     362 </span><span class="lineNoCov">          0 :   DataVector cos_theta_over_two_;</span>
+<span class="lineNum">     363 </span><span class="lineNoCov">          0 :   DataVector sin_theta_over_two_;</span>
+<span class="lineNum">     364 </span><span class="lineNoCov">          0 :   std::vector&lt;DataVector&gt; sin_m_phi_;</span>
+<span class="lineNum">     365 </span><span class="lineNoCov">          0 :   std::vector&lt;DataVector&gt; cos_m_phi_;</span>
+<span class="lineNum">     366 </span><span class="lineNoCov">          0 :   mutable ComplexModalVector raw_libsharp_coefficient_buffer_;</span>
+<span class="lineNum">     367 </span><span class="lineNoCov">          0 :   mutable ComplexModalVector raw_goldberg_coefficient_buffer_;</span>
+<span class="lineNum">     368 </span>            : };
+<span class="lineNum">     369 </span>            : }  // namespace Swsh
+<span class="lineNum">     370 </span>            : }  // namespace Spectral
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

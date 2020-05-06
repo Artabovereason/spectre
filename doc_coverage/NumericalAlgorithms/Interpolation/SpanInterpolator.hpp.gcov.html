@@ -1,0 +1,145 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - NumericalAlgorithms/Interpolation/SpanInterpolator.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">NumericalAlgorithms/Interpolation</a> - SpanInterpolator.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">5</td>
+            <td class="headerCovTableEntry">8</td>
+            <td class="headerCovTableEntryLo">62.5 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #pragma once
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;complex&gt;
+<span class="lineNum">       7 </span>            : #include &lt;cstddef&gt;
+<span class="lineNum">       8 </span>            : 
+<span class="lineNum">       9 </span>            : #include &quot;DataStructures/ComplexModalVector.hpp&quot;
+<span class="lineNum">      10 </span>            : #include &quot;DataStructures/DataVector.hpp&quot;
+<span class="lineNum">      11 </span>            : #include &quot;DataStructures/ModalVector.hpp&quot;
+<span class="lineNum">      12 </span>            : #include &quot;Options/Options.hpp&quot;
+<span class="lineNum">      13 </span>            : #include &quot;Parallel/CharmPupable.hpp&quot;
+<span class="lineNum">      14 </span>            : #include &quot;Utilities/Gsl.hpp&quot;
+<span class="lineNum">      15 </span>            : 
+<span class="lineNum">      16 </span>            : namespace intrp {
+<span class="lineNum">      17 </span>            : 
+<span class="lineNum">      18 </span>            : class LinearSpanInterpolator;
+<span class="lineNum">      19 </span>            : class CubicSpanInterpolator;
+<span class="lineNum">      20 </span>            : class BarycentricRationalSpanInterpolator;
+<span class="lineNum">      21 </span>            : 
+<span class="lineNum">      22 </span>            : /// \brief Base class for interpolators so that the factory options
+<span class="lineNum">      23 </span>            : /// mechanism can be used.
+<span class="lineNum">      24 </span>            : ///
+<span class="lineNum">      25 </span>            : /// \details The virtual functions in this class demand only that the real
+<span class="lineNum">      26 </span>            : /// `interpolate` function, `get_clone` function, and
+<span class="lineNum">      27 </span>            : /// `required_number_of_points_before_and_after` function be overridden in the
+<span class="lineNum">      28 </span>            : /// derived class. The `interpolate` for complex values can just be used from
+<span class="lineNum">      29 </span>            : /// this base class, which calls the real version for each component. If it is
+<span class="lineNum">      30 </span>            : /// possible to make a specialized complex version that avoids allocations, that
+<span class="lineNum">      31 </span>            : /// is probably more efficient.
+<span class="lineNum">      32 </span><span class="lineCov">          1 : class SpanInterpolator : public PUP::able {</span>
+<span class="lineNum">      33 </span>            :  public:
+<span class="lineNum">      34 </span><span class="lineNoCov">          0 :   using creatable_classes =</span>
+<span class="lineNum">      35 </span>            :       tmpl::list&lt;LinearSpanInterpolator, CubicSpanInterpolator,
+<span class="lineNum">      36 </span>            :                  BarycentricRationalSpanInterpolator&gt;;
+<span class="lineNum">      37 </span>            : 
+<span class="lineNum">      38 </span><span class="lineNoCov">          0 :   WRAPPED_PUPable_abstract(SpanInterpolator);  // NOLINT</span>
+<span class="lineNum">      39 </span>            : 
+<span class="lineNum">      40 </span>            :   /// Produce a `std::unique_ptr` that points to a copy of `*this``
+<span class="lineNum">      41 </span><span class="lineCov">          1 :   virtual std::unique_ptr&lt;SpanInterpolator&gt; get_clone() const noexcept = 0;</span>
+<span class="lineNum">      42 </span>            : 
+<span class="lineNum">      43 </span>            :   /// Perform the interpolation of function represented by `values` at
+<span class="lineNum">      44 </span>            :   /// `source_points` to the requested `target_point`, returning the
+<span class="lineNum">      45 </span>            :   /// interpolation result.
+<span class="lineNum">      46 </span><span class="lineCov">          1 :   virtual double interpolate(const gsl::span&lt;const double&gt;&amp; source_points,</span>
+<span class="lineNum">      47 </span>            :                              const gsl::span&lt;const double&gt;&amp; values,
+<span class="lineNum">      48 </span>            :                              double target_point) const noexcept = 0;
+<span class="lineNum">      49 </span>            : 
+<span class="lineNum">      50 </span>            :   /// Perform the interpolation of function represented by complex `values` at
+<span class="lineNum">      51 </span>            :   /// `source_points` to the requested `target_point`, returning the
+<span class="lineNum">      52 </span>            :   /// (complex) interpolation result.
+<span class="lineNum">      53 </span><span class="lineCov">          1 :   std::complex&lt;double&gt; interpolate(</span>
+<span class="lineNum">      54 </span>            :       const gsl::span&lt;const double&gt;&amp; source_points,
+<span class="lineNum">      55 </span>            :       const gsl::span&lt;const std::complex&lt;double&gt;&gt;&amp; values,
+<span class="lineNum">      56 </span>            :       double target_point) const noexcept;
+<span class="lineNum">      57 </span>            : 
+<span class="lineNum">      58 </span>            :   /// The number of domain points that should be both before and after the
+<span class="lineNum">      59 </span>            :   /// requested target point for best interpolation. For instance, for a linear
+<span class="lineNum">      60 </span>            :   /// interpolator, this function would return `1` to request that the target is
+<span class="lineNum">      61 </span>            :   /// between the two domain points passed to `source_points`.
+<span class="lineNum">      62 </span><span class="lineCov">          1 :   virtual size_t required_number_of_points_before_and_after() const</span>
+<span class="lineNum">      63 </span>            :       noexcept = 0;
+<span class="lineNum">      64 </span>            : };
+<span class="lineNum">      65 </span>            : }  // namespace intrp
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

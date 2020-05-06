@@ -1,0 +1,191 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 5cafbabf779d8986d44a5fc730ab24cde7fafd16 - DataStructures/DataBox/Tag.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">DataStructures/DataBox</a> - Tag.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/5cafbabf779d8986d44a5fc730ab24cde7fafd16">5cafbabf779d8986d44a5fc730ab24cde7fafd16</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">4</td>
+            <td class="headerCovTableEntry">5</td>
+            <td class="headerCovTableEntryMed">80.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-05-06 03:25:12</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span><span class="lineNoCov">          0 : // Distributed under the MIT License.</span>
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #pragma once
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : namespace db {
+<span class="lineNum">       7 </span>            : /*!
+<span class="lineNum">       8 </span>            :  * \ingroup DataBoxGroup
+<span class="lineNum">       9 </span>            :  * \brief Tags for the DataBox inherit from this type
+<span class="lineNum">      10 </span>            :  *
+<span class="lineNum">      11 </span>            :  * \details
+<span class="lineNum">      12 </span>            :  * Used to mark a type as being a SimpleTag so that it can be used in a
+<span class="lineNum">      13 </span>            :  * DataBox.
+<span class="lineNum">      14 </span>            :  *
+<span class="lineNum">      15 </span>            :  * \derivedrequires
+<span class="lineNum">      16 </span>            :  * - type alias `type` of the type this SimpleTag represents
+<span class="lineNum">      17 </span>            :  *
+<span class="lineNum">      18 </span>            :  * \example
+<span class="lineNum">      19 </span>            :  * \snippet Test_DataBox.cpp databox_tag_example
+<span class="lineNum">      20 </span>            :  *
+<span class="lineNum">      21 </span>            :  * \see DataBox PrefixTag tag_name
+<span class="lineNum">      22 </span>            :  */
+<span class="lineNum">      23 </span><span class="lineCov">          1 : struct SimpleTag {};</span>
+<span class="lineNum">      24 </span>            : 
+<span class="lineNum">      25 </span>            : /*!
+<span class="lineNum">      26 </span>            :  * \ingroup DataBoxGroup
+<span class="lineNum">      27 </span>            :  * \brief Tags that are base tags, i.e. a simple or compute tag must derive
+<span class="lineNum">      28 </span>            :  * off them for them to be useful
+<span class="lineNum">      29 </span>            :  *
+<span class="lineNum">      30 </span>            :  * Base tags do not need to contain type information, unlike simple
+<span class="lineNum">      31 </span>            :  * tags which must contain the type information. Base tags are designed so
+<span class="lineNum">      32 </span>            :  * that retrieving items from the DataBox or setting argument tags in compute
+<span class="lineNum">      33 </span>            :  * items can be done without any knowledge of the type of the item.
+<span class="lineNum">      34 </span>            :  *
+<span class="lineNum">      35 </span>            :  * To use the base mechanism the base tag must inherit off of
+<span class="lineNum">      36 </span>            :  * `BaseTag` and NOT `SimpleTag`. This is very important for the
+<span class="lineNum">      37 </span>            :  * implementation. Inheriting off both and not making the tag either a simple
+<span class="lineNum">      38 </span>            :  * item or compute item is undefined behavior and is likely to end in extremely
+<span class="lineNum">      39 </span>            :  * complicated compiler errors.
+<span class="lineNum">      40 </span>            :  */
+<span class="lineNum">      41 </span><span class="lineCov">          1 : struct BaseTag {};</span>
+<span class="lineNum">      42 </span>            : 
+<span class="lineNum">      43 </span>            : /*!
+<span class="lineNum">      44 </span>            :  * \ingroup DataBoxGroup
+<span class="lineNum">      45 </span>            :  * \brief Marks an item as being a prefix to another tag
+<span class="lineNum">      46 </span>            :  *
+<span class="lineNum">      47 </span>            :  * \details
+<span class="lineNum">      48 </span>            :  * Used to mark a type as being a DataBoxTag where the `label` is a prefix to
+<span class="lineNum">      49 </span>            :  * the DataBoxTag that is a member type alias `tag`. A prefix tag must contain a
+<span class="lineNum">      50 </span>            :  * type alias named `type` with the type of the Tag it is a prefix to, as well
+<span class="lineNum">      51 </span>            :  * as a type alias `tag` that is the type of the Tag that this prefix tag is
+<span class="lineNum">      52 </span>            :  * a prefix for. A prefix tag must also have a `label` equal to the name of
+<span class="lineNum">      53 </span>            :  * the struct (tag).
+<span class="lineNum">      54 </span>            :  *
+<span class="lineNum">      55 </span>            :  * \derivedrequires
+<span class="lineNum">      56 </span>            :  * - type alias `tag` of the DataBoxTag that this tag is a prefix to
+<span class="lineNum">      57 </span>            :  * - type alias `type` that is the type that this PrefixTag holds
+<span class="lineNum">      58 </span>            :  * - static `std::string name()` method that returns a runtime name for the tag.
+<span class="lineNum">      59 </span>            :  *
+<span class="lineNum">      60 </span>            :  * \example
+<span class="lineNum">      61 </span>            :  * A PrefixTag tag has the structure:
+<span class="lineNum">      62 </span>            :  * \snippet Test_DataBox.cpp databox_prefix_tag_example
+<span class="lineNum">      63 </span>            :  *
+<span class="lineNum">      64 </span>            :  * \see DataBox DataBoxTag tag_name ComputeTag
+<span class="lineNum">      65 </span>            :  */
+<span class="lineNum">      66 </span><span class="lineCov">          1 : struct PrefixTag {};</span>
+<span class="lineNum">      67 </span>            : 
+<span class="lineNum">      68 </span>            : /*!
+<span class="lineNum">      69 </span>            :  * \ingroup DataBoxGroup
+<span class="lineNum">      70 </span>            :  * \brief Marks a DataBoxTag as being a compute item that executes a function
+<span class="lineNum">      71 </span>            :  *
+<span class="lineNum">      72 </span>            :  * \details
+<span class="lineNum">      73 </span>            :  * Compute items come in two forms: mutating and non-mutating. Mutating
+<span class="lineNum">      74 </span>            :  * compute items modify a stored value in order to reduce the number of memory
+<span class="lineNum">      75 </span>            :  * allocations done. For example, if a function would return a `Variables` or
+<span class="lineNum">      76 </span>            :  * `Tensor&lt;DataVector...&gt;` and is called every time step, then it would be
+<span class="lineNum">      77 </span>            :  * preferable to use a mutating compute item so that the values in the already
+<span class="lineNum">      78 </span>            :  * allocated memory can just be changed.
+<span class="lineNum">      79 </span>            :  * In contrast, non-mutating compute items simply return the new value after a
+<span class="lineNum">      80 </span>            :  * call (if the value is out-of-date), which is fine for infrequently called
+<span class="lineNum">      81 </span>            :  * compute items or ones that do not allocate data on the heap.
+<span class="lineNum">      82 </span>            :  *
+<span class="lineNum">      83 </span>            :  * A compute item tag contains a member named `function` that is either a
+<span class="lineNum">      84 </span>            :  * function pointer, or a static constexpr function. The compute item tag
+<span class="lineNum">      85 </span>            :  * must also have a `label`, same as the DataBox tags, and a type alias
+<span class="lineNum">      86 </span>            :  * `argument_tags` that is a typelist of the tags that will
+<span class="lineNum">      87 </span>            :  * be retrieved from the DataBox and whose data will be passed to the function
+<span class="lineNum">      88 </span>            :  * (pointer). Mutating compute item tags must also contain a type alias named
+<span class="lineNum">      89 </span>            :  * `return_type` that is the type the function is mutating. The type must be
+<span class="lineNum">      90 </span>            :  * default constructible.
+<span class="lineNum">      91 </span>            :  *
+<span class="lineNum">      92 </span>            :  * \example
+<span class="lineNum">      93 </span>            :  * Most non-mutating compute item tags will look similar to:
+<span class="lineNum">      94 </span>            :  * \snippet Test_DataBox.cpp databox_compute_item_tag_example
+<span class="lineNum">      95 </span>            :  * Note that the arguments can be empty:
+<span class="lineNum">      96 </span>            :  * \snippet Test_DataBox.cpp compute_item_tag_no_tags
+<span class="lineNum">      97 </span>            :  *
+<span class="lineNum">      98 </span>            :  * Mutating compute item tags are of the form:
+<span class="lineNum">      99 </span>            :  * \snippet Test_DataBox.cpp databox_mutating_compute_item_tag
+<span class="lineNum">     100 </span>            :  * where the function is:
+<span class="lineNum">     101 </span>            :  * \snippet Test_DataBox.cpp databox_mutating_compute_item_function
+<span class="lineNum">     102 </span>            :  *
+<span class="lineNum">     103 </span>            :  * You can also have `function` be a function instead of a function pointer,
+<span class="lineNum">     104 </span>            :  * which offers a lot of simplicity for very simple compute items.
+<span class="lineNum">     105 </span>            :  * \snippet Test_DataBox.cpp compute_item_tag_function
+<span class="lineNum">     106 </span>            :  *
+<span class="lineNum">     107 </span>            :  * \see DataBox SimpleTag tag_name PrefixTag
+<span class="lineNum">     108 </span>            :  */
+<span class="lineNum">     109 </span><span class="lineCov">          1 : struct ComputeTag {};</span>
+<span class="lineNum">     110 </span>            : 
+<span class="lineNum">     111 </span>            : }  // namespace db
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>
